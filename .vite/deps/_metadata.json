@@ -1,0 +1,61 @@
+{
+  "hash": "769f8eac",
+  "configHash": "5e41507d",
+  "lockfileHash": "79bc0b27",
+  "browserHash": "e0d971ec",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "b8a09820",
+      "needsInterop": true
+    },
+    "react-dom": {
+      "src": "../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "ea13d60e",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "fbc0df7d",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "92ff5b39",
+      "needsInterop": true
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "6096b873",
+      "needsInterop": false
+    },
+    "motion/react": {
+      "src": "../../node_modules/motion/dist/es/react.mjs",
+      "file": "motion_react.js",
+      "fileHash": "3403c727",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "9f696638",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-6DV64YCZ": {
+      "file": "chunk-6DV64YCZ.js"
+    },
+    "chunk-46BS3ZDZ": {
+      "file": "chunk-46BS3ZDZ.js"
+    },
+    "chunk-QXQUWXKN": {
+      "file": "chunk-QXQUWXKN.js"
+    }
+  }
+}
