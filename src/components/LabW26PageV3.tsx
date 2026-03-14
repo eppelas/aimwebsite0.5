@@ -3,9 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Menu,
   ChevronRight,
-  User,
-  Zap,
-  MessageSquare,
   ChevronDown,
   X,
   ExternalLink
@@ -17,6 +14,18 @@ import {
 interface NavItem {
   label: string;
   href: string;
+}
+
+interface CaseCard {
+  title: string;
+  author: string;
+  role: string;
+  desc: string;
+  details: string;
+  tools: string;
+  metric: string;
+  artFrames: string[];
+  filters: string[];
 }
 
 // --- CONSTANTS ---
@@ -46,6 +55,161 @@ const PRIMARY_MENU_LINKS = [
   { label: 'Blog', href: 'https://aimindset.org/blog' },
   { label: '{For Teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
   { label: '{For Non-profit}', href: 'https://aimindset.org/' },
+];
+
+const CASE_FILTERS = [
+  { id: 'all', label: 'все' },
+  { id: 'non-tech', label: 'нетехнический' },
+  { id: 'manager', label: 'менеджер' },
+  { id: 'creative', label: 'креатор' },
+  { id: 'educator', label: 'преподаватель' },
+  { id: 'developer', label: 'разработчик' },
+];
+
+const CASE_ARTS = {
+  coaching: [
+    "[ SYS ]\n   /|\\\n  / | \\\n /  O  \\\n -----"
+  ],
+  vision: [
+    "{ V_EYE }\n +----+\n | () |\n +----+"
+  ],
+  learning: [
+    "< SYNC >\n .  .  .\n  * * *\n *  *  *"
+  ],
+  summary: [
+    "--- LOG ---\n [x] item\n [ ] todo\n -  -  -"
+  ],
+  knowledge: [
+    ">> DB_REQ\n  ::::\n  ::::"
+  ],
+  project: [
+    "+--/--/--+\n  /--/--/\n /--/--/"
+  ],
+  automation: [
+    "A -> B -> C\n  \\  |  /\n   \\ | /\n     v"
+  ],
+  research: [
+    "0.1.00.1\n.10..01.\n1..01..0"
+  ],
+  content: [
+    "A B C D E\n.F G H I.\n..J K L.."
+  ],
+  analytics: [
+    "    + \n   +++\n  +++++"
+  ]
+};
+
+const CASE_CARDS: CaseCard[] = [
+  {
+    title: 'AI COACHING',
+    author: 'Анна Л.',
+    role: 'Executive-коуч',
+    desc: 'Персональный AI-коуч',
+    details: 'Система поддержки решений и рефлексии с персонализированным контекстом.',
+    tools: 'Claude · Obsidian · Notion',
+    metric: '−35% хаоса в задачах',
+    artFrames: CASE_ARTS.coaching,
+    filters: ['non-tech']
+  },
+  {
+    title: 'AI VISION',
+    author: 'Виктория М.',
+    role: 'Арт-директор',
+    desc: 'Категоризация изображений',
+    details: 'Пайплайн разметки визуальных архивов с тегами и автоматической сортировкой.',
+    tools: 'GPT Vision · Claude',
+    metric: '3x быстрее сортировка',
+    artFrames: CASE_ARTS.vision,
+    filters: ['creative', 'non-tech']
+  },
+  {
+    title: 'AI LEARNING',
+    author: 'Ирина С.',
+    role: 'Преподаватель',
+    desc: 'Языковой партнер',
+    details: 'Адаптивная conversational-модель для тренировок и обратной связи.',
+    tools: 'GPT-4 · ElevenLabs',
+    metric: '+40% регулярность практики',
+    artFrames: CASE_ARTS.learning,
+    filters: ['educator', 'non-tech']
+  },
+  {
+    title: 'AI SUMMARY',
+    author: 'Михаил К.',
+    role: 'Product Manager',
+    desc: 'Суммаризация встреч',
+    details: 'Автоматические summary + action items + синхронизация задач.',
+    tools: 'Whisper · Gemini · Notion',
+    metric: '−60% ручной рутины',
+    artFrames: CASE_ARTS.summary,
+    filters: ['manager']
+  },
+  {
+    title: 'AI KNOWLEDGE',
+    author: 'Елена В.',
+    role: 'Аналитик',
+    desc: 'Чат с базой знаний',
+    details: 'RAG-слой над заметками и документами команды.',
+    tools: 'Obsidian · MCP · Claude API',
+    metric: '10x быстрее поиск ответа',
+    artFrames: CASE_ARTS.knowledge,
+    filters: ['developer']
+  },
+  {
+    title: 'AI PROJECT',
+    author: 'Дмитрий О.',
+    role: 'Project Manager',
+    desc: 'PM-ассистент',
+    details: 'Мониторинг прогресса с автостатусами и еженедельными брифингами.',
+    tools: 'Linear · Notion · n8n',
+    metric: '+25% предсказуемость сроков',
+    artFrames: CASE_ARTS.project,
+    filters: ['manager', 'non-tech']
+  },
+  {
+    title: 'AI AUTOMATION',
+    author: 'Олег Т.',
+    role: 'Operations Lead',
+    desc: 'Автоматизация воркфлоу',
+    details: 'Многошаговые сценарии: от входящего сигнала до обновления CRM и уведомлений.',
+    tools: 'n8n · Make · Claude',
+    metric: '12+ часов в неделю экономии',
+    artFrames: CASE_ARTS.automation,
+    filters: ['developer']
+  },
+  {
+    title: 'AI RESEARCH',
+    author: 'Василий П.',
+    role: 'Разработчик',
+    desc: 'Исследовательский ассистент',
+    details: 'Сбор и синтез материалов из разных источников в структуру для решений.',
+    tools: 'Perplexity · Elicit · GPT',
+    metric: '2 дня → 2 часа',
+    artFrames: CASE_ARTS.research,
+    filters: ['developer']
+  },
+  {
+    title: 'AI CONTENT',
+    author: 'Мария Д.',
+    role: 'Копирайтер',
+    desc: 'Генерация контента',
+    details: 'Контент-конвейер: идеи, сценарии, тексты, адаптация под каналы.',
+    tools: 'Claude · ChatGPT · Midjourney',
+    metric: '3x скорость публикаций',
+    artFrames: CASE_ARTS.content,
+    filters: ['creative', 'non-tech']
+  },
+  {
+    title: 'AI ANALYTICS',
+    author: 'Алексей Н.',
+    role: 'Data Scientist',
+    desc: 'Анализ данных',
+    details: 'Сводка метрик и пояснения на человеческом языке для команд.',
+    tools: 'Python · GPT · Sheets',
+    metric: '−50% времени на отчётность',
+    artFrames: CASE_ARTS.analytics,
+    filters: ['developer']
+  },
 ];
 
 const PROGRAM_TRACKS = [
@@ -134,6 +298,51 @@ const PHILOSOPHY_PILLARS = [
     title: 'ПЕРСОНАЛИЗАЦИЯ',
     description: 'углубляйтесь в то, что нужно именно вам через треки',
     art: 'trajectory' as const,
+  },
+];
+
+const TEAM_MEMBERS = [
+  {
+    name: 'Александр Поваляев',
+    role: 'Основатель AI Mindset, стратег',
+    description: 'Основатель проекта AI Mindset, стратег и эксперт по AI-интеграциям. 15+ лет соединяет технологии, бизнес и людей, создавая системы, которые работают на человека, а не наоборот. На лаборатории помогает увидеть большую картину и встроить AI в жизнь и работу осмысленно.',
+    image: '/assets/speakers/alexander-povalyaev.jpg',
+  },
+  {
+    name: 'Сергей Хабаров',
+    role: 'Системный архитектор',
+    description: 'Системный архитектор на стыке AI, образования и бизнес-процессов. 6+ лет в образовании, 500+ обученных специалистов. Бывший CTO и директор по развитию. Ведёт Context Engineering: как структурировать знания, чтобы AI работал с ними, а не терялся в хаосе файлов и заметок.',
+    image: '/assets/speakers/sergey-khabarov.jpg',
+  },
+  {
+    name: 'Степан Гершуни',
+    role: 'Технологический стратег',
+    description: 'Founder, построил Credentia, Deep Skills и Codex Town. Инвестор в венчурном фонде Cyber Fund, крипто- и ИИ-энтузиаст. Автор cybOS, о которой и расскажет на лаборатории на Advanced-треке.',
+    image: '/assets/speakers/stepan-gershuni.jpg',
+  },
+  {
+    name: 'Алексей Иванов',
+    role: 'Executive-коуч',
+    description: 'Executive-коуч для фаундеров и IT-лидеров. ICF PCC, ex-дизайн лид. После 15 лет в UX и продуктах делает то, что действительно даёт энергию и драйв. Ведёт advanced-трек AI-coaching.',
+    image: '/assets/speakers/alexey-ivanov.jpg',
+  },
+  {
+    name: 'Серёжа Рис',
+    role: 'AI-евангелист, ex Yandex',
+    description: 'AI-евангелист, ex Yandex. Билдер и фаундер в комьюнити вайбкодеров @vibecod3rs. Клод-код стример на YouTube. Ведёт advanced-трек vibe-coding.',
+    image: '/assets/speakers/serezha-ris.jpg',
+  },
+  {
+    name: 'Анна Ставенски',
+    role: 'Продуктовый архитектор',
+    description: 'Продуктовый архитектор. 10+ лет в управлении, технологических и креативных индустриях: продукт, визуал, роботы, тренажёры. PO в стартапах и визуальный сторителлер в жизни. Ведёт Life Engineering и помогает собрать изученные инструменты в единую систему.',
+    image: '/assets/speakers/anka-stavenski.jpg',
+  },
+  {
+    name: 'Анна Лозицкая',
+    role: 'Фаундер embraceme.app',
+    description: '12+ лет помогала стартапам расти с нуля до больших раундов. Фаундер embraceme.app. Исследует, как технологии помогают основателям. Ведёт Mind Engineering: как использовать AI для персональных ритуалов, рефлексии и трекинга целей.',
+    image: '/assets/speakers/anna-lozitskaya.jpg',
   },
 ];
 
@@ -226,7 +435,7 @@ const AsciiCardBorder = ({ children, className = "" }: { children: React.ReactNo
   </div>
 );
 
-const AsciiShuffler = ({ frames, interval = 1500 }: { frames: string[]; interval?: number }) => {
+const AsciiShuffler = ({ frames, interval = 150 }: { frames: string[]; interval?: number }) => {
   const [frameIdx, setFrameIdx] = useState(0);
 
   useEffect(() => {
@@ -238,9 +447,9 @@ const AsciiShuffler = ({ frames, interval = 1500 }: { frames: string[]; interval
   }, [frames.length, interval]);
 
   return (
-    <pre className="font-mono text-[10px] leading-[1.12] whitespace-pre text-center opacity-45 select-none">
+    <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre flex w-full items-center justify-center opacity-70 transition-opacity">
       {frames[frameIdx]}
-    </pre>
+    </div>
   );
 };
 
@@ -522,6 +731,34 @@ const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' 
   if (art === 'context') return <ProgramContextArt />;
   if (art === 'mind') return <ProgramMindArt />;
   return <ProgramLifeArt />;
+};
+
+const AsciiCaseArt = ({ frames, className = "" }: { frames: string[]; className?: string }) => {
+  const frame = frames[0];
+
+  return (
+    <div className={`font-mono text-[7px] leading-[1.2] whitespace-pre bg-transparent font-light ${className}`}>
+      {frame.split('\n').map((line, lineIdx) => (
+        <div key={lineIdx} className="leading-[1.2]">
+          {line.split('').map((char, charIdx) => {
+            const isHighlight = /[a-zA-Z0-9*()<>[\]{}_!#+]/.test(char);
+            return (
+              <span
+                key={charIdx}
+                className={
+                  isHighlight
+                    ? "text-[#8DC63F] group-hover:text-white transition-colors duration-300"
+                    : "opacity-40 group-hover:opacity-80 transition-opacity duration-300"
+                }
+              >
+                {char}
+              </span>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
 };
 
 
@@ -849,44 +1086,6 @@ const ProgramScheduleGrid = () => {
 // --- MAIN PAGE ---
 
 
-const feedbackData = [
-    {
-      name: "Сергей Петров",
-      role: "Unix developer, 20+ лет опыта",
-      text: "После лабы я понял: это не просто инструменты, а новый способ мышления. Я офигел, когда Cursor сам нашел решение проблемы, которую я не знал как решить.",
-      tags: ["TECH", "DEV"],
-      image: "https://picsum.photos/seed/sergey/200/200"
-    },
-    {
-      name: "Екатерина Грачева",
-      role: "HR-коммуникации, Avito",
-      text: "Я боялась, что это слишком сложно для нетехнического человека. Но через 3 недели я уже создавала агентов и автоматизации. Теперь веду трек по AI для 700+ коллег.",
-      tags: ["NON-TECH", "HR"],
-      image: "https://picsum.photos/seed/katya/200/200"
-    },
-    {
-      name: "Антон Мормышев",
-      role: "Музыкант",
-      text: "После первой лекции по вайб-кодингу я не мог уснуть до 6 утра. Побежал делать. Это было мощно. AI стал моим соавтором, а не просто инструментом.",
-      tags: ["CREATIVE", "MUSIC"],
-      image: "https://picsum.photos/seed/anton/200/200"
-    },
-    {
-      name: "Александра Гусева",
-      role: "L&D, Avito",
-      text: "Я на 30% начала думать AI-first в работе. Качественно изменилась подготовка обучающих материалов.",
-      tags: ["L&D", "EDUCATION"],
-      image: "https://picsum.photos/seed/sasha/200/200"
-    },
-    {
-      name: "Роман Максимов",
-      role: "Product Manager",
-      text: "У меня исчезло ощущение страха перед первым шагом в куче инструментов. Теперь гораздо проще зайти в любой инструмент.",
-      tags: ["PRODUCT", "PM"],
-      image: "https://picsum.photos/seed/roman/200/200"
-    }
-  ];
-
   const pricingPlans = [
     {
       name: 'MAIN LAB',
@@ -894,53 +1093,56 @@ const feedbackData = [
       tag: 'BASE',
       features: [
         '4 live-воркшопа + 4 коворкинга',
-        'Закрытый чат участников',
-        'Трек prompt → context → mind → life',
-        'Демо-день и портфолио кейсов',
-        'Доступ к библиотеке материалов'
+        'закрытый чат участников',
+        'трек prompt → context → mind → life',
+        'демо-день и портфолио кейсов',
       ],
       desc: 'базовый формат для самостоятельной работы',
       more: [
         'Формат: 4 недели, online',
-        'Подходит non-tech и advanced users',
-        'Старт: 19 января, финал: 16 февраля'
+        'подходит non-tech и advanced users',
+        'доступ к библиотеке материалов',
+        'возврат после первой недели — без вопросов',
       ]
     },
     {
       name: 'ADVANCED',
       price: '890',
       tag: '+4 ТРЕКА',
+      tagHref: '#tracks',
       highlight: true,
       features: [
-        'Всё из MAIN LAB (полный доступ)',
-        '4 advanced трека: coaching · agents · vibe coding · creative',
-        'Приоритетные Buddy slots',
-        'Еженедельные закрытые разборы',
-        'Приоритетная обратная связь'
+        'всё из MAIN LAB',
+        '4 advanced трека',
+        'priority buddy slots',
+        'еженедельные закрытые разборы',
       ],
       desc: 'для тех, кто строит полный ai-стек',
       more: [
-        'Углубление в треки и личные кейсы',
-        'Больше поддержки и обратной связи',
-        'Лучший выбор для системного внедрения'
+        'AI coaching · AI agents · vibe-coding · AI creative',
+        'углубление в личные кейсы и доменные задачи',
+        'приоритетная обратная связь',
+        'лучший выбор для системного внедрения',
       ]
     },
     {
       name: 'PREMIUM',
       price: '1490',
-      tag: 'LIMITED',
+      tag: 'СВОЙ МАРШРУТ',
       features: [
-        'Всё из ADVANCED',
-        'Индивидуальный план обучения',
-        'Две сессии 1:1 со стратегами',
-        'Аудит процессов и подбор экосистемы',
-        'Персональный канал и priority support'
+        'всё из ADVANCED',
+        'индивидуальный маршрут',
+        'сессии 1:1',
+        'аудит процессов',
+        'priority support',
       ],
       desc: 'индивидуальный маршрут внедрения',
       more: [
-        'Персональная стратегия под ваш контекст',
-        'Точечная поддержка до результата',
-        'Фокус на реальные бизнес-задачи'
+        'персональная стратегия под ваш контекст',
+        'две сессии 1:1 со стратегами',
+        'аудит процессов и подбор экосистемы',
+        'персональный канал и точечная поддержка',
+        'фокус на реальные бизнес-задачи',
       ]
     },
   ];
@@ -950,10 +1152,11 @@ export default function LabW26PageV3() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showAllFeedback, setShowAllFeedback] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [isMobile, setIsMobile] = useState(false);
-  const [flippedPricing, setFlippedPricing] = useState<Record<string, boolean>>({});
+  const [pricingDetailsOpen, setPricingDetailsOpen] = useState(false);
+  const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
+  const [activeCaseFilter, setActiveCaseFilter] = useState('all');
   const labsCloseTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -980,13 +1183,6 @@ export default function LabW26PageV3() {
     };
   }, []);
 
-  
-  const visibleFeedback = showAllFeedback
-    ? feedbackData
-    : isMobile
-      ? feedbackData.slice(0, 2)
-      : feedbackData;
-
   // Theme colors
   const colors = {
     winter: {
@@ -1004,6 +1200,11 @@ export default function LabW26PageV3() {
       grid: 'opacity-[0.05]'
     }
   }[theme];
+
+  const visibleCases = CASE_CARDS.filter((card) => {
+    if (activeCaseFilter === 'all') return true;
+    return card.filters.includes(activeCaseFilter);
+  });
 
   const scrollTo = (id: string) => {
     const el = document.querySelector(id);
@@ -1180,12 +1381,12 @@ export default function LabW26PageV3() {
         </header>
 
         {/* Header Ticker */}
-        <header className={`fixed top-16 md:top-0 right-0 w-full md:w-[80%] h-12 bg-white border-b border-black/10 flex items-center px-10 z-[250] overflow-hidden whitespace-nowrap transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none -translate-y-4'}`}>
-            <div className="text-[10px] text-black font-mono uppercase tracking-[0.2em] flex items-center gap-8 animate-marquee">
-               <span>AI MINDSET LAB W26</span> <span className="opacity-40">.</span> <span>BATCH: WINTER 26</span> <span className="opacity-40">.</span> <span>APPLICATIONS: CLOSE</span> <span className="opacity-40">.</span> <span>NEXT BATCH: 20 APRIL</span> <span className="opacity-40">.</span>
-               <span>AI MINDSET LAB W26</span> <span className="opacity-40">.</span> <span>BATCH: WINTER 26</span> <span className="opacity-40">.</span> <span>APPLICATIONS: CLOSE</span> <span className="opacity-40">.</span> <span>NEXT BATCH: 20 APRIL</span> <span className="opacity-40">.</span>
-            </div>
-        </header>
+        <div
+          className="fixed top-0 left-0 w-full z-[260] border-b border-current/10 py-1 overflow-hidden whitespace-nowrap text-[8px] uppercase tracking-[0.3em] opacity-40 select-none"
+          style={{ backgroundColor: colors.bg, color: colors.text }}
+        >
+          AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL . AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL .
+        </div>
 
         {/* Hero Section */}
         <section id="hero" className="min-h-screen flex items-center pt-32 pb-12">
@@ -1260,20 +1461,22 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <section className="py-24 md:py-28 overflow-hidden">
+            <section className="py-20 md:py-32 overflow-hidden">
               <Container>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-14 md:gap-10 xl:gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8">
                   {PHILOSOPHY_PILLARS.map((item) => (
-                    <div key={item.title} className="flex flex-col items-start">
-                      <div className="w-full flex justify-center mb-10 md:mb-12 min-h-[96px]">
+                    <div key={item.title} className="bg-white/10 h-full min-h-[200px] flex flex-col p-6 lg:p-8">
+                      <div className="flex-1 flex items-center justify-center py-6 -translate-x-3 md:-translate-x-2">
                         <PhilosophyPillarArt art={item.art} />
                       </div>
-                      <h3 className="text-2xl md:text-[2rem] font-black uppercase tracking-[-0.03em] leading-[0.95] mb-6 max-w-[12ch]">
+                      <div className="mt-auto flex flex-col gap-3">
+                        <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text">
                         {item.title}
-                      </h3>
-                      <p className="text-[10px] md:text-xs uppercase tracking-[0.18em] leading-[1.8] opacity-45 max-w-[26ch]">
+                        </h3>
+                        <p className="text-[9px] leading-relaxed opacity-60 uppercase tracking-widest">
                         {item.description}
-                      </p>
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1379,6 +1582,7 @@ export default function LabW26PageV3() {
                 key={track.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
+                whileHover="hover"
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.4, delay: idx * 0.06 }}
               >
@@ -1386,12 +1590,21 @@ export default function LabW26PageV3() {
                   <AsciiCardBorder className={`group min-h-[250px] md:min-h-[290px] transition-all duration-500 ${colors.card}`}>
                     <div className="flex h-full flex-col justify-between gap-6">
                       <div className="flex justify-between items-start">
-                        <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase">{track.week}</div>
+                        <div className="text-[10px] font-bold opacity-40 uppercase">{track.week}</div>
                       </div>
 
-                      <div className="flex flex-col gap-3">
-                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight">{track.title}</h3>
-                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{track.speaker}</div>
+                      <div className="flex flex-col gap-3 min-h-[6.25rem] md:min-h-[7rem]">
+                        <motion.h3
+                          variants={{
+                            hover: { color: '#8DC63F' },
+                          }}
+                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em]"
+                        >
+                          {track.title}
+                        </motion.h3>
+                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest min-h-[1.2rem]">
+                          {track.speaker}
+                        </div>
                       </div>
 
                       <p className="text-sm leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
@@ -1410,30 +1623,73 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="cases" className="py-20 md:py-32 bg-[#332b2b]/5">
         <Container>
-          <SectionLabel text="CASES" />
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4">что создают участники?</h2>
-            <p className="text-xs opacity-40 uppercase tracking-[0.5em]">real artifacts // real impact</p>
+          <EditorialSectionHeader eyebrow="Cases" title="Собранная система" className="mb-16" />
+          <div className="mb-16 max-w-3xl">
+            <p className="text-lg md:text-xl font-medium leading-relaxed mb-4">
+              Что создают участники за 4 недели?
+            </p>
+            <p className="text-sm md:text-base opacity-70 leading-relaxed">
+              не учебные примеры, а агенты, workflows, ассистенты и продукты, которые реально работают.
+            </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {[
-              { title: 'AI COACHING', tools: 'Claude, Vapi, Obsidian' },
-              { title: 'AI VISION', tools: 'GPT Vision, Claude' },
-              { title: 'AI LEARNING', tools: 'GPT-4, ElevenLabs' },
-              { title: 'AI SUMMARY', tools: 'Zoom, Gemini, Whisper' },
-              { title: 'AI KNOWLEDGE', tools: 'Obsidian, Claude API' },
-              { title: 'AI PROJECT', tools: 'Linear, Notion' },
-              { title: 'AI AUTOMATION', tools: 'n8n, Make, Claude' },
-              { title: 'AI RESEARCH', tools: 'Perplexity, Elicit' },
-              { title: 'AI CONTENT', tools: 'GPT-4, Midjourney' },
-              { title: 'AI ANALYTICS', tools: 'Python, GPT-4, Plotly' },
-            ].map((c, i) => (
-              <div key={i} className="border border-[#332b2b]/10 p-4 flex flex-col justify-between bg-white/20 hover:bg-white transition-colors">
-                <div className="text-[10px] font-bold uppercase mb-2">{c.title}</div>
-                <div className="text-[8px] opacity-40 uppercase">{c.tools}</div>
-              </div>
+          <div className="mb-3 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
+            created by
+          </div>
+
+          <div className="mb-10 flex flex-wrap gap-2 md:gap-3">
+            {CASE_FILTERS.map((filter) => {
+              const isActive = activeCaseFilter === filter.id;
+              return (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => setActiveCaseFilter(filter.id)}
+                  className={`px-3 py-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-colors rounded-sm text-left leading-[1.15] ${
+                    isActive
+                      ? 'bg-black text-white'
+                      : 'border border-black/10 bg-white/60 text-black/55 hover:bg-[#8DC63F] hover:border-[#8DC63F] hover:text-black'
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-12 md:px-12">
+            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[15rem] md:auto-cols-[16rem]">
+            {visibleCases.map((card, i) => (
+              <button
+                key={`${card.title}-${i}`}
+                type="button"
+                onClick={() => setActiveCase(card)}
+                className="min-h-[152px] bg-black/5 p-5 text-left transition-colors duration-300 group border border-black/10 hover:bg-[#8DC63F] hover:text-white flex flex-col justify-between"
+              >
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center transition-transform duration-500 group-hover:scale-105 group-hover:rotate-3">
+                    <AsciiCaseArt frames={card.artFrames} className="text-current" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[9px] font-bold uppercase tracking-[0.1em] opacity-80 group-hover:text-white group-hover:opacity-100">
+                      {card.author}
+                    </div>
+                    <div className="text-[8px] uppercase tracking-[0.05em] opacity-40 group-hover:opacity-80">
+                      {card.role}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-1 text-[11px] font-bold uppercase tracking-widest leading-tight">
+                    {card.title}
+                  </h4>
+                  <p className="text-[9px] leading-relaxed opacity-70 group-hover:opacity-90 line-clamp-2">
+                    {card.desc}
+                  </p>
+                </div>
+              </button>
             ))}
+            </div>
           </div>
         </Container>
       </section>
@@ -1442,52 +1698,35 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="team" className="py-20 md:py-32">
         <Container>
-          <SectionLabel text="WHO WE ARE" />
+          <EditorialSectionHeader eyebrow="lab team" title="Спикеры" className="mb-16" />
+          <div className="mb-16 max-w-3xl">
+            <p className="text-sm md:text-base opacity-70 leading-relaxed">
+              ниже — проводники, которые будут рядом на всём протяжении лаборатории.
+            </p>
+          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-            {[
-              {
-                name: 'Александр Поваляев',
-                role: 'Основатель AI Mindset, стратег',
-                desc: '15+ лет соединяет технологии, бизнес и людей. Верит в «экосистемное мышление».',
-                tg: 'alex_named_ai'
-              },
-              {
-                name: 'Сергей Хабаров',
-                role: 'Системный архитектор',
-                desc: '6+ лет в образовании, 500+ обученных специалистов. Ведет Context Engineering.',
-                tg: 'alliknowisthatidontknownothing'
-              },
-              {
-                name: 'Степан Гершуни',
-                role: 'Founder, тех-стратег',
-                desc: 'Построил Credentia, Deep Skills. Автор cybOS. Инвестор в Cyber Fund.',
-                tg: 'cryptoEssay'
-              },
-              {
-                name: 'Алексей Иванов',
-                role: 'Executive-коуч',
-                desc: 'ICF PCC, ex-дизайн лид. Помогает фаундерам и IT-лидерам находить энергию.',
-                tg: 'ponchiknews'
-              },
-              {
-                name: 'Серёжа Рис',
-                role: 'AI-евангелист, ex Yandex',
-                desc: 'Билдер в @vibecod3rs. Клод-код стример. Ведёт vibe-coding.',
-                tg: 'ris_ai'
-              },
-              {
-                name: 'Анка Ставенски',
-                role: 'Продуктовый архитектор',
-                desc: '10+ лет в управлении. PO в стартапах и визуальный сторителлер.',
-                tg: 'anca_log'
-              },
-            ].map((member, i) => (
-              <div key={i} className="flex flex-col gap-4">
-                <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 flex items-center justify-center relative group overflow-hidden">
-                  <User size={64} className="opacity-10 group-hover:scale-110 transition-transform" />
-                  <div className="absolute inset-0 bg-[#332b2b] text-[#f9f9f7] p-8 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center">
-                    <p className="text-xs uppercase leading-relaxed">{member.desc}</p>
-                    <a href={`https://t.me/${member.tg}`} target="_blank" rel="noreferrer" className="mt-4 text-[10px] font-bold underline">TELEGRAM</a>
+            {TEAM_MEMBERS.map((member, i) => (
+              <div
+                key={i}
+                className={`flex flex-col gap-4 ${
+                  i === TEAM_MEMBERS.length - 1
+                    ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
+                    : ''
+                }`}
+              >
+                <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative group overflow-hidden">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/96" />
+                  <div className="absolute inset-0 text-[#f9f9f7] p-7 md:p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-center">
+                    <p className="text-[13px] md:text-sm leading-[1.65] font-medium text-white/95">
+                      {member.description}
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -1500,67 +1739,21 @@ export default function LabW26PageV3() {
         </Container>
       </section>
 
-      {/* Feedback Section */}
-      <SlashDivider />
-      <section id="feedback" className="py-20 md:py-32 bg-[#332b2b]/5 relative">
-        <Container>
-          <SectionLabel text="FEEDBACK" />
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4">ЧТО ГОВОРЯТ О НАС</h2>
-            <p className="text-xs opacity-40 uppercase tracking-[0.5em]">real humans // real context</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {visibleFeedback.map((f, i) => (
-              <SymbolBorder key={i} className={`h-full group ${colors.card}`}>
-                <div className="p-8 flex flex-col h-full">
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-current/20">
-                      <img src={f.image} alt={f.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    </div>
-                    <MessageSquare size={16} className="opacity-20" />
-                  </div>
-                  <p className="text-sm md:text-base leading-relaxed opacity-80 italic mb-6 flex-grow">«{f.text}»</p>
-                  <div className="pt-6 border-t border-current/10">
-                    <div className="font-bold uppercase text-sm mb-1">{f.name}</div>
-                    <div className="text-[10px] opacity-40 uppercase tracking-widest mb-4">{f.role}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {f.tags.map(t => <span key={t} className="text-[9px] font-bold border border-current/10 px-2 py-0.5 rounded-full opacity-40">{t}</span>)}
-                    </div>
-                  </div>
-                </div>
-              </SymbolBorder>
-            ))}
-          </div>
-
-          {!showAllFeedback && isMobile && (
-            <div className="mt-12 text-center">
-              <button
-                onClick={() => setShowAllFeedback(true)}
-                className="inline-flex items-center gap-2 text-sm font-bold uppercase hover:line-through"
-              >
-                ПОКАЗАТЬ ЕЩЕ <ChevronDown size={16} />
-              </button>
-            </div>
-          )}
-        </Container>
-      </section>
-
       {/* Schedule Section */}
-      <ProgramScheduleGrid />
+      {false && <ProgramScheduleGrid />}
 
       {/* Pricing Section */}
       <SlashDivider />
       <section id="pricing" className="py-20 md:py-32">
         <Container>
-          <SectionLabel text="PRICE" />
-          <div className="mb-16 text-center max-w-2xl mx-auto">
-            <p className="text-sm opacity-60 uppercase leading-relaxed">
+          <EditorialSectionHeader eyebrow="Тарифы" title="Форматы участия" className="mb-16" />
+          <div className="mb-16 max-w-3xl">
+            <p className="text-sm md:text-base opacity-70 leading-relaxed">
               скидки: Alumni (-20%), Bring a Friend (-10% каждому). возврат после первой недели — без вопросов. возможна оплата в рублях.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={plan.name}
@@ -1569,184 +1762,209 @@ export default function LabW26PageV3() {
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
               >
-                <SymbolBorder
-                  variant={plan.highlight ? "heavy" : "default"}
-                  className={`flex flex-col h-full transition-all duration-500 ${plan.highlight ? 'shadow-[12px_12px_0px_0px_rgba(51,43,43,1)]' : ''}`}
-                >
+                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-8 md:p-10 flex flex-col">
+                  <div className="flex items-start justify-between gap-4 mb-8">
+                    {plan.tagHref ? (
+                      <a
+                        href={plan.tagHref}
+                        className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors"
+                      >
+                        {plan.tag}
+                      </a>
+                    ) : (
+                      <div className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em]">
+                        {plan.tag}
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-6">
+                    {plan.name}
+                  </h3>
+
+                  <div className="flex items-end gap-2 mb-10">
+                    <span className="text-6xl md:text-7xl font-black tracking-tighter leading-none">€{plan.price}</span>
+                  </div>
+
+                  <div className="space-y-4 mb-8">
+                    {plan.features.map((feature) => (
+                      <div key={feature} className="flex items-start gap-3 text-[15px] md:text-[16px] leading-[1.38] text-black/72">
+                        <span className="mt-[0.32rem] h-2 w-2 rounded-full bg-black" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="text-[15px] leading-[1.45] text-black/68 mb-6">
+                    {plan.desc}
+                  </div>
+
+                  <AnimatePresence initial={false}>
+                    {pricingDetailsOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: 'easeOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="border-t border-black/10 pt-6 mb-8 space-y-3">
+                          {plan.more.map((item) => (
+                            <p key={item} className="text-[15px] leading-[1.5] text-black/82">
+                              {item}
+                            </p>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <button
                     type="button"
-                    onClick={() => isMobile && setFlippedPricing((prev) => ({ ...prev, [plan.name]: !prev[plan.name] }))}
-                    className="w-full text-left p-8 md:p-12 flex flex-col h-full"
+                    aria-label="Показать подробности тарифов"
+                    onClick={() => setPricingDetailsOpen((prev) => !prev)}
+                    className="mt-auto mb-6 flex w-full items-center justify-center text-black/40 hover:text-black transition-colors"
                   >
-                    <motion.div
-                      animate={{ rotateY: isMobile && flippedPricing[plan.name] ? 180 : 0 }}
-                      transition={{ duration: 0.45 }}
-                      style={{ transformStyle: 'preserve-3d' }}
-                      className="relative flex flex-col h-full"
-                    >
-                      <div style={{ backfaceVisibility: 'hidden' }} className={isMobile && flippedPricing[plan.name] ? 'opacity-0 h-0 overflow-hidden' : ''}>
-                        <div className="flex justify-between items-start mb-8">
-                          <div className="text-[10px] font-bold border border-current px-2 py-0.5 uppercase">{plan.tag}</div>
-                          {plan.highlight && <Zap size={20} />}
-                        </div>
-
-                        <h3 className="text-3xl font-black uppercase tracking-tighter mb-2">{plan.name}</h3>
-                        <div className="flex items-baseline gap-2 mb-8">
-                          <span className="text-5xl md:text-6xl font-black tracking-tighter">€{plan.price}</span>
-                          <span className="text-xs opacity-40 uppercase">/ batch</span>
-                        </div>
-
-                        <div className="flex-grow space-y-4 mb-12">
-                          {plan.features.map((f, i) => (
-                            <div key={i} className="flex items-start gap-2 text-xs uppercase leading-tight">
-                              <span className="opacity-40">--</span> {f}
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="text-[10px] opacity-40 uppercase mb-8 italic">{plan.desc}</div>
-
-                        <a
-                          href="https://join.aimindset.org/context"
-                          className={`w-full py-4 text-center font-black uppercase text-sm border-2 border-[#332b2b] transition-all ${plan.highlight ? 'bg-[#332b2b] text-[#f9f9f7]' : 'hover:bg-[#332b2b] hover:text-[#f9f9f7]'}`}
-                        >
-                          ВЫБРАТЬ {plan.name.split(' ')[0]}
-                        </a>
-                      </div>
-                      {isMobile && flippedPricing[plan.name] && (
-                        <div className="space-y-4" style={{ backfaceVisibility: 'hidden' }}>
-                          <div className="text-xs uppercase opacity-60 tracking-[0.12em]">доп. информация</div>
-                          {plan.more.map((m) => (
-                            <div key={m} className="flex items-start gap-2 text-xs uppercase leading-tight">
-                              <span className="opacity-50">+</span> {m}
-                            </div>
-                          ))}
-                          <div className="text-[10px] opacity-60 uppercase pt-2">нажмите карточку снова, чтобы вернуть тариф</div>
-                        </div>
-                      )}
-                    </motion.div>
+                    <ChevronDown
+                      size={24}
+                      className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
+                    />
                   </button>
-                </SymbolBorder>
+
+                  <a
+                    href="https://join.aimindset.org/context"
+                    className="w-full bg-[#8DC63F] p-6 text-center text-[10px] font-black uppercase tracking-widest text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
+                  >
+                    Выбрать
+                  </a>
+                </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Team Plan (Redesigned) */}
-          <div className="mt-12">
-            <SymbolBorder variant="dots" className={`p-8 md:p-16 relative overflow-hidden ${theme === 'winter' ? 'bg-[#332b2b] text-[#f9f9f7]' : 'bg-[#2b3d2b] text-[#f2f9f2]'}`}>
-              <div className="absolute top-0 right-0 p-8 opacity-10 text-[10px] select-none">
-                <pre>{`
-                [ TEAM_SYNC ]
-                1. AUDIT
-                2. SETUP
-                3. SCALE
-                `}</pre>
+          <motion.a
+            href="https://aimindset.org/ai-mindset-consulting"
+            target="_blank"
+            rel="noreferrer"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.35, delay: 0.16 }}
+            className="mt-8 md:mt-10 flex w-full md:w-[58%] items-center justify-between gap-6 border border-black/10 bg-white/35 px-6 py-5 md:px-8 md:py-6 hover:bg-white/70 transition-colors rounded-sm"
+          >
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 min-w-0">
+              <div className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">
+                Для компаний
+              </div>
+              <div className="hidden md:block h-2.5 w-2.5 rounded-full bg-[#8DC63F]/60 shrink-0" />
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] text-black/40">
+                персональные планы
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center justify-center text-black/70">
+              <ChevronRight size={22} />
+            </div>
+          </motion.a>
+
+          <section className="pt-20 md:pt-24 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,720px)] lg:justify-between items-center gap-10 lg:gap-16 min-h-[260px]">
+              <div className="flex items-center justify-center">
+                <pre className="font-mono text-[#8DC63F] text-[16px] md:text-[22px] leading-[1.04] opacity-90 select-none">
+{`  /\\  /\\
+ /  \\/  \\
+/\\  /\\  /\\
+  \\/  \\/
+ /\\      /\\
+/  \\    /  \\`}
+                </pre>
               </div>
 
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-12 relative z-10">
-                <div className="max-w-2xl">
-                  <div className="text-[10px] font-bold border border-current/30 px-3 py-1 uppercase inline-block mb-6 tracking-[0.2em]">FOR TEAMS // CORPORATE</div>
-                  <h3 className="text-4xl md:text-7xl font-black uppercase tracking-tighter mb-6 leading-none">TEAM <br /> PREMIUM</h3>
-                  <p className="text-sm md:text-lg opacity-70 uppercase leading-relaxed mb-8">
-                    несколько человек из компании вместе проходят Main Lab. работают над реальными задачами бизнеса c нашей поддержкой.
-                  </p>
-                  <div className="grid grid-cols-2 gap-6 text-[10px] font-bold opacity-50 uppercase tracking-widest">
-                    <div>-- 2+ стратсессии</div>
-                    <div>-- tech set-up</div>
-                    <div>-- прогресс-отчёты</div>
-                    <div>-- post-lab поддержка</div>
-                  </div>
-                </div>
-
-                <div className="w-full lg:w-auto flex flex-col items-center lg:items-end">
-                  <div className="text-5xl md:text-8xl font-black tracking-tighter mb-2">€3,500+</div>
-                  <div className="text-[10px] opacity-40 uppercase mb-8 tracking-widest">от 3 человек</div>
-                  <a
-                    href="https://aimindset.org/ai-mindset-consulting"
-                    className="w-full lg:w-auto bg-current text-white px-12 py-6 font-black uppercase text-sm hover:scale-105 transition-transform text-center"
-                    style={{ color: theme === 'winter' ? '#332b2b' : '#2b3d2b', backgroundColor: theme === 'winter' ? '#f9f9f7' : '#f2f9f2' }}
-                  >
-                    УЗНАТЬ БОЛЬШЕ
-                  </a>
-                </div>
+              <div className="w-full max-w-[560px] lg:ml-auto text-right">
+                <p className="text-[22px] sm:text-[28px] md:text-[34px] lg:text-[40px] xl:text-[44px] font-black tracking-[-0.035em] leading-[1.02]">
+                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности.
+                </p>
               </div>
-            </SymbolBorder>
-          </div>
+            </div>
+          </section>
         </Container>
       </section>
 
       {/* Application Form Section */}
-      <SlashDivider />
-      <section id="apply" className="py-20 md:py-32 bg-black text-white relative overflow-hidden">
-        <Container>
-          <div className="mb-16">
-            <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4">ЗАЯВКА</h2>
-            <p className="text-xs opacity-40 uppercase tracking-[0.5em]">ПРОСТАЯ ФОРМА · ОТПРАВИТЬ ЗАЯВКУ</p>
-          </div>
-
-          <div className="max-w-3xl">
-            <form className="grid gap-px bg-white/10 border border-white/10">
-              <div className="bg-black p-6">
-                <label className="block text-[10px] opacity-40 uppercase mb-2">ИМЯ</label>
-                <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="ВАШЕ ИМЯ" />
-              </div>
-              <div className="bg-black p-6">
-                <label className="block text-[10px] opacity-40 uppercase mb-2">EMAIL</label>
-                <input type="email" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="EMAIL@EXAMPLE.COM" />
-              </div>
-              <div className="bg-black p-6">
-                <label className="block text-[10px] opacity-40 uppercase mb-2">ТЕЛЕГРАМ НИК</label>
-                <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="@USERNAME" />
-              </div>
-              <div className="grid md:grid-cols-2 gap-px">
-                <div className="bg-black p-6">
-                  <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ТРЕК</label>
-                  <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
-                    <option>AI COACHING</option>
-                    <option>AI AGENTS</option>
-                    <option>VIBE-CODING</option>
-                    <option>AI CREATIVE</option>
-                  </select>
-                </div>
-                <div className="bg-black p-6">
-                  <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ПЛАН</label>
-                  <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
-                    <option>MAIN LAB (BASE)</option>
-                    <option>ADVANCED (+4 TRACKS)</option>
-                    <option>PREMIUM (LIMITED)</option>
-                  </select>
-                </div>
-              </div>
-              <div className="bg-black p-6">
-                <label className="block text-[10px] opacity-40 uppercase mb-2">КРАТКО О СЕБЕ / МОТИВАЦИЯ</label>
-                <textarea className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase placeholder:opacity-20 min-h-[120px] resize-none" placeholder="ПОЧЕМУ ВЫ ХОТИТЕ НА ЛАБОРАТОРИЮ?"></textarea>
+      {false && (
+        <>
+          <SlashDivider />
+          <section id="apply" className="py-20 md:py-32 bg-black text-white relative overflow-hidden">
+            <Container>
+              <div className="mb-16">
+                <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4">ЗАЯВКА</h2>
+                <p className="text-xs opacity-40 uppercase tracking-[0.5em]">ПРОСТАЯ ФОРМА · ОТПРАВИТЬ ЗАЯВКУ</p>
               </div>
 
-              <div className="relative">
-                <div className="absolute bottom-full left-0 bg-white/10 px-4 py-2 text-[8px] uppercase tracking-widest border-t border-r border-white/10">
-                  AIM STYLE // 54 . 01
-                </div>
-                <button className="w-full bg-[#88b04b] text-black py-8 font-black uppercase text-xl hover:bg-[#97c456] transition-colors">
-                  ОТПРАВИТЬ ЗАЯВКУ
-                </button>
+              <div className="max-w-3xl">
+                <form className="grid gap-px bg-white/10 border border-white/10">
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">ИМЯ</label>
+                    <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="ВАШЕ ИМЯ" />
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">EMAIL</label>
+                    <input type="email" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="EMAIL@EXAMPLE.COM" />
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">ТЕЛЕГРАМ НИК</label>
+                    <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="@USERNAME" />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-px">
+                    <div className="bg-black p-6">
+                      <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ТРЕК</label>
+                      <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
+                        <option>AI COACHING</option>
+                        <option>AI AGENTS</option>
+                        <option>VIBE-CODING</option>
+                        <option>AI CREATIVE</option>
+                      </select>
+                    </div>
+                    <div className="bg-black p-6">
+                      <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ПЛАН</label>
+                      <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
+                        <option>MAIN LAB (BASE)</option>
+                        <option>ADVANCED (+4 TRACKS)</option>
+                        <option>PREMIUM (LIMITED)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">КРАТКО О СЕБЕ / МОТИВАЦИЯ</label>
+                    <textarea className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase placeholder:opacity-20 min-h-[120px] resize-none" placeholder="ПОЧЕМУ ВЫ ХОТИТЕ НА ЛАБОРАТОРИЮ?"></textarea>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute bottom-full left-0 bg-white/10 px-4 py-2 text-[8px] uppercase tracking-widest border-t border-r border-white/10">
+                      AIM STYLE // 54 . 01
+                    </div>
+                    <button className="w-full bg-[#88b04b] text-black py-8 font-black uppercase text-xl hover:bg-[#97c456] transition-colors">
+                      ОТПРАВИТЬ ЗАЯВКУ
+                    </button>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </Container>
-      </section>
+            </Container>
+          </section>
+        </>
+      )}
 
       {/* Footer */}
-      <footer className="py-24 relative overflow-hidden bg-[#3b3531] text-[#f9f9f7]">
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden mix-blend-overlay opacity-5">
-          <div className="text-[clamp(100px,30vw,400px)] font-black leading-none uppercase select-none text-black">MINDSET</div>
+      <footer className="py-24 relative overflow-hidden bg-black text-white">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.04]">
+          <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
+            AI MINDSET
+          </div>
         </div>
         <Container className="relative z-10">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-24">
             <div className="lg:col-span-2">
-              <div className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">AI MINDSET LAB 26</div>
-              <p className="text-xs opacity-40 uppercase leading-relaxed max-w-md">
-                лаборатория нового мышления в эпоху AI. мы помогаем построить свою AI-систему, изменить паттерны работы и трансформировать мышление.
-              </p>
+              <div className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">AI MINDSET</div>
             </div>
 
             <div>
@@ -1754,7 +1972,6 @@ export default function LabW26PageV3() {
               <div className="flex flex-col gap-2 text-xs uppercase">
                 <a href="https://www.youtube.com/@A-I-Mindset" className="hover:line-through">ПОДКАСТ</a>
                 <a href="https://t.me/ai_mind_set" className="hover:line-through">TELEGRAM КАНАЛ</a>
-                <a href="https://t.me/alex_named" className="hover:line-through">ОСНОВАТЕЛЬ</a>
               </div>
             </div>
 
@@ -1763,7 +1980,6 @@ export default function LabW26PageV3() {
               <div className="flex flex-col gap-2 text-xs uppercase">
                 <a href="#" className="hover:line-through">ОФЕРТА</a>
                 <a href="#" className="hover:line-through">ПОЛИТИКА</a>
-                <a href="#" className="hover:line-through">FAQ</a>
               </div>
             </div>
           </div>
@@ -1775,8 +1991,67 @@ export default function LabW26PageV3() {
             </div>
           </div>
         </Container>
-
       </footer>
+      <AnimatePresence>
+        {activeCase && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/80 p-4 backdrop-blur-md md:items-center"
+            onClick={() => setActiveCase(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="w-full max-w-2xl border border-black/20 bg-white p-6 text-black shadow-2xl md:p-8"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">CASE SUMMARY</div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
+                  <p className="mt-2 text-sm opacity-70 md:text-base">{activeCase.desc}</p>
+                </div>
+                <button
+                  type="button"
+                  className="border border-black/20 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest transition-colors hover:bg-black hover:text-white"
+                  onClick={() => setActiveCase(null)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="mb-6 flex flex-col gap-6 border border-black/10 bg-[#8DC63F]/10 p-5 md:flex-row md:p-6">
+                <div className="flex shrink-0 items-center justify-center border border-[#8DC63F]/30 bg-white p-4">
+                  <AsciiCaseArt frames={activeCase.artFrames} className="origin-center scale-150 transform text-[#8DC63F]" />
+                </div>
+                <div className="space-y-4">
+                  <p className="text-xs leading-relaxed md:text-sm">{activeCase.details}</p>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-60">
+                    Tools: <span className="text-[#8DC63F] opacity-100">{activeCase.tools}</span>
+                  </div>
+                  <div className="inline-block border border-[#8DC63F] bg-[#8DC63F] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white">
+                    {activeCase.metric}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveCase(null)}
+                  className="w-full border border-black bg-black px-6 py-3 text-[10px] font-bold uppercase tracking-widest text-white transition-colors hover:border-[#8DC63F] hover:bg-[#8DC63F] md:w-auto"
+                >
+                  Back to cases
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
          </div>
       </main>
 
