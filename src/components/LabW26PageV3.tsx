@@ -48,6 +48,95 @@ const PRIMARY_MENU_LINKS = [
   { label: '{For Non-profit}', href: 'https://aimindset.org/' },
 ];
 
+const PROGRAM_TRACKS = [
+  {
+    id: '01',
+    week: 'WEEK 1',
+    title: 'Prompt Engineering',
+    shortDescription: 'AI КАК ИНТЕРФЕЙС МЫШЛЕНИЯ',
+    longDescription: 'Освоение техник промптов: Chain-of-Thought, Few-Shot Learning, Custom GPTs. Создание первых персональных ассистентов.',
+    art: 'prompt' as const,
+  },
+  {
+    id: '02',
+    week: 'WEEK 2',
+    title: 'Context Engineering',
+    shortDescription: 'АВТОМАТИЗАЦИЯ И АГЕНТЫ',
+    longDescription: 'Управление контекстом: Obsidian + MCP + Claude. Автоматизация через n8n, Make. AI-агенты и workflows.',
+    art: 'context' as const,
+  },
+  {
+    id: '03',
+    week: 'WEEK 3',
+    title: 'Mind Engineering',
+    shortDescription: 'ПРОДУКТИВНОСТЬ И РИТУАЛЫ',
+    longDescription: 'AI для коучинга, рефлексии, персональных ритуалов. Трекинг привычек и целей с поддержкой AI.',
+    art: 'mind' as const,
+  },
+  {
+    id: '04',
+    week: 'WEEK 4',
+    title: 'Life Engineering',
+    shortDescription: 'ТВОРЧЕСТВО И РЕАЛИЗАЦИЯ',
+    longDescription: 'От идеи до прототипа. Vibe-coding с Cursor, Windsurf, Claude Projects. Создание без технического бэкграунда.',
+    art: 'life' as const,
+  },
+];
+
+const ADVANCED_TRACKS = [
+  {
+    id: 'T1',
+    week: 'WEEK 1',
+    title: 'AI Coaching',
+    description: 'Для тех, кто выгорел и ищет баланс. AI для коучинга, рефлексии, персональных ритуалов.',
+    speaker: 'Александр Поваляев',
+  },
+  {
+    id: 'T2',
+    week: 'WEEK 2',
+    title: 'AI Agents',
+    description: 'Автономные AI-системы. Проектирование и запуск AI-агентов, которые работают автономно.',
+    speaker: 'Сергей Хабаров',
+  },
+  {
+    id: 'T3',
+    week: 'WEEK 3',
+    title: 'Vibe-Coding',
+    description: 'Творческое программирование. От идеи до прототипа за часы без технического бэкграунда.',
+    speaker: 'Анна Лозицкая',
+  },
+  {
+    id: 'T4',
+    week: 'WEEK 4',
+    title: 'AI Creative',
+    description: 'Для музыкантов, художников и креативщиков. Генерация музыки, визуального контента.',
+    speaker: 'Анка Ставенски',
+  },
+];
+
+const PHILOSOPHY_PILLARS = [
+  {
+    title: 'МЫШЛЕНИЕ > ИНСТРУМЕНТЫ',
+    description: 'технологии меняются, а новый способ мышления остаётся с вами',
+    art: 'foundation' as const,
+  },
+  {
+    title: 'ПРАКТИКА',
+    description: 'каждая неделя это эксперимент с реальными задачами и артефактами',
+    art: 'action' as const,
+  },
+  {
+    title: 'СООБЩЕСТВО',
+    description: 'вы учитесь не только у экспертов, но и друг у друга',
+    art: 'synergy' as const,
+  },
+  {
+    title: 'ПЕРСОНАЛИЗАЦИЯ',
+    description: 'углубляйтесь в то, что нужно именно вам через треки',
+    art: 'trajectory' as const,
+  },
+];
+
 const AI_MINDSET_LOGO_MAP = [
   "00000000001111101111110000000000",
   "00000001111111101111111110000000",
@@ -113,12 +202,327 @@ const LargeDiamondArt = ({ className = "" }: { className?: string }) => (
   </pre>
 );
 
+const EditorialSectionHeader = ({ eyebrow, title, className = "" }: { eyebrow: string; title: string; className?: string }) => (
+  <div className={`flex items-end gap-6 md:gap-8 ${className}`}>
+    <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 shrink-0">{eyebrow}</div>
+    <div className="h-px flex-1 bg-black/10 mb-[0.28rem]" />
+    <div className="font-black uppercase tracking-widest text-xl md:text-2xl text-right">{title}</div>
+  </div>
+);
+
+const AsciiCardBorder = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`relative h-full ${className}`}>
+    <div className="pointer-events-none absolute left-2 right-2 top-0 overflow-hidden whitespace-nowrap font-mono text-[9px] leading-none opacity-30 select-none">
+      {"+ - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - +"}
+    </div>
+    <div className="pointer-events-none absolute bottom-0 left-2 right-2 overflow-hidden whitespace-nowrap font-mono text-[9px] leading-none opacity-30 select-none">
+      {"+ - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - +"}
+    </div>
+    <div className="pointer-events-none absolute left-0 top-3 bottom-3 whitespace-pre font-mono text-[9px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
+    <div className="pointer-events-none absolute right-0 top-3 bottom-3 whitespace-pre font-mono text-[9px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
+    <div className="relative h-full bg-white/35 px-6 py-6 md:px-7 md:py-7">
+      {children}
+    </div>
+  </div>
+);
+
+const AsciiShuffler = ({ frames, interval = 1500 }: { frames: string[]; interval?: number }) => {
+  const [frameIdx, setFrameIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFrameIdx((idx) => (idx + 1) % frames.length);
+    }, interval);
+
+    return () => clearInterval(timer);
+  }, [frames.length, interval]);
+
+  return (
+    <pre className="font-mono text-[10px] leading-[1.12] whitespace-pre text-center opacity-45 select-none">
+      {frames[frameIdx]}
+    </pre>
+  );
+};
+
+const philosophyFoundationFrames = [
+  `
+    [ BASE ]
+   |      |
+  |        |
+ /==========\\
+   < 0x01 >
+  `,
+  `
+    [ BASE ]
+   |......|
+  |........|
+ /==========\\
+   < 0x0A >
+  `,
+  `
+    [ BASE ]
+   |XXXXXX|
+  |XXXXXXXX|
+ /==========\\
+   < 0x0F >
+  `,
+];
+
+const philosophyActionFrames = [
+  `
+ [==========]
+ > EXE: 10%
+ |#         |
+ [==========]
+  `,
+  `
+ [==========]
+ > EXE: 50%
+ |#####     |
+ [==========]
+  `,
+  `
+ [==========]
+ > EXE: 99%
+ |######### |
+ [==========]
+  `,
+];
+
+const philosophySynergyFrames = [
+  `
+  O       O
+   \\     /
+    O---O
+   /     \\
+  O       O
+  `,
+  `
+  *---O   O
+   \\ /   /
+    *---O
+   /     \\
+  O       O
+  `,
+  `
+  *---*---*
+   \\ / \\ /
+    *---*
+   / \\ / \\
+  *---*---*
+  `,
+];
+
+const philosophyTrajectoryFrames = [
+  `
+   [ TARGET ]
+    X: 000
+    Y: 000
+      ||
+      \\/
+  `,
+  `
+   [ TARGET ]
+    X: 255
+    Y: 128
+      ||
+      \\/
+  `,
+  `
+   [ TARGET ]
+    X: FFF
+    Y: FFF
+      ||
+      \\/
+  `,
+];
+
+const PhilosophyFoundationArt = () => <AsciiShuffler frames={philosophyFoundationFrames} interval={1500} />;
+const PhilosophyActionArt = () => <AsciiShuffler frames={philosophyActionFrames} interval={1000} />;
+const PhilosophySynergyArt = () => <AsciiShuffler frames={philosophySynergyFrames} interval={2500} />;
+const PhilosophyTrajectoryArt = () => <AsciiShuffler frames={philosophyTrajectoryFrames} interval={900} />;
+
+const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy' | 'trajectory' }) => {
+  if (art === 'foundation') return <PhilosophyFoundationArt />;
+  if (art === 'action') return <PhilosophyActionArt />;
+  if (art === 'synergy') return <PhilosophySynergyArt />;
+  return <PhilosophyTrajectoryArt />;
+};
+
 const MenuStrikeText = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <span className={`relative inline-flex items-center ${className}`}>
     <span>{children}</span>
     <span className="pointer-events-none absolute left-0 top-1/2 h-px w-full -translate-y-1/2 scale-x-0 bg-current origin-left transition-transform duration-200 ease-out group-hover:scale-x-100 group-focus-visible:scale-x-100" />
   </span>
 );
+
+const ProgramPromptArt = () => {
+  const codeLines = [
+    '> EXECUTE_ROOT_DIRECTIVE()',
+    '  Initializing semantic parser...',
+    '  [████████--] 80%',
+    '> GENERATE_WORLD_MODEL();',
+    '  > Context: HIGH',
+    '  < SYSTEM READY >',
+  ];
+
+  return (
+    <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center">
+      <motion.div
+        animate={{ opacity: [0.45, 0.9, 0.45], y: [0, -3, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        className="text-left"
+      >
+{`   [=== SYNTAX CORE ===]
+    \\                 /
+     \\   { SYSTEM }  /
+      \\             / 
+       \\           /  
+        \\ ------- /   
+         |       |    
+         | INPUT |    
+         |-------|    
+        /         \\   
+       /  OUTPUT   \\  
+      /             \\ 
+     /               \\
+    [=================]`}
+      </motion.div>
+      <div className="mt-4 text-left w-full max-w-[200px] overflow-hidden">
+        {codeLines.map((line, i) => (
+          <motion.div
+            key={line}
+            animate={{ opacity: [0.15, 0.65, 0.15], x: [0, 2, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: i * 0.45 }}
+          >
+            {line}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ProgramContextArt = () => (
+  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center relative overflow-hidden">
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+      className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-15"
+    >
+{`        .  .  .  .  .  
+      .               .
+    .                   .
+   .                     .
+  .                       .
+  .                       .
+   .                     .
+    .                   .
+      .               .
+        .  .  .  .  .`}
+    </motion.div>
+
+    <div className="relative z-10 flex gap-4">
+      {['N8N', 'MCP', 'LLM'].map((label, idx) => (
+        <motion.div
+          key={label}
+          animate={{ y: [0, idx % 2 === 0 ? -8 : 8, 0] }}
+          transition={{ duration: 6 + idx, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.7 }}
+        >
+{`   [ ]
+  [   ]
+ [ ${label} ]
+  [   ]
+   [ ]`}
+        </motion.div>
+      ))}
+    </div>
+
+    <motion.div
+      className="mt-8"
+      animate={{ opacity: [0.25, 0.75, 0.25], letterSpacing: ['0.08em', '0.16em', '0.08em'] }}
+      transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+    >
+      {'<-- [ DATA_STREAM_ACTIVE ] -->'}
+    </motion.div>
+  </div>
+);
+
+const ProgramMindArt = () => (
+  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex items-center justify-center">
+    <div className="relative">
+      <motion.div
+        animate={{ scale: [1, 1.03, 1], opacity: [0.55, 0.95, 0.55] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      >
+{`            ____
+         .-'    '-.
+        /          \\
+       |    O  O    |
+       |     \\/     |  
+        \\   ====   /
+         '-.____.-'
+            |  |
+           /    \\
+          |      |`}
+      </motion.div>
+      <motion.div
+        className="absolute inset-0 flex items-center justify-center"
+        animate={{ opacity: [0, 0.35, 0], scale: [0.98, 1.04, 0.98] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
+      >
+{`            ____
+         .-'++++'-.
+        /++++++++++\\
+       |++++++++++++|
+       |++++++++++++|  
+        \\++++++++++/
+         '-.____.-'
+            |  |
+           /    \\
+          |      |`}
+      </motion.div>
+    </div>
+  </div>
+);
+
+const ProgramLifeArt = () => (
+  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col items-center justify-center">
+    <div className="flex w-full px-8 justify-between">
+      {[
+        { label: 'VIBE', heights: ['28px', '88px', '56px', '96px', '62px'], delay: 0 },
+        { label: 'CODE', heights: ['72px', '112px', '86px', '52px', '102px'], delay: 0.8 },
+        { label: 'IDEA', heights: ['44px', '30px', '104px', '68px', '84px'], delay: 1.6 },
+        { label: 'SHIP', heights: ['98px', '70px', '38px', '92px', '120px'], delay: 0.4 },
+      ].map((bar) => (
+        <motion.div
+          key={bar.label}
+          initial={{ height: bar.heights[0] }}
+          animate={{ height: bar.heights }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: bar.delay }}
+          className="w-4 border-x border-t border-black bg-black/10 flex items-end justify-center overflow-hidden"
+        >
+          <span className="text-[6px] rotate-90 pb-2">{bar.label}</span>
+        </motion.div>
+      ))}
+    </div>
+    <div className="mt-8 pt-4 border-t border-dashed w-full text-center">
+      <motion.div
+        animate={{ opacity: [0.35, 0.9, 0.35] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {'> DEPLOY_TO_PRODUCTION_'}
+      </motion.div>
+    </div>
+  </div>
+);
+
+const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' }) => {
+  if (art === 'prompt') return <ProgramPromptArt />;
+  if (art === 'context') return <ProgramContextArt />;
+  if (art === 'mind') return <ProgramMindArt />;
+  return <ProgramLifeArt />;
+};
 
 
 
@@ -813,7 +1217,7 @@ export default function LabW26PageV3() {
         </section>
 
          <div className="md:ml-[20%] md:w-[80%] w-full">
-            <section className="py-20 md:py-32 relative bg-black/[0.03] border-y border-black/10">
+            <section className="py-20 md:py-32 relative bg-black/[0.03]">
               <Container>
                 <div className="flex flex-col items-center gap-6 mb-24 md:mb-32">
                   <div className="text-[10px] md:text-xs tracking-[0.4em] opacity-40 uppercase font-bold mb-4 border-b border-black/10 pb-4 w-full text-center">
@@ -856,12 +1260,29 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <section id="philosophy" className="py-24 md:py-32 border-b border-black/10 overflow-hidden">
+            <section className="py-24 md:py-28 overflow-hidden">
               <Container>
-                <div className="flex items-center justify-between mb-24">
-                  <div className="text-[10px] font-bold uppercase tracking-widest opacity-40">ТОЧКА СБОРКИ</div>
-                  <div className="font-black uppercase tracking-widest text-xl md:text-2xl text-right">Философия</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-14 md:gap-10 xl:gap-12">
+                  {PHILOSOPHY_PILLARS.map((item) => (
+                    <div key={item.title} className="flex flex-col items-start">
+                      <div className="w-full flex justify-center mb-10 md:mb-12 min-h-[96px]">
+                        <PhilosophyPillarArt art={item.art} />
+                      </div>
+                      <h3 className="text-2xl md:text-[2rem] font-black uppercase tracking-[-0.03em] leading-[0.95] mb-6 max-w-[12ch]">
+                        {item.title}
+                      </h3>
+                      <p className="text-[10px] md:text-xs uppercase tracking-[0.18em] leading-[1.8] opacity-45 max-w-[26ch]">
+                        {item.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
+              </Container>
+            </section>
+
+            <section id="philosophy" className="py-24 md:py-32 overflow-hidden">
+              <Container>
+                <EditorialSectionHeader eyebrow="ТОЧКА СБОРКИ" title="Философия" className="mb-24" />
                 <div className="grid md:grid-cols-2 gap-16 md:gap-8 items-center">
                   <div>
                     <h2 className="text-3xl md:text-5xl leading-tight mb-12">
@@ -881,107 +1302,60 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-<section id="program" className="py-20 md:py-32 bg-[#332b2b]/5 relative">
+<section id="program" className="pt-24 md:pt-32 pb-24 md:pb-32 overflow-hidden">
         <Container>
-          <SectionLabel text="AI LAB (MAIN)" />
+          <EditorialSectionHeader eyebrow="КОНТУР LAB" title="Инженерный цикл" className="mb-24" />
 
           <div className="mb-16 text-center">
             <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tighter mb-4">19 января – 16 февраля • 4 недели</h2>
             <p className="max-w-3xl mx-auto text-sm opacity-60 uppercase">
               не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта.
             </p>
-            <div className="mt-8 text-xl md:text-3xl font-black opacity-20 tracking-[0.2em]">
-              prompt {`>>`} context {`>>`} mind {`>>`} life {`{engineering}`}
-            </div>
           </div>
 
-          <div className="grid gap-8">
-            {[
-              {
-                id: '01',
-                title: 'Prompt Engineering',
-                subtitle: 'AI КАК ИНТЕРФЕЙС МЫШЛЕНИЯ',
-                desc: 'Освоение техник промптов: Chain-of-Thought, Few-Shot Learning, Custom GPTs. Создание первых персональных ассистентов.',
-                result: 'персональный GPT-ассистент, библиотека промптов (20+), понимание основ AI',
-                tools: ['ChatGPT', 'Claude', 'Custom GPTs', 'Gemini', 'Perplexity'],
-                speaker: 'Александр Поваляев',
-                week: '19–25 JAN'
-              },
-              {
-                id: '02',
-                title: 'Context Engineering',
-                subtitle: 'АВТОМАТИЗАЦИЯ И АГЕНТЫ',
-                desc: 'Управление контекстом: Obsidian + MCP + Claude. Автоматизация через n8n, Make. AI-агенты и workflows.',
-                result: '2–3 работающие автоматизации, интегрированная система знаний, настройка агентов',
-                tools: ['Obsidian', 'MCP', 'n8n', 'Make', 'Claude Projects'],
-                speaker: 'Сергей Хабаров',
-                week: '26 JAN – 1 FEB'
-              },
-              {
-                id: '03',
-                title: 'Mind Engineering',
-                subtitle: 'ПРОДУКТИВНОСТЬ И РИТУАЛЫ',
-                desc: 'AI для коучинга, рефлексии, персональных ритуалов. Трекинг привычек и целей с поддержкой AI.',
-                result: 'персональный AI-коуч, система трекинга привычек, ритуалы рефлексии',
-                tools: ['Claude', 'Notion', 'Obsidian', 'Taskade', 'Custom GPTs'],
-                speaker: 'Анна Лозицкая',
-                week: '2–8 FEB'
-              },
-              {
-                id: '04',
-                title: 'Life Engineering',
-                subtitle: 'ТВОРЧЕСТВО И РЕАЛИЗАЦИЯ',
-                desc: 'От идеи до прототипа. Vibe-coding с Cursor, Windsurf, Claude Projects. Создание без технического бэкграунда.',
-                result: 'рабочий прототип, задеплоенный проект, vibe-coding workflow',
-                tools: ['Cursor', 'Windsurf', 'Claude Projects', 'V0', 'Replit'],
-                speaker: 'Анка Ставенски',
-                week: '9–15 FEB'
-              },
-            ].map((item, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 border-l border-t border-black/10 bg-white/30">
+            {PROGRAM_TRACKS.map((item, idx) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.35, delay: idx * 0.05 }}
+                transition={{ duration: 0.45, delay: idx * 0.06 }}
               >
-                <SymbolBorder className={`p-6 md:p-12 group hover:bg-current hover:text-white transition-all duration-500 ${colors.card}`}>
-                  <div className="flex flex-col md:flex-row justify-between gap-6 md:gap-8">
-                    <div className="flex-grow">
-                      <div className="flex items-start md:items-center gap-4 mb-4">
-                        <div className="text-3xl md:text-5xl font-black opacity-20 group-hover:opacity-100 shrink-0">[{item.id}]</div>
-                        <div className="flex flex-col md:block">
-                          <div className="text-[10px] font-bold tracking-widest opacity-40 group-hover:opacity-100 uppercase mb-1 md:mb-0">{item.week}</div>
-                          <h3 className="text-xl md:text-4xl font-black uppercase tracking-tighter leading-tight">{item.title}</h3>
-                        </div>
-                      </div>
-                      <div className="text-[10px] md:text-sm font-bold opacity-60 group-hover:opacity-100 mb-6 uppercase tracking-widest">{item.subtitle}</div>
-                      <p className="text-xs md:text-base leading-relaxed mb-8 opacity-80 group-hover:opacity-100">{item.desc}</p>
-
-                      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                        <div>
-                          <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase mb-2">РЕЗУЛЬТАТ:</div>
-                          <div className="text-[10px] md:text-xs uppercase leading-relaxed">{item.result}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase mb-2">ИНСТРУМЕНТЫ:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {item.tools.map(t => <span key={t} className="text-[9px] border border-current px-2 py-0.5 rounded-full">{t}</span>)}
-                          </div>
-                        </div>
-                      </div>
+                <div className="relative group overflow-hidden h-full min-h-[360px] md:min-h-[420px] border-r border-b border-black/10 bg-white/40">
+                  <div className="relative z-10 flex h-full flex-col p-6 md:p-8 transition-opacity duration-500 md:group-hover:opacity-0">
+                    <div className="flex items-start justify-between gap-4 mb-6">
+                      <div className="text-[10px] font-bold tracking-widest opacity-40 uppercase">{item.week}</div>
+                      <div className="text-[10px] font-bold opacity-20 uppercase">{item.id}</div>
                     </div>
-                    <div className="flex md:flex-col items-center md:justify-center text-left md:text-center border-t md:border-t-0 md:border-l border-current/10 pt-6 md:pt-0 md:pl-8 md:w-48">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-current/10 mb-0 md:mb-4 mr-4 md:mr-0 flex items-center justify-center shrink-0">
-                        <User size={24} />
+
+                    <div className="w-full h-32 md:h-36 mb-8 flex items-center justify-center opacity-45">
+                      <ProgramTrackArt art={item.art} />
+                    </div>
+
+                    <div className="mt-auto flex flex-col gap-3">
+                      <h3 className="text-xl lg:text-2xl font-black uppercase tracking-tighter leading-tight">
+                        {item.title}
+                      </h3>
+                      <div className="text-[9px] md:text-[10px] leading-relaxed opacity-60 uppercase tracking-widest">
+                        {item.shortDescription}
                       </div>
-                      <div>
-                        <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase mb-1">СПИКЕР:</div>
-                        <div className="text-xs font-bold uppercase">{item.speaker}</div>
-                      </div>
+                      <p className="md:hidden text-sm font-medium leading-relaxed opacity-85 pt-4 border-t border-black/10">
+                        {item.longDescription}
+                      </p>
                     </div>
                   </div>
-                </SymbolBorder>
+
+                  <div className="hidden md:flex absolute inset-0 z-20 bg-[#8DC63F] text-white p-5 md:p-6 opacity-0 transition-opacity duration-500 group-hover:opacity-100 flex-col">
+                    <div className="flex items-start justify-between gap-4 mb-6">
+                      <div className="text-[10px] font-bold tracking-widest opacity-60 uppercase">{item.week}</div>
+                      <div className="text-[10px] font-bold opacity-40 uppercase">{item.id}</div>
+                    </div>
+                    <p className="text-[15px] lg:text-[17px] font-bold uppercase leading-[1.6] tracking-[0.01em] opacity-100 max-w-none pr-2">
+                      {item.longDescription}
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -990,80 +1364,42 @@ export default function LabW26PageV3() {
 
       {/* Tracks Section */}
       <SlashDivider />
-      <section id="tracks" className="py-20 md:py-32 relative">
+      <section id="tracks" className="py-24 md:py-32 overflow-hidden">
         <Container>
-          <SectionLabel text="TRACKS (ADVANCED)" />
+          <EditorialSectionHeader eyebrow="ДОПОЛНИТЕЛЬНАЯ ГРУППА" title="Advanced Tracks" className="mb-24" />
           <div className="mb-16 text-center max-w-3xl mx-auto">
             <p className="text-sm opacity-60 uppercase leading-relaxed">
               основная программа даёт фундамент. треки — это углубление в конкретный домен. выбираешь то, что нужно.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                id: 'T1',
-                title: 'AI Coaching',
-                date: '21 Jan · Wed 18:00',
-                desc: 'Для тех, кто выгорел и ищет баланс. AI для коучинга, рефлексии, персональных ритуалов.',
-                result: 'персональные AI-коучи, ритуалы продуктивности, трекинг целей',
-                tools: ['Claude', 'Notion', 'Obsidian', 'Custom GPTs'],
-                speaker: 'Александр Поваляев'
-              },
-              {
-                id: 'T2',
-                title: 'AI Agents',
-                date: '28 Jan · Wed 18:00',
-                desc: 'Автономные AI-системы. Проектирование и запуск AI-агентов, которые работают автономно.',
-                result: 'автономные агенты, MCP-интеграции, workflows',
-                tools: ['Claude', 'MCP', 'n8n', 'Make'],
-                speaker: 'Сергей Хабаров'
-              },
-              {
-                id: 'T3',
-                title: 'Vibe-Coding',
-                date: '4 Feb · Wed 18:00',
-                desc: 'Творческое программирование. От идеи до прототипа за часы без технического бэкграунда.',
-                result: 'vibe-coding workflow, Claude Projects для прототипов, реальные проекты',
-                tools: ['Cursor', 'Windsurf', 'Claude Projects', 'V0'],
-                speaker: 'Анна Лозицкая'
-              },
-              {
-                id: 'T4',
-                title: 'AI Creative',
-                date: '11 Feb · Wed 18:00',
-                desc: 'Для музыкантов, художников и креативщиков. Генерация музыки, визуального контента.',
-                result: 'генерация музыки (Suno), визуал (Midjourney), коллаборация с AI',
-                tools: ['Suno', 'Midjourney', 'Runway ML', 'ElevenLabs'],
-                speaker: 'Анка Ставенски'
-              },
-            ].map((track, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 border-l border-black/10 bg-white/30">
+            {ADVANCED_TRACKS.map((track, idx) => (
               <motion.div
                 key={track.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.35, delay: idx * 0.05 }}
+                transition={{ duration: 0.4, delay: idx * 0.06 }}
               >
-                <SymbolBorder className={`p-8 md:p-12 hover:bg-current hover:text-white transition-all duration-500 group ${colors.card}`}>
-                  <div className="flex justify-between items-start mb-8">
-                    <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase">{track.date}</div>
-                    <Zap size={20} className="opacity-20 group-hover:opacity-100" />
-                  </div>
-                  <h3 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4">{track.title}</h3>
-                  <p className="text-sm opacity-80 group-hover:opacity-100 mb-8">{track.desc}</p>
+                <div className="h-full border-r border-black/10">
+                  <AsciiCardBorder className={`group min-h-[250px] md:min-h-[290px] transition-all duration-500 ${colors.card}`}>
+                    <div className="flex h-full flex-col justify-between gap-6">
+                      <div className="flex justify-between items-start">
+                        <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase">{track.week}</div>
+                      </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase mb-1">РЕЗУЛЬТАТ:</div>
-                      <div className="text-xs uppercase">{track.result}</div>
+                      <div className="flex flex-col gap-3">
+                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight">{track.title}</h3>
+                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{track.speaker}</div>
+                      </div>
+
+                      <p className="text-sm leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                        {track.description}
+                      </p>
                     </div>
-                    <div>
-                      <div className="text-[10px] font-bold opacity-40 group-hover:opacity-100 uppercase mb-1">СПИКЕР:</div>
-                      <div className="text-xs font-bold uppercase">{track.speaker}</div>
-                    </div>
-                  </div>
-                </SymbolBorder>
+                  </AsciiCardBorder>
+                </div>
               </motion.div>
             ))}
           </div>
