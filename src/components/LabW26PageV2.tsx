@@ -627,27 +627,27 @@ const ProgramScheduleGrid = () => {
   ];
 
   return (
-    <section className="py-24 md:py-32 bg-[#161620] text-white font-mono overflow-hidden">
+    <section className="py-24 md:py-32 bg-[#f4f1ea] text-[#181616] font-mono overflow-hidden border-y border-black/10">
       <Container>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
           
           {/* Timeline Part */}
-          <div className="relative pl-12 border-l border-white/10">
-            <div className="absolute top-0 left-[-1px] w-[2px] h-full bg-gradient-to-b from-[#4dc9d4] via-[#38d9a9] to-[#ff6b6b] opacity-50" />
+          <div className="relative pl-12 border-l border-black/10">
+            <div className="absolute top-0 left-[-1px] w-[2px] h-full bg-gradient-to-b from-[#8DC63F]/70 via-[#181616]/35 to-[#181616]/15" />
             
             <div className="flex flex-col gap-16">
               {weeks.map((wk, i) => (
                 <div key={i} className="relative">
-                  <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#161620] border-2 border-[#4dc9d4] z-10 shadow-[0_0_15px_rgba(77,201,212,0.5)]" />
-                  <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">week {wk.num} — <span className="text-white opacity-100">{wk.title}</span></div>
+                  <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#f4f1ea] border-2 border-[#8DC63F] z-10" />
+                  <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">week {wk.num} — <span className="text-black opacity-100">{wk.title}</span></div>
                   <div className="text-lg md:text-xl font-black uppercase mb-3 tracking-tight">{wk.subtitle}</div>
                   <p className="text-xs opacity-50 mb-3 leading-relaxed max-w-md">{wk.desc}</p>
                   <p className="text-[10px] opacity-30 italic">артефакт: {wk.artifact}</p>
                 </div>
               ))}
               <div className="relative">
-                <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#161620] border-2 border-[#ff6b6b] z-10 shadow-[0_0_15px_rgba(255,107,107,0.5)]" />
-                <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">финал — <span className="text-[#ff6b6b] opacity-100 font-black">DEMO DAY</span></div>
+                <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#f4f1ea] border-2 border-[#181616] z-10" />
+                <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">финал — <span className="text-black opacity-100 font-black">DEMO DAY</span></div>
                 <div className="text-lg md:text-xl font-black uppercase mb-3 tracking-tight">презентация результатов + 90-дневный план</div>
                 <p className="text-xs opacity-50 leading-relaxed">обратная связь от группы и экспертов</p>
               </div>
@@ -657,7 +657,7 @@ const ProgramScheduleGrid = () => {
           {/* Calendar Grid Part */}
           <div className="w-full">
             <div className="flex items-center gap-4 mb-8">
-              <div className="text-[#4dc9d4] font-bold tracking-widest text-sm">// SPRINT SCHEDULE</div>
+              <div className="text-[#181616] font-bold tracking-widest text-sm opacity-50">// SPRINT SCHEDULE</div>
             </div>
             <div className="text-[10px] opacity-40 mb-12 flex flex-wrap gap-x-6 gap-y-2 uppercase tracking-widest">
               <span>19 января – 15 февраля 2026</span>
@@ -666,43 +666,43 @@ const ProgramScheduleGrid = () => {
               <span>CET</span>
             </div>
 
-            <div className="grid grid-cols-[80px_repeat(7,1fr)] w-full border border-white/5 bg-white/[0.02]">
+            <div className="grid grid-cols-[80px_repeat(7,1fr)] w-full border border-black/10 bg-white/70 backdrop-blur-sm">
               {/* DOW Headers */}
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">MON</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">TUE</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">WED</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">THU</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">FRI</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">SAT</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">SUN</div>
-              <div className="p-3 border-b border-white/5"></div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">MON</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">TUE</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">WED</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">THU</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">FRI</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">SAT</div>
+              <div className="p-3 border-b border-r border-black/10 opacity-30 text-[8px] flex items-center justify-center">SUN</div>
+              <div className="p-3 border-b border-black/10"></div>
 
               {/* Rows */}
               {['W1', 'W2', 'W3', 'W4'].map((wk, weekIdx) => (
                 <React.Fragment key={wk}>
-                  <div className="p-3 border-b border-r border-white/5 flex flex-col justify-center items-start">
-                    <div className="text-[10px] font-black text-[#4dc9d4]">{wk}</div>
+                  <div className="p-3 border-b border-r border-black/10 flex flex-col justify-center items-start bg-black/[0.02]">
+                    <div className="text-[10px] font-black text-[#8DC63F]">{wk}</div>
                     <div className="text-[7px] opacity-30 uppercase leading-none mt-1">
                       {weekIdx === 0 ? 'Prompt' : weekIdx === 1 ? 'Context' : weekIdx === 2 ? 'Mind' : 'Life'}
                     </div>
                   </div>
                   {calendarDays.slice(weekIdx * 7, (weekIdx + 1) * 7).map((day, i) => (
-                    <div key={i} className={`h-24 p-2 border-b border-r border-white/5 relative flex flex-col items-center justify-center group ${day.type !== 'rest' ? 'bg-white/[0.03]' : ''}`}>
+                    <div key={i} className={`h-24 p-2 border-b border-r border-black/10 relative flex flex-col items-center justify-center group ${day.type !== 'rest' ? 'bg-black/[0.015]' : ''}`}>
                       {day.month && (
-                        <div className="absolute top-1 left-1 text-[6px] font-bold text-[#4dc9d4] opacity-50">{day.month}</div>
+                        <div className="absolute top-1 left-1 text-[6px] font-bold text-[#8DC63F] opacity-70">{day.month}</div>
                       )}
                       {/* Horizontal line for rail effect */}
-                      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 -translate-y-[2px]" />
+                      <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/8 -translate-y-[2px]" />
                       
                       <div className={`relative z-10 w-8 h-8 flex items-center justify-center text-[10px] font-bold rounded-lg transition-all duration-300
-                        ${day.type === 'lecture' ? 'bg-[#4dc9d4] text-[#161620] shadow-[0_0_15px_rgba(77,201,212,0.4)]' : ''}
-                        ${day.type === 'workshop' ? 'border-2 border-[#38d9a9] text-[#38d9a9] bg-[#38d9a9]/10' : ''}
-                        ${day.type === 'coworking' ? 'border border-[#4dc9d4] text-white' : ''}
-                        ${day.type === 'demo' ? 'bg-[#ff6b6b] text-white shadow-[0_0_15px_rgba(255,107,107,0.4)]' : ''}
-                        ${day.type === 'rest' ? 'text-white/20' : ''}
+                        ${day.type === 'lecture' ? 'bg-[#8DC63F]/20 text-[#181616] border border-[#8DC63F]/40' : ''}
+                        ${day.type === 'workshop' ? 'border border-black/30 text-[#181616] bg-white' : ''}
+                        ${day.type === 'coworking' ? 'border border-black/20 text-[#181616] bg-black/[0.03]' : ''}
+                        ${day.type === 'demo' ? 'bg-[#181616] text-[#f4f1ea]' : ''}
+                        ${day.type === 'rest' ? 'text-black/20' : ''}
                       `}>
                         {day.date}
-                        {day.type === 'workshop' && <div className="absolute -top-1 -right-1 text-[6px] bg-[#38d9a9] text-[#161620] px-1 rounded-sm">x2</div>}
+                        {day.type === 'workshop' && <div className="absolute -top-1 -right-1 text-[6px] bg-[#181616] text-[#f4f1ea] px-1 rounded-sm">x2</div>}
                       </div>
 
                       {day.label && (
@@ -717,19 +717,19 @@ const ProgramScheduleGrid = () => {
             {/* Legend */}
             <div className="mt-8 flex flex-wrap gap-6 text-[8px] uppercase font-bold tracking-widest opacity-60 justify-center lg:justify-start">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#4dc9d4]" /> лекция
+                <div className="w-2 h-2 rounded-full bg-[#8DC63F]" /> лекция
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 border border-[#38d9a9] rounded-sm" /> воркшоп
+                <div className="w-2 h-2 border border-black/30 rounded-sm" /> воркшоп
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 border border-[#4dc9d4] rounded-sm" /> coworking
+                <div className="w-2 h-2 border border-black/20 rounded-sm" /> coworking
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-sm border border-white/20 border-dashed" /> office hours
+                <div className="w-2 h-2 rounded-sm border border-black/20 border-dashed" /> office hours
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[#ff6b6b]" /> demo day
+                <div className="w-2 h-2 rounded-full bg-[#181616]" /> demo day
               </div>
             </div>
           </div>
