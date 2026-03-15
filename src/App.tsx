@@ -5,7 +5,7 @@ import LabW26PageV3 from './components/LabW26PageV3';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/v1" element={<LabW26Page />} />
         <Route path="/v2" element={<LabW26PageV2 />} />

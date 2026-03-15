@@ -1257,7 +1257,7 @@ export default function LabW26PageV3() {
           ))}
         </nav>
         <div className="mt-auto">
-          <a href="https://join.aimindset.org/waitlist" className="border border-black/60 text-black p-6 text-[10px] font-black uppercase tracking-widest text-center block hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm">ЗАПИСАТЬСЯ</a>
+          <a href="https://join.aimindset.org/waitlist" className="border border-black/60 text-black px-6 py-[1.35rem] text-[10px] font-black uppercase tracking-widest text-center block hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm">ЗАПИСАТЬСЯ</a>
         </div>
       </aside>
 
@@ -1489,7 +1489,7 @@ export default function LabW26PageV3() {
                 <div className="grid md:grid-cols-2 gap-16 md:gap-8 items-center">
                   <div>
                     <h2 className="text-3xl md:text-5xl leading-tight mb-12">
-                      Mindset важнее инструментов — технологии меняются, а новый способ мышления остаётся с вами.
+                      Mindset важнее инструментов — технологии меняются, а новый способ мышления остаётся с вами
                     </h2>
                     <div className="flex gap-4">
                       <div className="w-12 h-12 rounded-full border border-black/20 flex items-center justify-center text-[10px] font-bold">01</div>
@@ -1598,7 +1598,7 @@ export default function LabW26PageV3() {
                           variants={{
                             hover: { color: '#8DC63F' },
                           }}
-                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em]"
+                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em] transition-colors duration-300"
                         >
                           {track.title}
                         </motion.h3>
@@ -1634,7 +1634,7 @@ export default function LabW26PageV3() {
           </div>
 
           <div className="mb-3 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
-            created by
+            кем создано
           </div>
 
           <div className="mb-10 flex flex-wrap gap-2 md:gap-3">
@@ -1658,7 +1658,7 @@ export default function LabW26PageV3() {
           </div>
 
           <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-12 md:px-12">
-            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[15rem] md:auto-cols-[16rem]">
+            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[14.5rem] md:auto-cols-[15rem]">
             {visibleCases.map((card, i) => (
               <button
                 key={`${card.title}-${i}`}
@@ -1867,23 +1867,20 @@ export default function LabW26PageV3() {
             </div>
           </motion.a>
 
-          <section className="pt-20 md:pt-24 overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,720px)] lg:justify-between items-center gap-10 lg:gap-16 min-h-[260px]">
-              <div className="flex items-center justify-center">
-                <pre className="font-mono text-[#8DC63F] text-[16px] md:text-[22px] leading-[1.04] opacity-90 select-none">
-{`  /\\  /\\
- /  \\/  \\
-/\\  /\\  /\\
-  \\/  \\/
- /\\      /\\
-/  \\    /  \\`}
+          <section className="py-56 md:py-72 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-8 md:gap-5">
+              <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
+                <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
+{`   /\\     /\\
+  /  \\   /  \\
+ /    \\_/    \\`}
                 </pre>
               </div>
 
-              <div className="w-full max-w-[560px] lg:ml-auto text-right">
-                <p className="text-[22px] sm:text-[28px] md:text-[34px] lg:text-[40px] xl:text-[44px] font-black tracking-[-0.035em] leading-[1.02]">
-                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности.
-                </p>
+              <div className="max-w-3xl md:ml-auto text-right">
+                <h2 className="text-3xl md:text-5xl leading-tight">
+                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
+                </h2>
               </div>
             </div>
           </section>
@@ -1984,7 +1981,7 @@ export default function LabW26PageV3() {
             </div>
           </div>
 
-          <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="text-[8px] opacity-30 uppercase tracking-[0.5em]">MADE WITH LOVE AND AI // 2026</div>
             <div className="flex gap-4">
               {['/', '\\', '/', '\\'].map((s, i) => <span key={i} className="opacity-20">{s}</span>)}
