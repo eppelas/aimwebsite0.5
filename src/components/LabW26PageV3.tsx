@@ -57,6 +57,11 @@ const PRIMARY_MENU_LINKS = [
   { label: '{For Non-profit}', href: 'https://aimindset.org/' },
 ];
 
+const BASE_URL = import.meta.env.BASE_URL;
+const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
+const LOGO_LEFT_SRC = `${BASE_URL}AIMLeft-02.png`;
+const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
+
 const CASE_FILTERS = [
   { id: 'all', label: 'все' },
   { id: 'non-tech', label: 'нетехнический' },
@@ -306,43 +311,43 @@ const TEAM_MEMBERS = [
     name: 'Александр Поваляев',
     role: 'Основатель AI Mindset, стратег',
     description: 'Основатель проекта AI Mindset, стратег и эксперт по AI-интеграциям. 15+ лет соединяет технологии, бизнес и людей, создавая системы, которые работают на человека, а не наоборот. На лаборатории помогает увидеть большую картину и встроить AI в жизнь и работу осмысленно.',
-    image: '/assets/speakers/alexander-povalyaev.jpg',
+    image: speakerImage('alexander-povalyaev.jpg'),
   },
   {
     name: 'Сергей Хабаров',
     role: 'Системный архитектор',
     description: 'Системный архитектор на стыке AI, образования и бизнес-процессов. 6+ лет в образовании, 500+ обученных специалистов. Бывший CTO и директор по развитию. Ведёт Context Engineering: как структурировать знания, чтобы AI работал с ними, а не терялся в хаосе файлов и заметок.',
-    image: '/assets/speakers/sergey-khabarov.jpg',
+    image: speakerImage('sergey-khabarov.jpg'),
   },
   {
     name: 'Степан Гершуни',
     role: 'Технологический стратег',
     description: 'Founder, построил Credentia, Deep Skills и Codex Town. Инвестор в венчурном фонде Cyber Fund, крипто- и ИИ-энтузиаст. Автор cybOS, о которой и расскажет на лаборатории на Advanced-треке.',
-    image: '/assets/speakers/stepan-gershuni.jpg',
+    image: speakerImage('stepan-gershuni.jpg'),
   },
   {
     name: 'Алексей Иванов',
     role: 'Executive-коуч',
     description: 'Executive-коуч для фаундеров и IT-лидеров. ICF PCC, ex-дизайн лид. После 15 лет в UX и продуктах делает то, что действительно даёт энергию и драйв. Ведёт advanced-трек AI-coaching.',
-    image: '/assets/speakers/alexey-ivanov.jpg',
+    image: speakerImage('alexey-ivanov.jpg'),
   },
   {
     name: 'Серёжа Рис',
     role: 'AI-евангелист, ex Yandex',
     description: 'AI-евангелист, ex Yandex. Билдер и фаундер в комьюнити вайбкодеров @vibecod3rs. Клод-код стример на YouTube. Ведёт advanced-трек vibe-coding.',
-    image: '/assets/speakers/serezha-ris.jpg',
+    image: speakerImage('serezha-ris.jpg'),
   },
   {
     name: 'Анна Ставенски',
     role: 'Продуктовый архитектор',
     description: 'Продуктовый архитектор. 10+ лет в управлении, технологических и креативных индустриях: продукт, визуал, роботы, тренажёры. PO в стартапах и визуальный сторителлер в жизни. Ведёт Life Engineering и помогает собрать изученные инструменты в единую систему.',
-    image: '/assets/speakers/anka-stavenski.jpg',
+    image: speakerImage('anka-stavenski.jpg'),
   },
   {
     name: 'Анна Лозицкая',
     role: 'Фаундер embraceme.app',
     description: '12+ лет помогала стартапам расти с нуля до больших раундов. Фаундер embraceme.app. Исследует, как технологии помогают основателям. Ведёт Mind Engineering: как использовать AI для персональных ритуалов, рефлексии и трекинга целей.',
-    image: '/assets/speakers/anna-lozitskaya.jpg',
+    image: speakerImage('anna-lozitskaya.jpg'),
   },
 ];
 
@@ -844,7 +849,7 @@ const VoxelLogoFace = ({ scale = 1, opacity = 1, className = "" }: { scale?: num
     }
 
     const logoLeft = new Image();
-    logoLeft.src = '/AIMLeft-02.png';
+    logoLeft.src = LOGO_LEFT_SRC;
     let logoLoaded = false;
     logoLeft.onload = () => { logoLoaded = true; };
 
@@ -1237,7 +1242,7 @@ export default function LabW26PageV3() {
       <aside className={`fixed top-0 left-0 w-1/5 h-screen border-r border-black/10 p-10 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-8'}`}>
         <div className="flex items-center gap-4 mb-20 cursor-pointer" onClick={() => scrollTo('#hero')}>
           <div className="relative w-8 h-8">
-             <img src="/assets/ai-mindset-logo.png" className="absolute inset-0 w-full h-full object-contain" alt="LOGO" />
+             <img src={LOGO_SRC} className="absolute inset-0 w-full h-full object-contain" alt="LOGO" />
           </div>
           <div className="font-black text-xs tracking-tighter uppercase">AI MINDSET</div>
         </div>
@@ -1358,7 +1363,7 @@ export default function LabW26PageV3() {
         >
            <div className="flex gap-4 items-center">
               <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="font-bold leading-none flex items-center gap-2">
-                <img src="/assets/ai-mindset-logo.png" className="h-6 w-6 object-contain" alt="LOGO" />
+                <img src={LOGO_SRC} className="h-6 w-6 object-contain" alt="LOGO" />
                 <span className="text-[10px] tracking-[0.4em] font-light border-l border-current pl-4">MINDSET</span>
               </a>
            </div>
