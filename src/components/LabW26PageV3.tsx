@@ -1638,11 +1638,10 @@ export default function LabW26PageV3() {
             </p>
           </div>
 
-          <div className="mb-3 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
-            кем создано
-          </div>
-
-          <div className="mb-10 flex flex-wrap gap-2 md:gap-3">
+          <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-3">
+            <div className="mr-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
+              кем создано
+            </div>
             {CASE_FILTERS.map((filter) => {
               const isActive = activeCaseFilter === filter.id;
               return (
