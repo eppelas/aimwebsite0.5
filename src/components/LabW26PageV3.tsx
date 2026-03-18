@@ -2126,6 +2126,93 @@ export default function LabW26PageV3() {
 
          <div className="md:ml-[20%] md:w-[80%] w-full">
 
+            <section className="py-20 md:py-32 relative bg-black/[0.03]">
+              <Container>
+                <div className="flex flex-col items-center gap-6 mb-24 md:mb-32">
+                  <div className="text-[10px] md:text-xs tracking-[0.4em] opacity-40 uppercase font-bold mb-4 border-b border-black/10 pb-4 w-full text-center">
+                    BATCH: WINTER 26 MAIN LAB // STATUS: CLOSED
+                  </div>
+
+                  <div className="text-[10px] md:text-sm uppercase font-mono opacity-40 font-bold tracking-[0.3em] text-center mb-2">
+                    следующий поток: 20 апреля
+                  </div>
+                  <a
+                    href="https://join.aimindset.org/context"
+                    className="group flex items-center justify-center gap-4 md:gap-8 px-12 md:px-20 py-6 md:py-8 hover:bg-black hover:text-[#f9f9f7] transition-all duration-500 font-mono uppercase text-xs md:text-sm font-black tracking-widest border border-black/60 w-full sm:w-auto text-center rounded-sm"
+                  >
+                    [ ПОДАТЬ ЗАЯВКУ НА X26 MAIN LAB ] <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                  </a>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-start gap-12 md:gap-24 w-full max-w-5xl mx-auto">
+                  <div className="flex flex-col gap-6 max-w-xl">
+                    <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.9]">
+                      лаборатория <br />
+                      нового мышления <br />
+                      в эпоху AI
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] md:text-xs font-bold opacity-60 uppercase tracking-widest bg-black/[0.03] px-3 py-1 self-start border border-black/10">
+                      <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                      FOUNDATION // W26
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col gap-6">
+                    <p className="text-sm md:text-base uppercase leading-relaxed opacity-70">
+                      «AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.»
+                    </p>
+                    <div className="flex flex-col gap-2 mt-2">
+                      <div className="text-[9px] opacity-40 font-bold uppercase tracking-widest">NEXT BATCH:</div>
+                      <div className="text-xs font-black uppercase">20 APRIL 2026</div>
+                    </div>
+                  </div>
+                </div>
+              </Container>
+            </section>
+
+            <section className="py-20 md:py-32 overflow-hidden">
+              <Container>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-8">
+                  {PHILOSOPHY_PILLARS.map((item) => (
+                    <div key={item.title} className="bg-white/10 h-full min-h-[200px] flex flex-col p-6 lg:p-8">
+                      <div className="flex-1 flex items-center justify-center py-6 -translate-x-3 md:-translate-x-2">
+                        <PhilosophyPillarArt art={item.art} />
+                      </div>
+                      <div className="mt-auto flex flex-col gap-3">
+                        <h3 className="text-lg md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text">
+                          {item.title}
+                        </h3>
+                        <p className="text-[9px] leading-relaxed opacity-60 uppercase tracking-widest">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Container>
+            </section>
+
+<section id="philosophy" className="py-24 md:py-32 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="ТОЧКА СБОРКИ" title="Философия" className="mb-24" />
+          <div className="grid md:grid-cols-2 gap-16 md:gap-8 items-center">
+            <div>
+              <h2 className="text-3xl md:text-5xl leading-tight mb-12">
+                Mindset важнее инструментов — технологии меняются, а новый способ мышления остаётся с вами
+              </h2>
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-full border border-black/20 flex items-center justify-center text-[10px] font-bold">01</div>
+                <div className="w-12 h-12 rounded-full border border-black/20 flex items-center justify-center text-[10px] font-bold">02</div>
+              </div>
+            </div>
+            <div className="flex justify-center md:justify-end text-[#8DC63F]">
+              <div className="w-56 h-56 md:w-80 md:h-80 lg:w-96 lg:h-96 relative flex items-center justify-center text-[8px] leading-[8px]">
+                <LargeDiamondArt className="scale-125 md:scale-150" />
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
 <section id="program" className="pt-24 md:pt-32 pb-24 md:pb-32 overflow-hidden">
         <Container>
           <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24" />
@@ -2164,6 +2251,60 @@ export default function LabW26PageV3() {
               <span className="mr-1.5 font-bold">*</span>
               {PROGRAM_TRACKS_CAPTION}
             </p>
+          </div>
+        </Container>
+      </section>
+
+      {/* Tracks Section */}
+      <SlashDivider />
+      <section id="tracks" className="py-24 md:py-32 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="ДОПОЛНИТЕЛЬНАЯ ГРУППА" title="Advanced Tracks" className="mb-24" />
+          <div className="mb-16 text-center max-w-3xl mx-auto">
+            <p className="text-sm opacity-60 uppercase leading-relaxed">
+              основная программа даёт фундамент. треки — это углубление в конкретный домен. выбираешь то, что нужно.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 border-l border-black/10 bg-white/30">
+            {ADVANCED_TRACKS.map((track, idx) => (
+              <motion.div
+                key={track.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover="hover"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: idx * 0.06 }}
+              >
+                <div className="h-full border-r border-black/10">
+                  <AsciiCardBorder className={`group min-h-[250px] md:min-h-[290px] transition-all duration-500 ${colors.card}`}>
+                    <div className="flex h-full flex-col justify-between gap-6">
+                      <div className="flex justify-between items-start">
+                        <div className="text-[10px] font-bold opacity-40 uppercase">{track.week}</div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 min-h-[6.25rem] md:min-h-[7rem]">
+                        <motion.h3
+                          variants={{
+                            hover: { color: '#8DC63F' },
+                          }}
+                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em] transition-colors duration-300"
+                        >
+                          {track.title}
+                        </motion.h3>
+                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest min-h-[1.2rem]">
+                          {track.speaker}
+                        </div>
+                      </div>
+
+                      <p className="text-sm leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                        {track.description}
+                      </p>
+                    </div>
+                  </AsciiCardBorder>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </Container>
       </section>
@@ -2242,18 +2383,302 @@ export default function LabW26PageV3() {
         </Container>
       </section>
 
-      {/* Advanced Track pricing block hidden for now.
-      <section id="advanced-pricing" className="py-16 border-t border-black/10">
+      {/* Team Section */}
+      <SlashDivider />
+      <section id="team" className="py-20 md:py-32">
         <Container>
-          <div className="max-w-2xl ml-auto text-right">
-            <div className="text-[10px] uppercase tracking-widest font-bold opacity-40 mb-2">Advanced Track</div>
-            <p className="text-sm opacity-70">
-              Блок оплаты для Advanced Track будет здесь. Добавим точные условия и цену в следующем шаге.
+          <EditorialSectionHeader eyebrow="lab team" title="Спикеры" className="mb-16" />
+          <div className="mb-16 max-w-3xl">
+            <p className="text-sm md:text-base opacity-70 leading-relaxed">
+              ниже — проводники, которые будут рядом на всём протяжении лаборатории.
             </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {TEAM_MEMBERS.map((member, i) => (
+              <div
+                key={i}
+                className={`flex flex-col gap-4 ${
+                  i === TEAM_MEMBERS.length - 1
+                    ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
+                    : ''
+                }`}
+              >
+                <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative group overflow-hidden">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/96" />
+                  <div className="absolute inset-0 text-[#f9f9f7] p-7 md:p-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-center">
+                    <p className="text-[13px] md:text-sm leading-[1.65] font-medium text-white/95">
+                      {member.description}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold uppercase tracking-tight">{member.name}</h3>
+                  <p className="text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Container>
       </section>
-      */}
+
+      {/* Schedule Section */}
+      {false && <ProgramScheduleGrid />}
+
+      {/* Pricing Section */}
+      <SlashDivider />
+      <section id="pricing" className="py-20 md:py-32">
+        <Container>
+          <EditorialSectionHeader eyebrow="Тарифы" title="Форматы участия" className="mb-16" />
+          <div className="mb-16 max-w-3xl">
+            <p className="text-sm md:text-base opacity-70 leading-relaxed">
+              скидки: Alumni (-20%), Bring a Friend (-10% каждому). возврат после первой недели — без вопросов. возможна оплата в рублях.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+            {pricingPlans.map((plan, idx) => (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.35, delay: idx * 0.06 }}
+              >
+                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-8 md:p-10 flex flex-col">
+                  <div className="flex items-start justify-between gap-4 mb-8">
+                    {plan.tagHref ? (
+                      <a
+                        href={plan.tagHref}
+                        className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors"
+                      >
+                        {plan.tag}
+                      </a>
+                    ) : (
+                      <div className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em]">
+                        {plan.tag}
+                      </div>
+                    )}
+                  </div>
+
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-6">
+                    {plan.name}
+                  </h3>
+
+                  <div className="flex items-end gap-2 mb-10">
+                    <span className="text-6xl md:text-7xl font-black tracking-tighter leading-none">€{plan.price}</span>
+                  </div>
+
+                  <div className="space-y-4 mb-8">
+                    {plan.features.map((feature) => (
+                      <div key={feature} className="flex items-start gap-3 text-[15px] md:text-[16px] leading-[1.38] text-black/72">
+                        <span className="mt-[0.32rem] h-2 w-2 rounded-full bg-black" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="text-[15px] leading-[1.45] text-black/68 mb-6">
+                    {plan.desc}
+                  </div>
+
+                  <AnimatePresence initial={false}>
+                    {pricingDetailsOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: 'easeOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="border-t border-black/10 pt-6 mb-8 space-y-3">
+                          {plan.more.map((item) => (
+                            <p key={item} className="text-[15px] leading-[1.5] text-black/82">
+                              {item}
+                            </p>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    type="button"
+                    aria-label="Показать подробности тарифов"
+                    onClick={() => setPricingDetailsOpen((prev) => !prev)}
+                    className="mt-auto mb-6 flex w-full items-center justify-center text-black/40 hover:text-black transition-colors"
+                  >
+                    <ChevronDown
+                      size={24}
+                      className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  <a
+                    href="https://join.aimindset.org/context"
+                    className="w-full bg-[#8DC63F] p-6 text-center text-[10px] font-black uppercase tracking-widest text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
+                  >
+                    Выбрать
+                  </a>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.a
+            href="https://aimindset.org/ai-mindset-consulting"
+            target="_blank"
+            rel="noreferrer"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.35, delay: 0.16 }}
+            className="mt-8 md:mt-10 flex w-full md:w-[58%] items-center justify-between gap-6 border border-black/10 bg-white/35 px-6 py-5 md:px-8 md:py-6 hover:bg-white/70 transition-colors rounded-sm"
+          >
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 min-w-0">
+              <div className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">
+                Для компаний
+              </div>
+              <div className="hidden md:block h-2.5 w-2.5 rounded-full bg-[#8DC63F]/60 shrink-0" />
+              <div className="text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] text-black/40">
+                персональные планы
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center justify-center text-black/70">
+              <ChevronRight size={22} />
+            </div>
+          </motion.a>
+
+          <section className="py-56 md:py-72 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-8 md:gap-5">
+              <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
+                <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
+{`   /\\     /\\
+  /  \\   /  \\
+ /    \\_/    \\`}
+                </pre>
+              </div>
+
+              <div className="max-w-3xl md:ml-auto text-right">
+                <h2 className="text-3xl md:text-5xl leading-tight">
+                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
+                </h2>
+              </div>
+            </div>
+          </section>
+        </Container>
+      </section>
+
+      {/* Application Form Section */}
+      {false && (
+        <>
+          <SlashDivider />
+          <section id="apply" className="py-20 md:py-32 bg-black text-white relative overflow-hidden">
+            <Container>
+              <div className="mb-16">
+                <h2 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4">ЗАЯВКА</h2>
+                <p className="text-xs opacity-40 uppercase tracking-[0.5em]">ПРОСТАЯ ФОРМА · ОТПРАВИТЬ ЗАЯВКУ</p>
+              </div>
+
+              <div className="max-w-3xl">
+                <form className="grid gap-px bg-white/10 border border-white/10">
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">ИМЯ</label>
+                    <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="ВАШЕ ИМЯ" />
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">EMAIL</label>
+                    <input type="email" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="EMAIL@EXAMPLE.COM" />
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">ТЕЛЕГРАМ НИК</label>
+                    <input type="text" className="w-full bg-transparent border-none focus:ring-0 p-0 text-xl uppercase placeholder:opacity-20" placeholder="@USERNAME" />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-px">
+                    <div className="bg-black p-6">
+                      <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ТРЕК</label>
+                      <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
+                        <option>AI COACHING</option>
+                        <option>AI AGENTS</option>
+                        <option>VIBE-CODING</option>
+                        <option>AI CREATIVE</option>
+                      </select>
+                    </div>
+                    <div className="bg-black p-6">
+                      <label className="block text-[10px] opacity-40 uppercase mb-2">ВЫБРАТЬ ПЛАН</label>
+                      <select className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase appearance-none cursor-pointer">
+                        <option>MAIN LAB (BASE)</option>
+                        <option>ADVANCED (+4 TRACKS)</option>
+                        <option>PREMIUM (LIMITED)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="bg-black p-6">
+                    <label className="block text-[10px] opacity-40 uppercase mb-2">КРАТКО О СЕБЕ / МОТИВАЦИЯ</label>
+                    <textarea className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm uppercase placeholder:opacity-20 min-h-[120px] resize-none" placeholder="ПОЧЕМУ ВЫ ХОТИТЕ НА ЛАБОРАТОРИЮ?"></textarea>
+                  </div>
+
+                  <div className="relative">
+                    <div className="absolute bottom-full left-0 bg-white/10 px-4 py-2 text-[8px] uppercase tracking-widest border-t border-r border-white/10">
+                      AIM STYLE // 54 . 01
+                    </div>
+                    <button className="w-full bg-[#88b04b] text-black py-8 font-black uppercase text-xl hover:bg-[#97c456] transition-colors">
+                      ОТПРАВИТЬ ЗАЯВКУ
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </Container>
+          </section>
+        </>
+      )}
+
+      {/* Footer */}
+      <footer className="py-24 relative overflow-hidden bg-black text-white">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.04]">
+          <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
+            AI MINDSET
+          </div>
+        </div>
+        <Container className="relative z-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-24">
+            <div className="lg:col-span-2">
+              <div className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">AI MINDSET</div>
+            </div>
+
+            <div>
+              <div className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-6">КОНТАКТЫ</div>
+              <div className="flex flex-col gap-2 text-xs uppercase">
+                <a href="https://www.youtube.com/@A-I-Mindset" className="hover:line-through">ПОДКАСТ</a>
+                <a href="https://t.me/ai_mind_set" className="hover:line-through">TELEGRAM КАНАЛ</a>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-6">ИНФО</div>
+              <div className="flex flex-col gap-2 text-xs uppercase">
+                <a href="#" className="hover:line-through">ОФЕРТА</a>
+                <a href="#" className="hover:line-through">ПОЛИТИКА</a>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-[8px] opacity-30 uppercase tracking-[0.5em]">MADE WITH LOVE AND AI // 2026</div>
+            <div className="flex gap-4">
+              {['/', '\\', '/', '\\'].map((s, i) => <span key={i} className="opacity-20">{s}</span>)}
+            </div>
+          </div>
+        </Container>
+      </footer>
+
       <AnimatePresence>
         {activeCase && (
           <motion.div
