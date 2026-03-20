@@ -1,0 +1,253 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="background: #111113">
+  <defs>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#glow)">
+    <line x1="37.20" y1="30.00" x2="34.80" y2="30.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="37.20;37.08;36.70;36.08;35.20;34.33;33.70;33.33;33.20;33.33;33.70;34.33;35.20;36.08;36.70;37.08;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.00;30.20;30.77;31.55;32.00;31.55;30.77;30.20;30.00;30.20;30.77;31.55;32.00;31.55;30.77;30.20;30.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="34.80;34.67;34.30;33.67;32.80;31.92;31.30;30.92;30.80;30.92;31.30;31.92;32.80;33.67;34.30;34.67;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="30.00;30.20;30.77;31.55;32.00;31.55;30.77;30.20;30.00;30.20;30.77;31.55;32.00;31.55;30.77;30.20;30.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="62.80" y1="30.00" x2="65.20" y2="30.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="62.80;63.08;63.92;65.17;66.42;66.92;66.92;66.83;66.80;66.83;66.92;66.92;66.42;65.17;63.92;63.08;62.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.00;29.83;29.35;28.68;28.30;28.68;29.35;29.83;30.00;29.83;29.35;28.68;28.30;28.68;29.35;29.83;30.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="65.20;65.48;66.31;67.56;68.80;69.31;69.31;69.23;69.20;69.23;69.31;69.31;68.80;67.56;66.31;65.48;65.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="30.00;29.80;29.22;28.42;27.96;28.42;29.22;29.80;30.00;29.80;29.22;28.42;27.96;28.42;29.22;29.80;30.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="42.80" y1="30.80" x2="44.80" y2="30.80" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="42.80;42.85;42.99;43.06;42.54;41.13;39.69;38.73;38.40;38.73;39.69;41.13;42.54;43.06;42.99;42.85;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.97;31.46;32.14;32.56;32.18;31.49;30.98;30.80;30.98;31.49;32.18;32.56;32.14;31.46;30.97;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="44.80;44.89;45.13;45.36;45.09;43.96;42.73;41.89;41.60;41.89;42.73;43.96;45.09;45.36;45.13;44.89;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="30.80;30.93;31.29;31.78;32.05;31.74;31.26;30.92;30.80;30.92;31.26;31.74;32.05;31.78;31.29;30.93;30.80" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="57.20" y1="30.80" x2="54.80" y2="30.80" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="57.20;57.00;56.29;54.83;52.41;49.87;48.11;47.12;46.80;47.12;48.11;49.87;52.41;54.83;56.29;57.00;57.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.57;29.93;29.11;28.76;29.33;30.10;30.62;30.80;30.62;30.10;29.33;28.76;29.11;29.93;30.57;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="54.80;54.62;54.17;53.59;52.72;51.38;50.05;49.12;48.80;49.12;50.05;51.38;52.72;53.59;54.17;54.62;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="30.80;30.84;30.95;31.03;30.94;30.81;30.78;30.79;30.80;30.79;30.78;30.81;30.94;31.03;30.95;30.84;30.80" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="44.80" y1="30.80" x2="45.20" y2="32.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="44.80;45.08;45.93;47.47;50.00;53.00;55.32;56.73;57.20;56.73;55.32;53.00;50.00;47.47;45.93;45.08;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.78;30.73;30.68;30.67;30.69;30.74;30.78;30.80;30.78;30.74;30.69;30.67;30.68;30.73;30.78;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="45.20;45.39;45.96;46.99;48.76;51.09;53.07;54.36;54.80;54.36;53.07;51.09;48.76;46.99;45.96;45.39;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="32.40;32.42;32.47;32.48;32.27;31.77;31.26;30.92;30.80;30.92;31.26;31.77;32.27;32.48;32.47;32.42;32.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="53.20" y1="31.60" x2="50.80" y2="31.60" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="53.20;53.26;53.41;53.64;54.20;55.39;56.84;57.98;58.40;57.98;56.84;55.39;54.20;53.64;53.41;53.26;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="31.60;31.52;31.26;30.80;30.26;30.13;30.40;30.69;30.80;30.69;30.40;30.13;30.26;30.80;31.26;31.52;31.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="50.80;50.85;51.06;51.77;53.81;57.02;59.63;61.13;61.60;61.13;59.63;57.02;53.81;51.77;51.06;50.85;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="31.60;31.72;32.09;32.64;33.03;32.62;31.74;31.05;30.80;31.05;31.74;32.62;33.03;32.64;32.09;31.72;31.60" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="50.80" y1="31.60" x2="50.80" y2="34.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="50.80;50.63;50.15;49.41;48.72;48.51;48.62;48.75;48.80;48.75;48.62;48.51;48.72;49.41;50.15;50.63;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="31.60;31.47;31.08;30.52;30.09;30.15;30.46;30.71;30.80;30.71;30.46;30.15;30.09;30.52;31.08;31.47;31.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="50.80;50.61;50.04;49.23;48.56;48.55;48.86;49.11;49.20;49.11;48.86;48.55;48.56;49.23;50.04;50.61;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.00;33.84;33.38;32.70;32.10;32.01;32.19;32.35;32.40;32.35;32.19;32.01;32.10;32.70;33.38;33.84;34.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="45.20" y1="32.40" x2="44.80" y2="34.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="45.20;45.52;46.46;47.97;49.88;51.47;52.46;53.02;53.20;53.02;52.46;51.47;49.88;47.97;46.46;45.52;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="32.40;32.51;32.84;33.31;33.52;33.02;32.29;31.78;31.60;31.78;32.29;33.02;33.52;33.31;32.84;32.51;32.40" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="44.80;45.02;45.67;46.74;48.12;49.36;50.17;50.64;50.80;50.64;50.17;49.36;48.12;46.74;45.67;45.02;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.00;34.11;34.40;34.70;34.52;33.59;32.55;31.84;31.60;31.84;32.55;33.59;34.52;34.70;34.40;34.11;34.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="34.80" y1="30.00" x2="34.80" y2="38.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="34.80;35.46;37.40;40.45;44.06;46.74;48.20;48.96;49.20;48.96;48.20;46.74;44.06;40.45;37.40;35.46;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.00;29.89;29.56;29.18;29.28;30.24;31.37;32.14;32.40;32.14;31.37;30.24;29.28;29.18;29.56;29.89;30.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="34.80;35.39;37.17;40.00;43.45;46.13;47.67;48.52;48.80;48.52;47.67;46.13;43.45;40.00;37.17;35.39;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="38.00;37.69;36.76;35.38;34.06;33.62;33.76;33.93;34.00;33.93;33.76;33.62;34.06;35.38;36.76;37.69;38.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="42.80" y1="30.80" x2="42.80" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="42.80;42.55;41.78;40.38;38.01;35.09;32.75;31.29;30.80;31.29;32.75;35.09;38.01;40.38;41.78;42.55;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.97;31.47;32.13;32.43;31.79;30.87;30.22;30.00;30.22;30.87;31.79;32.43;32.13;31.47;30.97;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="42.80;42.64;42.13;41.11;39.00;35.90;33.16;31.40;30.80;31.40;33.16;35.90;39.00;41.11;42.13;42.64;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.42;38.06;38.94;39.56;39.29;38.66;38.17;38.00;38.17;38.66;39.29;39.56;38.94;38.06;37.42;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="44.80" y1="34.00" x2="42.80" y2="34.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="44.80;44.76;44.62;44.21;43.24;41.94;40.89;40.23;40.00;40.23;40.89;41.94;43.24;44.21;44.62;44.76;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.00;33.75;32.97;31.70;30.45;30.13;30.41;30.69;30.80;30.69;30.41;30.13;30.45;31.70;32.97;33.75;34.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="42.80;42.63;42.16;41.53;40.92;40.47;40.19;40.04;40.00;40.04;40.19;40.47;40.92;41.53;42.16;42.63;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.00;33.90;33.65;33.52;33.95;35.08;36.22;36.95;37.20;36.95;36.22;35.08;33.95;33.52;33.65;33.90;34.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="46.80" y1="37.20" x2="48.00" y2="30.80" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="46.80;46.57;45.91;44.88;43.77;43.13;42.91;42.82;42.80;42.82;42.91;43.13;43.77;44.88;45.91;46.57;46.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="37.20;37.34;37.76;38.31;38.63;38.31;37.76;37.34;37.20;37.34;37.76;38.31;38.63;38.31;37.76;37.34;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="48.00;47.68;46.75;45.36;44.04;43.61;43.75;43.93;44.00;43.93;43.75;43.61;44.04;45.36;46.75;47.68;48.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="30.80;30.93;31.30;31.82;32.12;31.82;31.30;30.93;30.80;30.93;31.30;31.82;32.12;31.82;31.30;30.93;30.80" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="48.00" y1="30.80" x2="49.20" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="48.00;47.68;46.74;45.35;44.03;43.60;43.74;43.93;44.00;43.93;43.74;43.60;44.03;45.35;46.74;47.68;48.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.72;30.50;30.20;30.02;30.20;30.50;30.72;30.80;30.72;30.50;30.20;30.02;30.20;30.50;30.72;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="49.20;48.88;47.96;46.58;45.26;44.83;44.96;45.13;45.20;45.13;44.96;44.83;45.26;46.58;47.96;48.88;49.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.12;36.90;36.59;36.42;36.59;36.90;37.12;37.20;37.12;36.90;36.59;36.42;36.59;36.90;37.12;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="50.80" y1="34.00" x2="53.20" y2="34.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="50.80;50.50;49.63;48.39;47.24;46.75;46.71;46.77;46.80;46.77;46.71;46.75;47.24;48.39;49.63;50.50;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.00;33.93;33.67;33.15;32.33;31.57;31.11;30.87;30.80;30.87;31.11;31.57;32.33;33.15;33.67;33.93;34.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="53.20;53.02;52.44;51.40;49.90;48.49;47.55;46.99;46.80;46.99;47.55;48.49;49.90;51.40;52.44;53.02;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.00;34.09;34.39;34.98;35.84;36.55;36.95;37.14;37.20;37.14;36.95;36.55;35.84;34.98;34.39;34.09;34.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="54.80" y1="30.80" x2="54.80" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="54.80;54.89;55.08;55.03;54.02;52.07;50.31;49.18;48.80;49.18;50.31;52.07;54.02;55.03;55.08;54.89;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.80;30.94;31.42;32.35;33.46;34.02;34.09;34.03;34.00;34.03;34.09;34.02;33.46;32.35;31.42;30.94;30.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="54.80;54.46;53.51;52.13;50.52;48.96;47.78;47.05;46.80;47.05;47.78;48.96;50.52;52.13;53.51;54.46;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.19;37.06;36.62;35.79;34.94;34.39;34.09;34.00;34.09;34.39;34.94;35.79;36.62;37.06;37.19;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="54.80" y1="34.00" x2="56.80" y2="34.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="54.80;54.80;54.80;54.74;54.27;53.09;51.87;51.07;50.80;51.07;51.87;53.09;54.27;54.74;54.80;54.80;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.00;33.81;33.23;32.30;31.38;31.13;31.32;31.52;31.60;31.52;31.32;31.13;31.38;32.30;33.23;33.81;34.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="56.80;56.88;57.07;57.11;56.30;54.39;52.50;51.23;50.80;51.23;52.50;54.39;56.30;57.11;57.07;56.88;56.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.00;33.94;33.81;33.77;34.11;34.93;35.72;36.23;36.40;36.23;35.72;34.93;34.11;33.77;33.81;33.94;34.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="65.20" y1="30.00" x2="65.20" y2="38.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="65.20;65.14;64.86;64.05;61.93;58.63;55.71;53.84;53.20;53.84;55.71;58.63;61.93;64.05;64.86;65.14;65.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="30.00;30.28;31.15;32.59;34.11;34.67;34.46;34.13;34.00;34.13;34.46;34.67;34.11;32.59;31.15;30.28;30.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="65.20;64.75;63.45;61.42;58.65;55.81;53.70;52.42;52.00;52.42;53.70;55.81;58.65;61.42;63.45;64.75;65.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="38.00;38.06;38.16;38.07;37.34;35.99;34.86;34.20;34.00;34.20;34.86;35.99;37.34;38.07;38.16;38.06;38.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="44.80" y1="34.00" x2="45.20" y2="35.60" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="44.80;45.05;45.80;47.09;49.06;51.35;53.21;54.40;54.80;54.40;53.21;51.35;49.06;47.09;45.80;45.05;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.00;33.71;32.86;31.62;30.49;30.21;30.45;30.71;30.80;30.71;30.45;30.21;30.49;31.62;32.86;33.71;34.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="45.20;45.50;46.40;47.92;50.09;52.23;53.69;54.53;54.80;54.53;53.69;52.23;50.09;47.92;46.40;45.50;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="35.60;35.45;35.03;34.49;34.38;35.20;36.24;36.96;37.20;36.96;36.24;35.20;34.38;34.49;35.03;35.45;35.60" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="47.40" y1="34.80" x2="48.60" y2="34.80" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="47.40;47.46;47.65;48.11;49.34;51.35;53.20;54.39;54.80;54.39;53.20;51.35;49.34;48.11;47.65;47.46;47.40" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.80;34.98;35.50;36.20;36.53;35.88;34.93;34.24;34.00;34.24;34.93;35.88;36.53;36.20;35.50;34.98;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="48.60;48.68;48.94;49.52;50.90;53.11;55.09;56.37;56.80;56.37;55.09;53.11;50.90;49.52;48.94;48.68;48.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="34.80;34.96;35.40;35.99;36.21;35.61;34.78;34.20;34.00;34.20;34.78;35.61;36.21;35.99;35.40;34.96;34.80" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="53.20" y1="34.00" x2="53.20" y2="36.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="53.20;53.22;53.28;53.53;54.49;56.40;58.30;59.57;60.00;59.57;58.30;56.40;54.49;53.53;53.28;53.22;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="34.00;33.73;32.95;31.79;30.71;30.39;30.55;30.73;30.80;30.73;30.55;30.39;30.71;31.79;32.95;33.73;34.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="53.20;53.26;53.45;53.93;55.13;57.00;58.63;59.66;60.00;59.66;58.63;57.00;55.13;53.93;53.45;53.26;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="36.40;36.26;35.84;35.29;35.06;35.63;36.44;37.01;37.20;37.01;36.44;35.63;35.06;35.29;35.84;36.26;36.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="45.20" y1="35.60" x2="44.80" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="45.20;45.94;48.15;51.82;57.02;62.31;66.14;68.44;69.20;68.44;66.14;62.31;57.02;51.82;48.15;45.94;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="35.60;35.55;35.38;34.99;34.04;32.53;31.17;30.30;30.00;30.30;31.17;32.53;34.04;34.99;35.38;35.55;35.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="44.80;45.51;47.63;51.24;56.47;61.93;65.94;68.38;69.20;68.38;65.94;61.93;56.47;51.24;47.63;45.51;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.34;37.77;38.38;38.84;38.73;38.38;38.10;38.00;38.10;38.38;38.73;38.84;38.38;37.77;37.34;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="53.20" y1="36.40" x2="50.80" y2="36.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="53.20;53.06;52.59;51.54;49.49;46.89;44.92;43.77;43.40;43.77;44.92;46.89;49.49;51.54;52.59;53.06;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="36.40;36.19;35.59;34.76;34.10;34.14;34.48;34.72;34.80;34.72;34.48;34.14;34.10;34.76;35.59;36.19;36.40" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="50.80;50.71;50.47;50.08;49.25;47.73;46.13;45.00;44.60;45.00;46.13;47.73;49.25;50.08;50.47;50.71;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="36.40;36.39;36.34;36.21;35.88;35.42;35.06;34.86;34.80;34.86;35.06;35.42;35.88;36.21;36.34;36.39;36.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="44.80" y1="37.20" x2="42.80" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="44.80;45.29;46.72;48.85;51.09;52.42;52.93;53.14;53.20;53.14;52.93;52.42;51.09;48.85;46.72;45.29;44.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="37.20;37.20;37.19;37.15;37.02;36.78;36.58;36.45;36.40;36.45;36.58;36.78;37.02;37.15;37.19;37.20;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="42.80;43.28;44.75;47.10;49.88;51.77;52.64;53.07;53.20;53.07;52.64;51.77;49.88;47.10;44.75;43.28;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.06;36.64;35.97;35.18;34.59;34.24;34.06;34.00;34.06;34.24;34.59;35.18;35.97;36.64;37.06;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="54.80" y1="37.20" x2="57.20" y2="37.20" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="54.80;54.65;54.22;53.48;52.23;50.58;49.18;48.30;48.00;48.30;49.18;50.58;52.23;53.48;54.22;54.65;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="37.20;37.16;37.04;36.78;36.20;35.36;34.63;34.16;34.00;34.16;34.63;35.36;36.20;36.78;37.04;37.16;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="57.20;57.08;56.69;55.89;54.35;52.31;50.62;49.56;49.20;49.56;50.62;52.31;54.35;55.89;56.69;57.08;57.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="37.20;37.29;37.57;37.96;38.19;37.97;37.58;37.30;37.20;37.30;37.58;37.97;38.19;37.96;37.57;37.29;37.20" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="34.80" y1="38.00" x2="37.20" y2="38.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="34.80;35.22;36.49;38.68;41.99;45.68;48.49;50.22;50.80;50.22;48.49;45.68;41.99;38.68;36.49;35.22;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="38.00;37.81;37.26;36.46;35.80;35.76;36.06;36.31;36.40;36.31;36.06;35.76;35.80;36.46;37.26;37.81;38.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="37.20;37.62;38.89;41.08;44.39;48.08;50.89;52.62;53.20;52.62;50.89;48.08;44.39;41.08;38.89;37.62;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="38.00;37.81;37.27;36.48;35.82;35.78;36.07;36.31;36.40;36.31;36.07;35.78;35.82;36.48;37.27;37.81;38.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="65.20" y1="38.00" x2="62.80" y2="38.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="65.20;64.75;63.34;60.90;57.89;55.89;55.12;54.86;54.80;54.86;55.12;55.89;57.89;60.90;63.34;64.75;65.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="38.00;38.02;38.08;38.17;38.22;37.98;37.59;37.30;37.20;37.30;37.59;37.98;38.22;38.17;38.08;38.02;38.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="62.80;62.37;61.17;59.58;58.21;57.59;57.38;57.25;57.20;57.25;57.38;57.59;58.21;59.58;61.17;62.37;62.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="38.00;38.29;39.11;40.17;40.60;39.67;38.39;37.50;37.20;37.50;38.39;39.67;40.60;40.17;39.11;38.29;38.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="32.00" y1="38.00" x2="32.00" y2="46.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="32.00;31.58;30.44;29.03;28.32;28.92;29.88;30.56;30.80;30.56;29.88;28.92;28.32;29.03;30.44;31.58;32.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="38.00;37.78;37.22;36.68;36.57;37.02;37.55;37.89;38.00;37.89;37.55;37.02;36.57;36.68;37.22;37.78;38.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="32.00;32.12;32.40;32.63;32.65;32.74;32.96;33.14;33.20;33.14;32.96;32.74;32.65;32.63;32.40;32.12;32.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="46.00;45.58;44.25;41.99;39.44;38.15;37.92;37.97;38.00;37.97;37.92;38.15;39.44;41.99;44.25;45.58;46.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="34.80" y1="39.60" x2="37.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="34.80;35.95;39.40;45.10;52.91;60.37;65.38;68.26;69.20;68.26;65.38;60.37;52.91;45.10;39.40;35.95;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.65;39.83;40.10;40.14;39.59;38.81;38.22;38.00;38.22;38.81;39.59;40.14;40.10;39.83;39.65;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="37.20;38.08;40.72;45.13;51.39;57.87;62.74;65.77;66.80;65.77;62.74;57.87;51.39;45.13;40.72;38.08;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.48;44.65;44.63;43.71;41.64;39.66;38.41;38.00;38.41;39.66;41.64;43.71;44.63;44.65;44.48;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="37.20" y1="39.60" x2="34.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="37.20;37.92;40.05;43.38;47.33;50.34;52.02;52.91;53.20;52.91;52.02;50.34;47.33;43.38;40.05;37.92;37.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.42;38.92;38.22;37.75;37.95;38.39;38.70;38.80;38.70;38.39;37.95;37.75;38.22;38.92;39.42;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="34.80;35.41;37.24;40.24;44.05;47.27;49.28;50.42;50.80;50.42;49.28;47.27;44.05;40.24;37.24;35.41;34.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.06;43.05;41.49;39.83;38.97;38.78;38.79;38.80;38.79;38.78;38.97;39.83;41.49;43.05;44.06;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="38.80" y1="39.60" x2="41.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="38.80;39.69;42.32;46.41;51.09;54.38;56.07;56.93;57.20;56.93;56.07;54.38;51.09;46.41;42.32;39.69;38.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.56;39.55;39.73;39.99;39.81;39.34;38.94;38.80;38.94;39.34;39.81;39.99;39.73;39.55;39.56;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="41.20;41.68;43.11;45.47;48.63;51.50;53.36;54.44;54.80;54.44;53.36;51.50;48.63;45.47;43.11;41.68;41.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.45;44.48;44.16;42.99;41.27;39.90;39.07;38.80;39.07;39.90;41.27;42.99;44.16;44.48;44.45;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="41.20" y1="39.60" x2="38.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="41.20;41.98;44.27;47.85;52.35;56.38;59.08;60.67;61.20;60.67;59.08;56.38;52.35;47.85;44.27;41.98;41.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.57;39.49;39.41;39.30;39.11;38.95;38.84;38.80;38.84;38.95;39.11;39.30;39.41;39.49;39.57;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="38.80;39.37;41.13;44.21;48.70;53.18;56.32;58.18;58.80;58.18;56.32;53.18;48.70;44.21;41.13;39.37;38.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.15;43.38;42.12;40.64;39.62;39.12;38.88;38.80;38.88;39.12;39.62;40.64;42.12;43.38;44.15;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="42.80" y1="39.60" x2="45.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="42.80;42.78;42.71;42.60;42.64;43.03;43.53;43.88;44.00;43.88;43.53;43.03;42.64;42.60;42.71;42.78;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.57;39.49;39.45;39.58;39.88;40.16;40.34;40.40;40.34;40.16;39.88;39.58;39.45;39.49;39.57;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="45.20;44.98;44.34;43.48;42.89;43.06;43.53;43.88;44.00;43.88;43.53;43.06;42.89;43.48;44.34;44.98;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.30;44.00;43.44;42.65;41.96;41.53;41.28;41.20;41.28;41.53;41.96;42.65;43.44;44.00;44.30;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="45.20" y1="39.60" x2="42.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="45.20;44.81;43.66;41.90;40.04;39.07;38.83;38.80;38.80;38.80;38.83;39.07;40.04;41.90;43.66;44.81;45.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.66;39.85;40.12;40.28;40.11;39.84;39.66;39.60;39.66;39.84;40.11;40.28;40.12;39.85;39.66;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="42.80;42.55;41.81;40.76;39.96;40.09;40.64;41.06;41.20;41.06;40.64;40.09;39.96;40.76;41.81;42.55;42.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.53;44.89;45.37;45.65;45.38;44.90;44.53;44.40;44.53;44.90;45.38;45.65;45.37;44.89;44.53;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="46.80" y1="39.60" x2="49.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="46.80;46.48;45.52;44.07;42.51;41.64;41.35;41.24;41.20;41.24;41.35;41.64;42.51;44.07;45.52;46.48;46.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.43;38.95;38.27;37.82;38.16;38.85;39.40;39.60;39.40;38.85;38.16;37.82;38.27;38.95;39.43;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="49.20;48.80;47.60;45.67;43.21;41.10;39.78;39.04;38.80;39.04;39.78;41.10;43.21;45.67;47.60;48.80;49.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.27;43.89;43.39;43.14;43.50;43.98;44.30;44.40;44.30;43.98;43.50;43.14;43.39;43.89;44.27;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="49.20" y1="39.60" x2="46.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="49.20;49.27;49.48;49.79;50.14;50.44;50.64;50.76;50.80;50.76;50.64;50.44;50.14;49.79;49.48;49.27;49.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.73;40.12;40.67;40.94;40.40;39.58;39.00;38.80;39.00;39.58;40.40;40.94;40.67;40.12;39.73;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="46.80;47.03;47.71;48.78;49.95;50.58;50.75;50.79;50.80;50.79;50.75;50.58;49.95;48.78;47.71;47.03;46.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.64;45.32;46.24;46.82;46.51;45.85;45.37;45.20;45.37;45.85;46.51;46.82;46.24;45.32;44.64;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="50.80" y1="39.60" x2="53.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="50.80;50.89;51.19;51.70;52.11;51.88;51.35;50.94;50.80;50.94;51.35;51.88;52.11;51.70;51.19;50.89;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.51;39.28;39.07;39.28;40.17;41.14;41.78;42.00;41.78;41.14;40.17;39.28;39.07;39.28;39.51;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="53.20;53.47;54.22;55.14;55.50;54.77;53.76;53.05;52.80;53.05;53.76;54.77;55.50;55.14;54.22;53.47;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.10;43.19;41.84;40.72;40.74;41.33;41.82;42.00;41.82;41.33;40.74;40.72;41.84;43.19;44.10;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="53.20" y1="39.60" x2="50.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="53.20;53.41;54.04;54.93;55.65;55.63;55.23;54.91;54.80;54.91;55.23;55.63;55.65;54.93;54.04;53.41;53.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.75;40.18;40.76;40.99;40.41;39.58;39.00;38.80;39.00;39.58;40.41;40.99;40.76;40.18;39.75;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="50.80;51.08;51.90;53.15;54.39;54.91;54.91;54.83;54.80;54.83;54.91;54.91;54.39;53.15;51.90;51.08;50.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.62;45.25;46.13;46.74;46.48;45.85;45.37;45.20;45.37;45.85;46.48;46.74;46.13;45.25;44.62;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="54.80" y1="39.60" x2="57.20" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="54.80;54.77;54.69;54.58;54.50;54.53;54.65;54.76;54.80;54.76;54.65;54.53;54.50;54.58;54.69;54.77;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.53;39.32;39.12;39.34;40.26;41.20;41.80;42.00;41.80;41.20;40.26;39.34;39.12;39.32;39.53;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="57.20;57.22;57.28;57.35;57.36;57.23;57.02;56.86;56.80;56.86;57.02;57.23;57.36;57.35;57.28;57.22;57.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.18;43.53;42.57;41.67;41.43;41.65;41.90;42.00;41.90;41.65;41.43;41.67;42.57;43.53;44.18;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="57.20" y1="39.60" x2="54.80" y2="44.40" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="57.20;57.15;57.01;56.88;57.04;57.64;58.26;58.66;58.80;58.66;58.26;57.64;57.04;56.88;57.01;57.15;57.20" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="39.60;39.68;39.92;40.22;40.26;39.79;39.25;38.91;38.80;38.91;39.25;39.79;40.26;40.22;39.92;39.68;39.60" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="54.80;54.71;54.47;54.23;54.58;55.92;57.42;58.45;58.80;58.45;57.42;55.92;54.58;54.23;54.47;54.71;54.80" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="44.40;44.50;44.79;45.22;45.60;45.65;45.46;45.27;45.20;45.27;45.46;45.65;45.60;45.22;44.79;44.50;44.40" dur="14.6s" repeatCount="indefinite" />
+    </line>
+    <line x1="60.00" y1="38.00" x2="60.00" y2="46.00" stroke="#c084fc" stroke-width="0.7" stroke-linecap="round" opacity="0.7">
+      <animate attributeName="x1" values="60.00;59.67;58.74;57.46;56.50;56.81;57.76;58.53;58.80;58.53;57.76;56.81;56.50;57.46;58.74;59.67;60.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y1" values="38.00;38.07;38.31;38.82;39.73;40.83;41.56;41.91;42.00;41.91;41.56;40.83;39.73;38.82;38.31;38.07;38.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="x2" values="60.00;59.94;59.74;59.46;59.46;59.93;60.42;60.71;60.80;60.71;60.42;59.93;59.46;59.46;59.74;59.94;60.00" dur="14.6s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="46.00;45.88;45.50;44.80;43.77;42.79;42.25;42.05;42.00;42.05;42.25;42.79;43.77;44.80;45.50;45.88;46.00" dur="14.6s" repeatCount="indefinite" />
+    </line>
+  </g>
+</svg>

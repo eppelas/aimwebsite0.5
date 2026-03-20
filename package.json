@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3001 --host=0.0.0.0",
+    "dev:v4": "vite --port=8888 --host=0.0.0.0",
+    "dev:v5": "vite --port=9999 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",

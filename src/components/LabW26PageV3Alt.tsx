@@ -8,10 +8,40 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
-import { MorphSvg } from './MorphSvg';
-import ReviewsSection from './ReviewsSection';
 
 
+
+
+// --- COMPONENTS ---
+const MindsetDynamicArt = ({ className = "" }: { className?: string }) => (
+  <div className={className}>
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ background: 'transparent' }}>
+      <defs>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="0.8" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#glow)">
+        <line x1="37.20" y1="30.00" x2="34.80" y2="30.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
+          <animate attributeName="x1" values="37.20;36.95;36.20;34.95;33.20;31.45;30.20;29.45;29.20;29.45;30.20;31.45;33.20;34.95;36.20;36.95;37.20" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="y1" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="x2" values="34.80;34.55;33.80;32.55;30.80;29.05;27.80;27.05;26.80;27.05;27.80;29.05;30.80;32.55;33.80;34.55;34.80" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="y2" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
+        </line>
+        <line x1="62.80" y1="30.00" x2="65.20" y2="30.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
+          <animate attributeName="x1" values="62.80;63.05;63.80;65.05;66.80;68.55;69.80;70.55;70.80;70.55;69.80;68.55;66.80;65.05;63.80;63.05;62.80" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="y1" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="x2" values="65.20;65.45;66.20;67.45;69.20;70.95;72.20;72.95;73.20;72.95;72.20;70.95;69.20;67.45;66.20;65.45;65.20" dur="6s" repeatCount="indefinite" />
+          <animate attributeName="y2" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
+        </line>
+      </g>
+    </svg>
+  </div>
+);
 
 // --- TYPES ---
 interface NavItem {
@@ -31,21 +61,12 @@ interface CaseCard {
   filters: string[];
 }
 
-const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
-
-const getSpeakerOverlayTextStyle = (description: string): React.CSSProperties => {
-  if (description.length > 260) return { fontSize: '15.4px', lineHeight: 1.34 };
-  if (description.length > 235) return { fontSize: '16px', lineHeight: 1.35 };
-  return { fontSize: '16.6px', lineHeight: 1.36 };
-};
-
 // --- CONSTANTS ---
 const SIDEBAR_NAV: NavItem[] = [
-  { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
+  { label: 'ФИЛОСОФИЯ', href: '#philosophy-cards' },
   { label: 'ПРОГРАММА', href: '#program' },
   { label: 'КЕЙСЫ', href: '#cases' },
   { label: 'ТАРИФЫ', href: '#pricing' },
-  { label: 'ОТЗЫВЫ', href: '#reviews' },
 ];
 
 const EXTERNAL_LINKS = [
@@ -71,7 +92,50 @@ const PRIMARY_MENU_LINKS = [
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
 const LOGO_LEFT_SRC = `${BASE_URL}AIMLeft-02.png`;
+const MINDSET_MORPH_ANIMATED_SRC = `${BASE_URL}assets/mindset-morph-animated.svg`;
 const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
+
+function InlineAnimatedSvg({
+  src,
+  className,
+  ariaLabel,
+}: {
+  src: string;
+  className?: string;
+  ariaLabel: string;
+}) {
+  const [svgMarkup, setSvgMarkup] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch(src)
+      .then((response) => response.text())
+      .then((markup) => {
+        if (cancelled) return;
+        const normalizedMarkup = markup
+          .replace('style="background: #111113"', 'style="background: transparent"')
+          .replace('<svg ', '<svg width="100%" height="100%" preserveAspectRatio="xMidYMid meet" ');
+        setSvgMarkup(normalizedMarkup);
+      })
+      .catch(() => {
+        if (!cancelled) setSvgMarkup('');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+
+  return (
+    <div
+      role="img"
+      aria-label={ariaLabel}
+      className={className}
+      dangerouslySetInnerHTML={svgMarkup ? { __html: svgMarkup } : undefined}
+    />
+  );
+}
 
 const CASE_FILTERS = [
   { id: 'all', label: 'все' },
@@ -228,7 +292,7 @@ const CASE_CARDS: CaseCard[] = [
   },
 ];
 
-export const PROGRAM_TRACKS = [
+const PROGRAM_TRACKS = [
   {
     id: '01',
     week: 'WEEK 1',
@@ -294,7 +358,7 @@ const PROGRAM_TRACK_VARIANTS = {
   },
 } as const;
 
-export const ADVANCED_TRACKS = [
+const ADVANCED_TRACKS = [
   {
     id: 'T1',
     week: 'WEEK 1',
@@ -477,10 +541,10 @@ const LargeDiamondArt = ({ className = "" }: { className?: string }) => (
 );
 
 const EditorialSectionHeader = ({ eyebrow, title, className = "" }: { eyebrow: string; title: string; className?: string }) => (
-  <div className={`flex items-end gap-3 md:gap-10 ${className}`}>
-    <div className="text-[10px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
-    <div className="h-px min-w-[20px] flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
-    <div className="font-black uppercase tracking-widest text-xl md:text-5xl/none text-right shrink-0">{title}</div>
+  <div className={`flex items-end gap-6 md:gap-10 ${className}`}>
+    <div className="text-[11px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
+    <div className="h-px min-w-[40px] flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
+    <div className="font-black uppercase tracking-widest text-2xl md:text-5xl/none text-right">{title}</div>
   </div>
 );
 
@@ -630,180 +694,6 @@ const MenuStrikeText = ({ children, className = "" }: { children: React.ReactNod
   </span>
 );
 
-const MindsetDynamicArt = ({ className = "" }: { className?: string }) => (
-  <div className={className}>
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ background: 'transparent' }}>
-      <defs>
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="0.8" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-      <g filter="url(#glow)">
-        <line x1="37.20" y1="30.00" x2="34.80" y2="30.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="37.20;36.95;36.20;34.95;33.20;31.45;30.20;29.45;29.20;29.45;30.20;31.45;33.20;34.95;36.20;36.95;37.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="34.80;34.55;33.80;32.55;30.80;29.05;27.80;27.05;26.80;27.05;27.80;29.05;30.80;32.55;33.80;34.55;34.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="62.80" y1="30.00" x2="65.20" y2="30.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="62.80;63.05;63.80;65.05;66.80;68.55;69.80;70.55;70.80;70.55;69.80;68.55;66.80;65.05;63.80;63.05;62.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="65.20;65.45;66.20;67.45;69.20;70.95;72.20;72.95;73.20;72.95;72.20;70.95;69.20;67.45;66.20;65.45;65.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="30.00;30.13;30.50;31.13;32.00;32.88;33.50;33.88;34.00;33.88;33.50;32.88;32.00;31.13;30.50;30.13;30.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="42.80" y1="30.80" x2="44.80" y2="30.80" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="42.80;42.40;41.20;39.20;36.40;33.60;31.60;30.40;30.00;30.40;31.60;33.60;36.40;39.20;41.20;42.40;42.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;30.98;31.50;32.38;33.60;34.83;35.70;36.23;36.40;36.23;35.70;34.83;33.60;32.38;31.50;30.98;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="44.80;44.46;43.45;41.76;39.40;37.04;35.35;34.34;34.00;34.34;35.35;37.04;39.40;41.76;43.45;44.46;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="30.80;30.98;31.50;32.38;33.60;34.83;35.70;36.23;36.40;36.23;35.70;34.83;33.60;32.38;31.50;30.98;30.80" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="57.20" y1="30.80" x2="54.80" y2="30.80" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="57.20;56.59;54.70;51.28;46.00;40.50;36.74;34.66;34.00;34.66;36.74;40.50;46.00;51.28;54.70;56.59;57.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;30.85;31.00;31.27;32.00;33.45;34.97;36.03;36.40;36.03;34.97;33.45;32.00;31.27;31.00;30.85;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="54.80;54.16;52.30;49.47;46.00;42.75;40.26;38.59;38.00;38.59;40.26;42.75;46.00;49.47;52.30;54.16;54.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="30.80;31.10;32.00;33.48;35.20;36.20;36.43;36.42;36.40;36.42;36.43;36.20;35.20;33.48;32.00;31.10;30.80" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="44.80" y1="30.80" x2="45.20" y2="32.40" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="44.80;44.60;43.99;42.92;41.39;39.85;38.80;38.19;38.00;38.19;38.80;39.85;41.39;42.92;43.99;44.60;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;30.92;31.31;32.01;33.13;34.44;35.49;36.17;36.40;36.17;35.49;34.44;33.13;32.01;31.31;30.92;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="45.20;45.09;44.76;44.26;43.61;42.96;42.45;42.12;42.00;42.12;42.45;42.96;43.61;44.26;44.76;45.09;45.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="32.40;32.58;33.09;33.89;34.87;35.66;36.11;36.33;36.40;36.33;36.11;35.66;34.87;33.89;33.09;32.58;32.40" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="53.20" y1="31.60" x2="50.80" y2="31.60" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="53.20;52.97;52.20;50.65;48.00;45.12;43.24;42.28;42.00;42.28;43.24;45.12;48.00;50.65;52.20;52.97;53.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="31.60;31.63;31.70;31.85;32.40;33.68;35.07;36.06;36.40;36.06;35.07;33.68;32.40;31.85;31.70;31.63;31.60" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="50.80;50.53;49.80;48.85;48.00;47.38;46.76;46.22;46.00;46.22;46.76;47.38;48.00;48.85;49.80;50.53;50.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="31.60;31.87;32.70;34.05;35.60;36.42;36.53;36.44;36.40;36.44;36.53;36.42;35.60;34.05;32.70;31.87;31.60" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="50.80" y1="31.60" x2="50.80" y2="34.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="50.80;50.65;50.20;49.40;48.27;47.18;46.49;46.11;46.00;46.11;46.49;47.18;48.27;49.40;50.20;50.65;50.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="31.60;31.69;31.97;32.52;33.47;34.63;35.58;36.19;36.40;36.19;35.58;34.63;33.47;32.52;31.97;31.69;31.60" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="50.80;50.77;50.70;50.62;50.53;50.39;50.21;50.06;50.00;50.06;50.21;50.39;50.53;50.62;50.70;50.77;50.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.00;34.14;34.53;35.10;35.73;36.15;36.32;36.38;36.40;36.38;36.32;36.15;35.73;35.10;34.53;34.14;34.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="45.20" y1="32.40" x2="44.80" y2="34.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="45.20;45.38;45.89;46.67;47.63;48.57;49.32;49.82;50.00;49.82;49.32;48.57;47.63;46.67;45.89;45.38;45.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="32.40;32.45;32.63;32.99;33.69;34.68;35.58;36.19;36.40;36.19;35.58;34.68;33.69;32.99;32.63;32.45;32.40" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="44.80;45.06;45.86;47.27;49.37;51.49;52.93;53.74;54.00;53.74;52.93;51.49;49.37;47.27;45.86;45.06;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.00;34.15;34.57;35.21;35.91;36.32;36.42;36.41;36.40;36.41;36.42;36.32;35.91;35.21;34.57;34.15;34.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="34.80" y1="30.00" x2="34.80" y2="38.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="34.80;35.27;36.72;39.29;43.28;47.72;51.14;53.28;54.00;53.28;51.14;47.72;43.28;39.29;36.72;35.27;34.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.00;30.14;30.62;31.57;33.08;34.63;35.66;36.22;36.40;36.22;35.66;34.63;33.08;31.57;30.62;30.14;30.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="34.80;35.66;38.18;42.23;47.52;52.35;55.56;57.40;58.00;57.40;55.56;52.35;47.52;42.23;38.18;35.66;34.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="38.00;38.01;37.98;37.78;37.32;36.82;36.54;36.43;36.40;36.43;36.54;36.82;37.32;37.78;37.98;38.01;38.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="42.80" y1="30.80" x2="42.80" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="42.80;43.18;44.35;46.41;49.56;53.05;55.74;57.43;58.00;57.43;55.74;53.05;49.56;46.41;44.35;43.18;42.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;30.92;31.31;32.09;33.36;34.73;35.68;36.23;36.40;36.23;35.68;34.73;33.36;32.09;31.31;30.92;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="42.80;43.49;45.55;48.86;53.24;57.28;59.96;61.50;62.00;61.50;59.96;57.28;53.24;48.86;45.55;43.49;42.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.23;37.29;37.26;37.04;36.72;36.52;36.42;36.40;36.42;36.52;36.72;37.04;37.26;37.29;37.23;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="44.80" y1="34.00" x2="42.80" y2="34.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="44.80;45.46;47.36;50.29;53.90;57.23;59.74;61.41;62.00;61.41;59.74;57.23;53.90;50.29;47.36;45.46;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.00;33.97;33.87;33.68;33.70;34.40;35.38;36.13;36.40;36.13;35.38;34.40;33.70;33.68;33.87;33.97;34.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="42.80;43.40;45.29;48.67;53.90;59.41;63.21;65.33;66.00;65.33;63.21;59.41;53.90;48.67;45.29;43.40;42.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.00;34.18;34.73;35.67;36.70;37.05;36.82;36.52;36.40;36.52;36.82;37.05;36.70;35.67;34.73;34.18;34.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="46.80" y1="37.20" x2="48.00" y2="30.80" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="46.80;47.31;48.89;51.62;55.68;60.03;63.30;65.32;66.00;65.32;63.30;60.03;55.68;51.62;48.89;47.31;46.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="37.20;37.21;37.20;37.11;36.88;36.62;36.47;36.41;36.40;36.41;36.47;36.62;36.88;37.11;37.20;37.21;37.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="48.00;48.77;51.06;54.77;59.72;64.38;67.55;69.39;70.00;69.39;67.55;64.38;59.72;54.77;51.06;48.77;48.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="30.80;30.94;31.40;32.24;33.52;34.83;35.73;36.24;36.40;36.24;35.73;34.83;33.52;32.24;31.40;30.94;30.80" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="48.00" y1="30.80" x2="49.20" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="48.00;47.33;45.33;42.01;37.36;32.73;29.43;27.46;26.80;27.46;29.43;32.73;37.36;42.01;45.33;47.33;48.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;30.90;31.20;31.69;32.39;33.09;33.59;33.90;34.00;33.90;33.59;33.09;32.39;31.69;31.20;30.90;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="49.20;48.50;46.42;42.93;38.04;33.13;29.62;27.50;26.80;27.50;29.62;33.13;38.04;42.93;46.42;48.50;49.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.35;37.80;38.56;39.61;40.66;41.41;41.85;42.00;41.85;41.41;40.66;39.61;38.56;37.80;37.35;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="50.80" y1="34.00" x2="53.20" y2="34.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="50.80;51.38;53.13;56.17;60.76;65.86;69.84;72.35;73.20;72.35;69.84;65.86;60.76;56.17;53.13;51.38;50.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.00;34.06;34.20;34.28;34.16;33.97;33.92;33.97;34.00;33.97;33.92;33.97;34.16;34.28;34.20;34.06;34.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="53.20;53.95;56.17;59.76;64.44;68.61;71.26;72.73;73.20;72.73;71.26;68.61;64.44;59.76;56.17;53.95;53.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.00;34.19;34.80;35.97;37.84;39.78;41.08;41.78;42.00;41.78;41.08;39.78;37.84;35.97;34.80;34.19;34.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="54.80" y1="30.80" x2="54.80" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="54.80;53.93;51.35;47.16;41.56;36.30;32.74;30.68;30.00;30.68;32.74;36.30;41.56;47.16;51.35;53.93;54.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.80;31.02;31.71;32.99;34.96;37.03;38.48;39.33;39.60;39.33;38.48;37.03;34.96;32.99;31.71;31.02;30.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="54.80;54.24;52.55;49.61;45.24;40.53;36.96;34.75;34.00;34.75;36.96;40.53;45.24;49.61;52.55;54.24;54.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.33;37.69;38.16;38.64;39.02;39.32;39.52;39.60;39.52;39.32;39.02;38.64;38.16;37.69;37.33;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="54.80" y1="34.00" x2="56.80" y2="34.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="54.80;54.15;52.20;48.95;44.40;39.85;36.60;34.65;34.00;34.65;36.60;39.85;44.40;48.95;52.20;54.15;54.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.00;34.17;34.70;35.58;36.80;38.02;38.90;39.43;39.60;39.43;38.90;38.02;36.80;35.58;34.70;34.17;34.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="56.80;56.21;54.45;51.51;47.40;43.29;40.35;38.59;38.00;38.59;40.35;43.29;47.40;51.51;54.45;56.21;56.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.00;34.17;34.70;35.58;36.80;38.02;38.90;39.43;39.60;39.43;38.90;38.02;36.80;35.58;34.70;34.17;34.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="65.20" y1="30.00" x2="65.20" y2="38.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="65.20;64.22;61.32;56.64;50.48;44.77;40.94;38.73;38.00;38.73;40.94;44.77;50.48;56.64;61.32;64.22;65.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="30.00;30.24;31.02;32.47;34.68;36.93;38.46;39.32;39.60;39.32;38.46;36.93;34.68;32.47;31.02;30.24;30.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="65.20;64.61;62.78;59.58;54.72;49.40;45.36;42.85;42.00;42.85;45.36;49.40;54.72;59.58;62.78;64.61;65.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="38.00;38.11;38.38;38.68;38.92;39.12;39.34;39.53;39.60;39.53;39.34;39.12;38.92;38.68;38.38;38.11;38.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="44.80" y1="34.00" x2="45.20" y2="35.60" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="44.80;44.73;44.49;44.05;43.39;42.73;42.30;42.07;42.00;42.07;42.30;42.73;43.39;44.05;44.49;44.73;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.00;34.12;34.51;35.21;36.33;37.64;38.69;39.37;39.60;39.37;38.69;37.64;36.33;35.21;34.51;34.12;34.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="45.20;45.21;45.26;45.39;45.61;45.84;45.95;45.99;46.00;45.99;45.95;45.84;45.61;45.39;45.26;45.21;45.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="35.60;35.78;36.29;37.09;38.07;38.86;39.31;39.53;39.60;39.53;39.31;38.86;38.07;37.09;36.29;35.78;35.60" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="47.40" y1="34.80" x2="48.60" y2="34.80" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="47.40;47.36;47.23;47.01;46.70;46.39;46.17;46.04;46.00;46.04;46.17;46.39;46.70;47.01;47.23;47.36;47.40" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.80;34.95;35.40;36.15;37.20;38.25;39.00;39.45;39.60;39.45;39.00;38.25;37.20;36.15;35.40;34.95;34.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="48.60;48.64;48.77;48.99;49.30;49.61;49.83;49.96;50.00;49.96;49.83;49.61;49.30;48.99;48.77;48.64;48.60" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="34.80;34.95;35.40;36.15;37.20;38.25;39.00;39.45;39.60;39.45;39.00;38.25;37.20;36.15;35.40;34.95;34.80" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="53.20" y1="34.00" x2="53.20" y2="36.40" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="53.20;53.10;52.80;52.25;51.47;50.73;50.29;50.06;50.00;50.06;50.29;50.73;51.47;52.25;52.80;53.10;53.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="34.00;34.11;34.47;35.15;36.27;37.60;38.68;39.37;39.60;39.37;38.68;37.60;36.27;35.15;34.47;34.11;34.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="53.20;53.22;53.30;53.47;53.73;53.94;54.01;54.01;54.00;54.01;54.01;53.94;53.73;53.47;53.30;53.22;53.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="36.40;36.56;37.03;37.73;38.53;39.12;39.42;39.56;39.60;39.56;39.42;39.12;38.53;37.73;37.03;36.56;36.40" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="45.20" y1="35.60" x2="44.80" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="45.20;45.50;46.39;47.79;49.63;51.45;52.82;53.70;54.00;53.70;52.82;51.45;49.63;47.79;46.39;45.50;45.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="35.60;35.65;35.83;36.19;36.89;37.88;38.78;39.39;39.60;39.39;38.78;37.88;36.89;36.19;35.83;35.65;35.60" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="44.80;45.18;46.36;48.40;51.37;54.36;56.43;57.62;58.00;57.62;56.43;54.36;51.37;48.40;46.36;45.18;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.35;37.77;38.41;39.11;39.52;39.62;39.61;39.60;39.61;39.62;39.52;39.11;38.41;37.77;37.35;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="53.20" y1="36.40" x2="50.80" y2="36.40" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="53.20;53.47;54.20;55.15;56.00;56.62;57.24;57.78;58.00;57.78;57.24;56.62;56.00;55.15;54.20;53.47;53.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="36.40;36.38;36.30;36.20;36.40;37.33;38.47;39.31;39.60;39.31;38.47;37.33;36.40;36.20;36.30;36.38;36.40" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="50.80;51.03;51.80;53.35;56.00;58.88;60.76;61.72;62.00;61.72;60.76;58.88;56.00;53.35;51.80;51.03;50.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="36.40;36.62;37.30;38.40;39.60;40.07;39.93;39.69;39.60;39.69;39.93;40.07;39.60;38.40;37.30;36.62;36.40" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="44.80" y1="37.20" x2="42.80" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="44.80;45.46;47.36;50.29;53.90;57.23;59.74;61.41;62.00;61.41;59.74;57.23;53.90;50.29;47.36;45.46;44.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="37.20;37.17;37.07;36.88;36.90;37.60;38.58;39.33;39.60;39.33;38.58;37.60;36.90;36.88;37.07;37.17;37.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="42.80;43.40;45.29;48.67;53.90;59.41;63.21;65.33;66.00;65.33;63.21;59.41;53.90;48.67;45.29;43.40;42.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.38;37.93;38.87;39.90;40.25;40.02;39.72;39.60;39.72;40.02;40.25;39.90;38.87;37.93;37.38;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="54.80" y1="37.20" x2="57.20" y2="37.20" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="54.80;55.15;56.20;57.95;60.40;62.85;64.60;65.65;66.00;65.65;64.60;62.85;60.40;57.95;56.20;55.15;54.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="37.20;37.28;37.50;37.88;38.40;38.93;39.30;39.52;39.60;39.52;39.30;38.93;38.40;37.88;37.50;37.28;37.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="57.20;57.60;58.80;60.80;63.60;66.40;68.40;69.60;70.00;69.60;68.40;66.40;63.60;60.80;58.80;57.60;57.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="37.20;37.28;37.50;37.88;38.40;38.93;39.30;39.52;39.60;39.52;39.30;38.93;38.40;37.88;37.50;37.28;37.20" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="34.80" y1="38.00" x2="37.20" y2="38.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="34.80;34.55;33.80;32.55;30.80;29.05;27.80;27.05;26.80;27.05;27.80;29.05;30.80;32.55;33.80;34.55;34.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="38.00;38.13;38.50;39.13;40.00;40.88;41.50;41.88;42.00;41.88;41.50;40.88;40.00;39.13;38.50;38.13;38.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="37.20;36.95;36.20;34.95;33.20;31.45;30.20;29.45;29.20;29.45;30.20;31.45;33.20;34.95;36.20;36.95;37.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="38.00;38.13;38.50;39.13;40.00;40.88;41.50;41.88;42.00;41.88;41.50;40.88;40.00;39.13;38.50;38.13;38.00" dur="6s" repeatCount="indefinite" />
-        </line>
-        <line x1="65.20" y1="38.00" x2="62.80" y2="38.00" stroke="#c084fc" strokeWidth="0.7" strokeLinecap="round" opacity="0.7">
-          <animate attributeName="x1" values="65.20;65.45;66.20;67.45;69.20;70.95;72.20;72.95;73.20;72.95;72.20;70.95;69.20;67.45;66.20;65.45;65.20" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="38.00;38.13;38.50;39.13;40.00;40.88;41.50;41.88;42.00;41.88;41.50;40.88;40.00;39.13;38.50;38.13;38.00" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="62.80;63.05;63.80;65.05;66.80;68.55;69.80;70.55;70.80;70.55;69.80;68.55;66.80;65.05;63.80;63.05;62.80" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="38.00;38.13;38.50;39.13;40.00;40.88;41.50;41.88;42.00;41.88;41.50;40.88;40.00;39.13;38.50;38.13;38.00" dur="6s" repeatCount="indefinite" />
-        </line>
-      </g>
-    </svg>
-  </div>
-);
-
 const ProgramPromptArt = () => {
   const codeLines = [
     '> EXECUTE_ROOT_DIRECTIVE()',
@@ -862,12 +752,12 @@ const ProgramContextArt = () => (
       .               .
     .                   .
    .                     .
-   .                       .
-   .                       .
-    .                     .
-     .                   .
-       .               .
-         .  .  .  .  .`}
+  .                       .
+  .                       .
+   .                     .
+    .                   .
+      .               .
+        .  .  .  .  .`}
     </motion.div>
 
     <div className="relative z-10 flex gap-4">
@@ -972,6 +862,24 @@ const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' 
   return <ProgramLifeArt />;
 };
 
+const MindsetAltAnimation = () => (
+  <div className="w-full h-full relative flex items-center justify-center text-[#8DC63F]">
+    <motion.div
+      animate={{ 
+        rotate: [0, 5, 0, -5, 0],
+        scale: [1, 1.02, 1],
+      }}
+      transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      className="w-full h-full flex items-center justify-center"
+    >
+      <div className="text-[4px] md:text-[8px] leading-[4px] md:leading-[8px]">
+        <LargeDiamondArt className="scale-100 md:scale-150" />
+      </div>
+    </motion.div>
+  </div>
+);
+
+
 const PROGRAM_WEEKLY_RHYTHM = [
   { day: 'ПН', label: 'Воркшоп', type: 'workshop' as const },
   { day: 'ВТ', label: 'Коворкинг', type: 'coworking' as const },
@@ -982,7 +890,7 @@ const PROGRAM_WEEKLY_RHYTHM = [
   { day: 'ВС', label: '', type: 'off' as const },
 ];
 
-export const PROGRAM_WEEK_COPY: Record<
+const PROGRAM_WEEK_COPY: Record<
   string,
   {
     dateRange: string;
@@ -1090,6 +998,7 @@ const ProgramIntegratedTimeline = ({
 
   const toggleCard = (idx: number) => {
     setExpandedIndexes((prev) => {
+      const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
       const alreadyOpen = prev.includes(idx);
       let next: number[];
 
@@ -1185,7 +1094,7 @@ const ProgramIntegratedTimeline = ({
                 <button
                   type="button"
                   onClick={() => toggleCard(idx)}
-                  className="relative z-30 w-full px-5 py-4 md:p-7 text-left cursor-pointer select-none"
+                  className="relative z-30 w-full px-5 py-5 md:p-7 text-left cursor-pointer select-none"
                 >
                   <div className="mb-4 flex items-center justify-between gap-4">
                     <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-black/24">
@@ -1245,14 +1154,18 @@ const ProgramIntegratedTimeline = ({
                         <div className="relative grid gap-5 lg:gap-7">
                           <div className="min-w-0">
                             {showMainTrackTag && (
-                              <div className={`mb-2 flex flex-row items-center justify-end gap-1.5 ${metaTagClass}`}>
+                              <div
+                                className={`mb-3 flex items-center justify-end ${metaTrackClass} ${
+                                  desktopMainTrackBottom ? 'lg:hidden' : ''
+                                }`}
+                              >
                                 <span className="w-1.5 h-1.5 rounded-full bg-black/28" />
                                 <span>Main Track</span>
                               </div>
                             )}
                             {showSecondaryTitle && !secondaryInHeader && (
                               <div
-                                className={`mb-2 uppercase tracking-[0.06em] ${
+                                className={`mb-3 uppercase tracking-[0.06em] ${
                                   secondaryTitleAccent
                                     ? 'text-[12px] md:text-[15px] font-semibold text-[#8DC63F]'
                                     : subtitleStrong
@@ -1264,7 +1177,7 @@ const ProgramIntegratedTimeline = ({
                               </div>
                             )}
                             <p
-                              className={`leading-[1.5] text-left ${
+                              className={`max-w-[38rem] leading-[1.5] text-left ${
                                 strongerBody ? 'text-[16px] md:text-[18px] font-medium text-black/82' : 'text-[14px] md:text-[16px] font-normal text-black/66'
                               }`}
                             >
@@ -1273,15 +1186,15 @@ const ProgramIntegratedTimeline = ({
 
                             <div className="mt-3.5 relative">
                               <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 md:gap-1.5">
+                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 md:gap-2">
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
-                                    className={`relative rounded-[8px] border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[42px] md:h-[46px] flex flex-col ${
+                                    className={`relative rounded-[8px] border px-2 py-2 text-[8px] uppercase tracking-[0.05em] h-[48px] md:h-[52px] flex flex-col justify-between ${
                                       day.type === 'advanced'
-                                        ? 'bg-[#f5f6f5] border-black/16 text-black/68 shadow-sm'
+                                        ? 'bg-[#ececec] border-black/20 text-black/60 shadow-sm'
                                         : day.type === 'off'
-                                          ? 'bg-[#f5f6f5]/60 border-black/10 text-black/62'
+                                          ? 'bg-[#f4f4f4] border-black/10 text-black/30'
                                           : 'bg-white border-black/15 text-black/80 shadow-sm font-bold'
                                     }`}
                                   >
@@ -1291,11 +1204,7 @@ const ProgramIntegratedTimeline = ({
                                         <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
                                       )}
                                     </div>
-                                    <div className="mt-auto flex min-h-[1.1rem] md:min-h-[1.5rem] items-end">
-                                      <div className="font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal]">
-                                        {day.label || ' '}
-                                      </div>
-                                    </div>
+                                    <div className="font-bold leading-tight line-clamp-2 mt-auto">{day.label || ' '}</div>
                                     
                                     {day.type === 'advanced' && (
                                       <>
@@ -1325,26 +1234,26 @@ const ProgramIntegratedTimeline = ({
                             }}
                           >
                             <div
-                              className={`relative rounded-[16px] p-4 opacity-80 ${
+                              className={`relative rounded-[18px] border border-black/6 p-4 md:p-5 opacity-100 ${
                                 advancedColorway === 'violet'
                                   ? 'bg-[#eeebf5]'
                                   : lighterAdvancedBackground
-                                    ? 'bg-[#f5f6f6]'
+                                    ? 'bg-[#f3f4f3]'
                                     : 'bg-[#f1f2f2]'
                               }`}
                             >
-                              <div className={`mb-1.5 flex justify-end items-center gap-1.5 ${metaTrackClass}`}>
-                                <span className="text-[10px] leading-none text-black/30 font-bold">*</span>
+                              <div className={`mb-2 ${metaTrackClass}`}>
+                                <span className="text-[10px] leading-none">*</span>
                                 <span>{combinedAdvancedLabel ? 'Advanced Track Pro' : 'Advanced Track'}</span>
                               </div>
-                              <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-26 mb-0.5">Тема</div>
+                              <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-26 mb-1">Тема</div>
                               <div className={`font-semibold ${mutedAdvanced ? 'text-[12px] text-black/60' : 'text-[21px] md:text-[23px] leading-[1.02] text-black/76'}`}>
                                 {weekCopy.advancedTopic}
                               </div>
-                              <p className={`leading-[1.42] mt-1 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[12px] md:text-[13px] text-black/54'}`}>
+                              <p className={`leading-[1.42] mt-2 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[12px] md:text-[13px] text-black/54'}`}>
                                 {weekCopy.advancedDescription}
                               </p>
-                              <div className="mt-2">
+                              <div className="mt-3 pt-2 border-t border-black/8">
                                 <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-30">Спикер</div>
                                 <div className="text-[12px] font-semibold mt-0.5 text-black/66">{advanced.speaker}</div>
                               </div>
@@ -1416,7 +1325,7 @@ const ProgramReferenceSwipeCard = ({
   const activeTrack = PROGRAM_TRACKS[activeWeek];
   const activeWeekCopy = PROGRAM_WEEK_COPY[activeTrack.id];
   const activeAdvanced = ADVANCED_TRACKS[activeWeek];
-  const tagClass = 'inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-mono font-bold text-black/46';
+  const tagClass = 'inline-flex items-center gap-1.5 text-[10px] md:text-[11px] uppercase tracking-[0.16em] font-mono font-bold text-black/48';
 
   useEffect(() => {
     if (forcedWeekNonce === undefined || forcedWeekIndex === undefined) return;
@@ -1430,21 +1339,21 @@ const ProgramReferenceSwipeCard = ({
   const renderAdvancedCard = (weekCopy: (typeof PROGRAM_WEEK_COPY)[string], speaker: string) => (
     <div
       ref={advancedCardRef}
-      className="mt-4 ml-auto w-full md:w-[74%] rounded-[24px] border border-black/7 bg-[#f3f4f4] p-4 md:p-5 text-right min-h-[154px] flex flex-col justify-start"
+      className="mt-5 ml-auto w-full md:w-[74%] rounded-[24px] border border-black/8 bg-[#f1f2ef] p-5 md:p-6 text-right min-h-[168px] flex flex-col justify-start"
     >
       <div className={`justify-end ${tagClass}`}>
         <span className="text-[10px] leading-none">*</span>
         <span>Advanced Track</span>
       </div>
-      <h4 className="mt-1.5 text-[19px] md:text-[21px] leading-[1.02] font-semibold text-black/70">
+      <h4 className="mt-2 text-[24px] md:text-[28px] leading-[0.98] font-semibold text-black/82">
         {weekCopy.advancedTopic}
       </h4>
-      <p className="mt-1.5 text-[11px] md:text-[12px] leading-[1.4] text-black/50 max-w-[23rem] ml-auto">
+      <p className="mt-2 text-[12px] md:text-[14px] leading-[1.45] text-black/58 max-w-[23rem] ml-auto">
         {weekCopy.advancedDescription}
       </p>
-      <div className="mt-2.5 pt-2 border-t border-black/8">
+      <div className="mt-3.5 pt-3 border-t border-black/8">
         <div className="text-[8px] uppercase tracking-[0.16em] font-bold text-black/36">Спикер</div>
-        <div className="text-[12px] md:text-[13px] leading-[1.2] font-semibold text-black/62 mt-0.5">{speaker}</div>
+        <div className="text-[12px] md:text-[14px] leading-[1.2] font-semibold text-black/66 mt-0.5">{speaker}</div>
       </div>
     </div>
   );
@@ -1493,9 +1402,9 @@ const ProgramReferenceSwipeCard = ({
               />
             )}
 
-            <div className="relative z-10">
+            <div className="relative z-10 text-left">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="text-[#8DC63F] text-[14px] md:text-[15px] font-mono font-black tracking-[0.14em] uppercase">
+              <div className="text-[#8DC63F] text-[16px] md:text-[18px] font-mono font-black tracking-[0.16em] uppercase">
                 неделя {activeTrack.id}
               </div>
               <div className="text-[8px] md:text-[9px] font-bold tracking-[0.12em] text-black/46 font-mono">{activeWeekCopy.dateRange}</div>
@@ -1506,14 +1415,14 @@ const ProgramReferenceSwipeCard = ({
               <span>Main Track</span>
             </div>
 
-            <div className="text-[12px] md:text-[13px] uppercase font-medium tracking-[0.05em] text-black/58 mb-2.5" style={{ textWrap: 'balance' }}>
+            <div className="text-[11px] md:text-[14px] uppercase font-semibold tracking-[0.08em] text-black/50 mb-3" style={{ textWrap: 'balance' }}>
               {activeWeekCopy.framedDescription}
             </div>
-            <h3 className="text-[30px] md:text-[42px] font-black uppercase tracking-tighter leading-[0.92] mb-3 text-[#1a1a1a]" style={{ textWrap: 'balance' }}>
+            <h3 className="text-[38px] md:text-[58px] font-black uppercase tracking-[-0.05em] leading-[0.88] mb-4 text-[#161616]" style={{ textWrap: 'balance' }}>
               {activeWeekCopy.headerTopic}
             </h3>
 
-            <p className="text-[14px] md:text-[15px] leading-[1.38] font-medium text-black/76 max-w-[34rem]">
+            <p className="text-[15px] md:text-[17px] leading-[1.5] font-medium text-black/74 max-w-[32rem]">
               {activeWeekCopy.bodyDescription}
             </p>
 
@@ -1684,208 +1593,6 @@ const ProgramReferenceTechUi = () => {
               </button>
             );
           })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DesktopTechUiV5 = () => {
-  const [activeWeek, setActiveWeek] = useState(0);
-  const track = PROGRAM_TRACKS[activeWeek];
-  const weekCopy = PROGRAM_WEEK_COPY[track.id];
-  const advanced = ADVANCED_TRACKS[activeWeek];
-
-  const weeklyRhythm = [
-    { day: 'ПН', task: 'ВОРКШОП', type: 'default' as const },
-    { day: 'ВТ', task: 'КОВОРКИНГ', type: 'default' as const },
-    { day: 'СР', task: 'ADVANCED', type: 'advanced' as const, advanced: true },
-    { day: 'ЧТ', task: '', type: 'off' as const },
-    { day: 'ПТ', task: 'ЛЕКЦИЯ', type: 'default' as const },
-    { day: 'СБ', task: 'Q&A SESSION', type: 'default' as const },
-    { day: 'ВС', task: '', type: 'off' as const },
-  ];
-
-  return (
-    <div className="w-full mx-auto pt-12 pb-5 px-0 font-mono">
-      <div className="flex flex-col lg:flex-row gap-6 xl:gap-10 items-stretch justify-start">
-        <div className="w-[110px] shrink-0 flex flex-col py-[50px] justify-between h-[580px]">
-          {PROGRAM_TRACKS.map((t, idx) => {
-            const isActive = activeWeek === idx;
-            return (
-              <button
-                key={`${t.id}-${idx}`}
-                onClick={() => setActiveWeek(idx)}
-                className="flex items-center gap-5 group text-left relative h-12"
-              >
-                {idx < PROGRAM_TRACKS.length - 1 && (
-                  <div className="absolute left-[14px] top-[40px] w-[1px] h-[calc(550px/3)] bg-black/[0.08]" />
-                )}
-
-                <div
-                  className={cn(
-                    'w-6 h-6 rounded-full border flex items-center justify-center transition-all z-10 shrink-0 shadow-sm',
-                    isActive
-                      ? 'bg-[#8DC63F] border-[#8DC63F] shadow-[#8DC63F]/20'
-                      : 'bg-white border-black/[0.1] group-hover:border-black/20'
-                  )}
-                >
-                  {isActive && <div className="w-1 h-1 rounded-full bg-white shadow-sm" />}
-                  {!isActive && <div className="w-1 h-1 rounded-full bg-black/10 group-hover:bg-black/30 transition-colors" />}
-                </div>
-
-                <div className="flex flex-col">
-                  <div className={cn('text-[12px] font-mono font-bold uppercase transition-colors mb-0.5 whitespace-nowrap', isActive ? 'text-[#8DC63F]' : 'text-black/30')}>
-                    НЕДЕЛЯ
-                  </div>
-                  <div className={cn('text-[20px] font-black tracking-tighter leading-none transition-colors', isActive ? 'text-black' : 'text-black/20')}>
-                    0{idx + 1}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex-1 bg-white border border-black/15 h-[580px] shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col rounded-[12px] pt-12 w-full">
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.02] z-10"
-            style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-          />
-
-          <motion.div
-            animate={{
-              scale: activeWeek === 3 ? 1.05 : 0.82,
-              opacity: activeWeek === 3 ? 0.75 : 0.65,
-              top: activeWeek === 3 ? '-10%' : '0%',
-            }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-[-44px] w-[740px] h-[740px] pointer-events-none mix-blend-multiply z-0 flex justify-center"
-          >
-            <MorphSvg week={activeWeek} />
-          </motion.div>
-
-          <div className="relative z-20 flex flex-col flex-1 px-12 pb-12">
-            <div className="flex items-center justify-between mb-4 h-6">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
-                <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
-              </div>
-              <div className="flex items-center gap-2 pr-1 h-full relative">
-                <span className="text-[20px] font-black text-[#8DC63F] leading-none select-none font-sans absolute left-[-18px] top-[64%] -translate-y-1/2">*</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-black/40 uppercase leading-none pl-1">ADVANCED TRACK</span>
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col lg:flex-row gap-6 relative overflow-hidden">
-              <div className="flex-1 min-w-0 relative">
-                <AnimatePresence>
-                  <motion.div
-                    key={`content-${activeWeek}`}
-                    initial={{ opacity: 0, filter: 'blur(8px)' }}
-                    animate={{ opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, filter: 'blur(8px)' }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex flex-col absolute inset-0 pt-0 text-left"
-                  >
-                    <h2 className="text-[48px] md:text-[62px] font-black uppercase tracking-tighter leading-[0.85] text-black mb-4 max-w-[800px]">
-                      {track.title}
-                    </h2>
-
-                    <div className="text-[#8DC63F] font-mono text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      {weekCopy.framedDescription}
-                    </div>
-
-                    <p className="text-[15px] leading-[1.6] text-black/80 font-medium max-w-[600px] mb-8">
-                      {weekCopy.bodyDescription}
-                    </p>
-
-                    <div className="mt-auto items-start w-[calc(100%+180px)] max-w-none">
-                      <div className="text-[11px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-5 ml-1">НЕДЕЛЬНЫЙ РИТМ</div>
-                      <div className="grid grid-cols-7 border border-black/[0.1] w-full max-w-none bg-black/[0.05] gap-px rounded-[1px] overflow-hidden shadow-none">
-                        {weeklyRhythm.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex min-h-[40px] flex-col px-3 pt-[9px] pb-[7px] text-left transition-colors duration-300"
-                            style={{
-                              backgroundColor:
-                                item.type === 'advanced'
-                                  ? 'rgba(223, 228, 220, 0.22)'
-                                  : item.type === 'off'
-                                    ? 'rgba(223, 228, 220, 0.04)'
-                                    : '#ffffff',
-                            }}
-                          >
-                            <div className="flex justify-between items-start shrink-0">
-                              <span
-                                className="text-[8px] font-mono font-bold tracking-widest leading-none"
-                                style={{
-                                  color:
-                                    item.type === 'off'
-                                      ? 'rgba(0, 0, 0, 0.08)'
-                                      : item.type === 'advanced'
-                                        ? 'rgba(0, 0, 0, 0.22)'
-                                        : 'rgba(0, 0, 0, 0.30)',
-                                }}
-                              >
-                                {item.day}
-                              </span>
-                              {item.advanced && <div className="text-[18px] font-black text-[#8DC63F] leading-none mt-[-5px] select-none font-sans">*</div>}
-                            </div>
-                            <div className="mt-auto flex min-h-[1.35rem] items-end">
-                              <div
-                                className="text-[9px] font-black uppercase leading-[1.02] tracking-[-0.03em] font-mono"
-                                style={{
-                                  color:
-                                    item.type === 'off'
-                                      ? 'rgba(0, 0, 0, 0.10)'
-                                      : item.type === 'advanced'
-                                        ? 'rgba(0, 0, 0, 0.76)'
-                                        : 'rgba(0, 0, 0, 0.90)',
-                                }}
-                              >
-                                {item.task}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              <div className="w-full lg:w-[286px] shrink-0 relative pt-8">
-                <AnimatePresence>
-                  <motion.div
-                    key={`adv-${activeWeek}`}
-                    initial={{ opacity: 0, filter: 'blur(6px)' }}
-                    animate={{ opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, filter: 'blur(6px)' }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 pt-8 flex flex-col items-end text-right pr-0"
-                  >
-                    <div className="bg-gradient-to-l from-gray-100/100 via-gray-100/60 via-gray-50/20 to-transparent p-5 py-12 flex-col items-end justify-start w-full backdrop-blur-[1px] flex min-h-[196px]">
-                      <h4 className="text-[26px] font-black uppercase text-black/80 tracking-tighter leading-none mb-4">
-                        {advanced.title}
-                      </h4>
-
-                      <p className="text-[13px] leading-[1.6] text-black/60 font-medium mb-12 max-w-[260px]">
-                        {advanced.description}
-                      </p>
-
-                      <div className="mt-auto flex flex-col items-end pt-2">
-                        <div className="text-[8px] font-mono font-bold uppercase tracking-[0.3em] text-black/40 mb-1">CURATOR_ID</div>
-                        <div className="text-[15px] font-black text-black/70 font-mono tracking-tighter uppercase whitespace-nowrap">
-                          {advanced.speaker}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -2271,6 +1978,7 @@ const ProgramScheduleGrid = () => {
       highlight: true,
       features: [
         'всё из MAIN LAB',
+        'четыре advanced занятия',
         'дополнительный чат advanced участников',
         'еженедельные закрытые разборы',
       ],
@@ -2305,22 +2013,9 @@ const ProgramScheduleGrid = () => {
   ];
 
 
-export default function LabW26PageV3() {
+export default function LabW26PageV3Alt() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
-  const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
   
-  const toggleSpeaker = (idx: number) => {
-    const rowIndex = Math.floor(idx / 2); // 2 columns on mobile
-    if (activeSpeakerIndex === idx) {
-      setActiveSpeakerIndex(null);
-      setActiveRowIndex(null);
-    } else {
-      setActiveSpeakerIndex(idx);
-      setActiveRowIndex(rowIndex);
-    }
-  };
-
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -2335,12 +2030,14 @@ export default function LabW26PageV3() {
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
-  const [pricingDetailsOpen, setPricingDetailsOpen] = useState(false);
+  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
+  const [expandedPricingPlans, setExpandedPricingPlans] = useState<string[]>([]);
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
   const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
   const labsCloseTimeoutRef = useRef<number | null>(null);
+  const speakerDetailRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2349,6 +2046,17 @@ export default function LabW26PageV3() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (activeCase) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [activeCase]);
 
   useEffect(() => {
     return () => {
@@ -2383,6 +2091,24 @@ export default function LabW26PageV3() {
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
+  };
+
+  const togglePricingPlan = (planName: string) => {
+    setExpandedPricingPlans((prev) =>
+      prev.includes(planName) ? prev.filter((name) => name !== planName) : [...prev, planName],
+    );
+  };
+
+  const toggleSpeaker = (index: number) => {
+    setActiveSpeakerIndex((prev) => {
+      const nextIndex = prev === index ? null : index;
+      if (nextIndex !== null) {
+        window.setTimeout(() => {
+          speakerDetailRefs.current[nextIndex]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 160);
+      }
+      return nextIndex;
+    });
   };
 
   const scrollTo = (id: string) => {
@@ -2468,7 +2194,7 @@ export default function LabW26PageV3() {
             style={{ backgroundColor: colors.bg, color: colors.text }}
           >
             <div className="flex justify-between items-center mb-12">
-              <div className="text-xl font-bold uppercase tracking-widest">НАВИГАЦИЯ //</div>
+              <div className="text-xl font-bold uppercase tracking-widest">МЕНЮ //</div>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-current/5 rounded-full border border-current">
                 <X size={24} />
               </button>
@@ -2476,12 +2202,12 @@ export default function LabW26PageV3() {
 
             <div className="grid gap-12">
               <div>
-                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы текущей страницы</div>
+                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы страницы</div>
                 <div className="flex flex-col gap-4">
                   {SIDEBAR_NAV.map((link) => (
                     <button
                       key={link.label}
-                      onClick={() => { scrollTo(link.href); setIsMenuOpen(false); }}
+                      onClick={() => scrollTo(link.href)}
                       className="text-4xl font-black uppercase tracking-tighter hover:line-through text-left"
                     >
                       {link.label}
@@ -2491,16 +2217,8 @@ export default function LabW26PageV3() {
               </div>
 
               <div>
-                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">меню сайта</div>
+                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">labs</div>
                 <div className="flex flex-col gap-4">
-                  <a
-                    href="#hero"
-                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
-                    className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
-                  >
-                    Labs
-                  </a>
-
                   {LAB_MENU_LINKS.slice(0, 3).map((link) => (
                     <a
                       key={link.label}
@@ -2508,12 +2226,27 @@ export default function LabW26PageV3() {
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setIsMenuOpen(false)}
-                      className="pl-5 text-[1.35rem] font-bold uppercase tracking-tight opacity-40 hover:line-through"
+                      className="text-2xl font-bold uppercase tracking-tight opacity-40 hover:line-through"
                     >
                       {link.label}
                     </a>
                   ))}
-
+                  
+                  <div className="mt-8 mb-4 text-[10px] opacity-60 uppercase tracking-widest border-b-2 border-current/20 pb-3">меню</div>
+                  {LAB_MENU_LINKS.slice(3).map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-2xl font-bold uppercase tracking-tight text-black hover:line-through"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+                  
+                  <div className="h-px w-full bg-current/10 my-2" />
                   {PRIMARY_MENU_LINKS.map((link) => (
                     <a
                       key={link.label}
@@ -2586,7 +2319,7 @@ export default function LabW26PageV3() {
                   </div>
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
-                     Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
+                    Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6">
                      <a
@@ -2601,7 +2334,7 @@ export default function LabW26PageV3() {
                
                {/* DESKTOP LOGO */}
                <div className="hidden lg:block w-full lg:w-2/5">
-                  <VoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
+                  <VoxelLogoFace className="w-full max-w-md mx-auto" />
                </div>
             </div>
           </Container>
@@ -2609,10 +2342,15 @@ export default function LabW26PageV3() {
 
          <div className="md:ml-[18%] md:w-[82%] w-full">
 
+            <div className="py-10 md:py-16">
+              <Container>
+                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
+              </Container>
+            </div>
+
             <section className="py-20 md:py-24 relative bg-black/[0.03]">
               <Container>
                 <div className="w-full max-w-5xl mx-auto flex flex-col gap-10 md:gap-12">
-                  {/* Top segment: Title and Description match heights */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-stretch">
                     <div className="pr-4">
                       <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[1.1] text-left">
@@ -2632,10 +2370,8 @@ export default function LabW26PageV3() {
                     </div>
                   </div>
                   
-                  {/* Bottom segment: Badge aligned with "Next Batch" label */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
                     <div className="flex flex-col hidden md:block">
-                      {/* Placeholder to maintain grid alignment on desktop */}
                     </div>
                     
                     <div className="flex flex-col gap-5 text-left">
@@ -2647,7 +2383,7 @@ export default function LabW26PageV3() {
                       <a
                         href="#pricing"
                         onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                        className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-[#181616] transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_8px_24px_rgba(141,198,63,0.12)] w-full md:w-auto text-center rounded-md"
+                        className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-white transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_4px_12px_rgba(141,198,63,0.12)] w-full md:w-auto text-center rounded-md"
                       >
                         подать заявку на x26 main lab
                       </a>
@@ -2657,15 +2393,9 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <div className="py-4 md:hidden">
+            <section id="philosophy-cards" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
               <Container>
-                <div className="mx-auto h-[1px] w-full bg-black/10" />
-              </Container>
-            </div>
-
-            <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
-              <Container>
-                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
+                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
                   {PHILOSOPHY_PILLARS.map((item) => (
                     <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
@@ -2686,24 +2416,24 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <div className="py-2 md:py-4">
+            <div className="py-0">
               <Container>
                 <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
               </Container>
             </div>
 
-            <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
+            <section id="mindset" className="pt-0 pb-24 md:pt-0 md:pb-32">
               <Container>
                 <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
-                  <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
-                    <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
-                      <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
+                  <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2">
+                    <div className="w-48 h-48 md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
+                      <MindsetDynamicArt className="scale-100" />
                     </div>
                   </div>
                   <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
                     <div className="relative flex flex-col justify-end h-full py-0">
                       {/* Quote Text: Attached to bottom, expands UPWARDS */}
-                      <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
+                      <div className="flex-1 flex items-end pb-48 md:pb-40">
                         <motion.h2 
                           key={activeMindsetQuote}
                           initial={{ opacity: 0, y: 10 }}
@@ -2718,7 +2448,7 @@ export default function LabW26PageV3() {
                           Do not modify these positioning classes. The buttons must remain 
                           in a fixed absolute position at the bottom of the section 
                           to prevent jumping when quotes change length. */}
-                      <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                      <div className="absolute bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
                         <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
                           <button
                             type="button"
@@ -2750,51 +2480,62 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <section id="program" className="pt-20 md:pt-32 pb-24 md:pb-32 overflow-hidden">
+            <div className="py-0">
               <Container>
-                <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24 text-left" />
-
-                <div className="mb-12 md:mb-16 text-left">
-                  <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
-                  <p className="max-w-[18rem] md:max-w-3xl text-[11px] md:text-sm opacity-60 leading-relaxed mt-[5px]">
-                    не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта. основная программа дает фундамент, а треки — это углубление.
-                  </p>
-                </div>
-
-                <div className="md:hidden">
-                  <div id="dots-v1">
-                    <ProgramIntegratedTimeline
-                      triggerVariant="text-link"
-                      secondaryInHeader={false}
-                      subtitleStrong={false}
-                      showSecondaryTitle={true}
-                      showMainTrackTag={true}
-                      showGridOverlay={true}
-                      secondaryTitleAccent={true}
-                      allowMultipleDesktop={true}
-                      desktopMainTrackBottom={true}
-                      desktopHideMainAdvancedDivider={true}
-                      lighterAdvancedBackground={true}
-                      forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
-                      forcedOpenNonce={programFocusNonce}
-                      focusAdvancedOnForce={true}
-                    />
-                  </div>
-                </div>
-
-                <div className="hidden md:block">
-                  <DesktopTechUiV5 />
-                </div>
-
-
-                <div className="mt-2 md:mt-1 flex justify-end">
-                  <p className="max-w-[18rem] md:max-w-[23rem] text-left text-[11px] md:text-[13px] leading-[1.45] text-black/46">
-                    <span className="mr-1.5 font-bold">*</span>
-                    {PROGRAM_TRACKS_CAPTION}
-                  </p>
-                </div>
+                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
               </Container>
-            </section>
+            </div>
+
+<section id="program" className="pt-24 md:pt-32 pb-24 md:pb-32 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24" />
+
+          <div className="mb-12 md:mb-16 text-right md:text-left">
+            <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
+            <p className="max-w-[18rem] ml-auto md:ml-0 md:max-w-3xl text-[11px] md:text-sm opacity-60">
+              не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта.
+            </p>
+          </div>
+
+          <div className="md:hidden">
+            <div id="dots-v1">
+              <ProgramIntegratedTimeline
+                triggerVariant="text-link"
+                secondaryInHeader={false}
+                subtitleStrong={false}
+                showSecondaryTitle={true}
+                showMainTrackTag={true}
+                showGridOverlay={true}
+                secondaryTitleAccent={true}
+                allowMultipleDesktop={true}
+                desktopMainTrackBottom={true}
+                desktopHideMainAdvancedDivider={true}
+                lighterAdvancedBackground={true}
+                forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
+                forcedOpenNonce={programFocusNonce}
+                focusAdvancedOnForce={true}
+              />
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <ProgramReferenceSwipeCard
+              selectorPlacement="top"
+              showGridOverlay={true}
+              forcedWeekIndex={programFocusNonce === undefined ? undefined : 0}
+              forcedWeekNonce={programFocusNonce}
+              focusAdvancedOnForce={true}
+            />
+          </div>
+
+          <div className="mt-6 md:mt-2 flex justify-end">
+            <p className="max-w-[18rem] md:max-w-[23rem] text-left text-[11px] md:text-[13px] leading-[1.45] text-black/46">
+              <span className="mr-1.5 font-bold">*</span>
+              {PROGRAM_TRACKS_CAPTION}
+            </p>
+          </div>
+        </Container>
+      </section>
 
 
       {/* Cases Section */}
@@ -2834,39 +2575,37 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-12 md:px-12">
-            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[14.5rem] md:auto-cols-[15rem]">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visibleCases.map((card, i) => (
               <button
                 key={card.title}
                 type="button"
                 onClick={() => setActiveCase(card)}
-                className="relative overflow-hidden min-h-[146px] rounded-[6px] bg-white p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#8DC63F] hover:border-[#8DC63F] flex flex-col justify-between"
+                className="relative overflow-hidden min-h-[172px] bg-black/5 p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#8DC63F] flex flex-col justify-between"
               >
-                <div className="pointer-events-none absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
-                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] opacity-[0.14] group-hover:opacity-[0.5] text-black group-hover:text-white" />
+                <div className="pointer-events-none absolute right-5 bottom-4 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1">
+                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] text-current opacity-[0.22] group-hover:opacity-100 group-hover:text-black/25" />
                 </div>
-                <div className="relative z-10 mb-6 flex w-full items-start justify-end">
-                  <div className="ml-auto flex flex-col items-end text-right">
-                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em] text-black/82 group-hover:text-white transition-colors duration-300">
+                <div className="relative z-10 mb-6 flex items-start justify-end">
+                  <div className="ml-auto text-right">
+                    <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/80 group-hover:text-black">
                       {card.author}
                     </div>
-                    <div className="text-[9px] md:text-[10px] uppercase tracking-[0.04em] text-black/48 group-hover:text-white/80 transition-colors duration-300">
+                    <div className="text-[9px] font-bold uppercase tracking-[0.05em] text-black/40 group-hover:text-black/60">
                       {card.role}
                     </div>
                   </div>
                 </div>
-                <div className="relative z-10 max-w-[11rem]">
-                  <h4 className="mb-1 text-[11px] font-bold uppercase tracking-widest leading-tight text-black group-hover:text-white transition-colors duration-300">
+                <div className="relative z-10 max-w-[13.5rem]">
+                  <h4 className="mb-1.5 text-[14px] font-black uppercase tracking-[0.12em] leading-tight text-black group-hover:text-black">
                     {card.title}
                   </h4>
-                  <p className="text-[9px] leading-relaxed text-black/68 group-hover:text-white/90 line-clamp-2 transition-colors duration-300">
+                  <p className="text-[11px] font-bold leading-relaxed text-black/60 group-hover:text-black/80 line-clamp-2">
                     {card.desc}
                   </p>
                 </div>
               </button>
             ))}
-            </div>
           </div>
         </Container>
       </section>
@@ -2876,80 +2615,96 @@ export default function LabW26PageV3() {
       <section id="team" className="py-20 md:py-32">
         <Container>
           <EditorialSectionHeader eyebrow="lab team" title="Спикеры" className="mb-16" />
-          <div className="mb-16 max-w-3xl">
-            <p className="text-sm md:text-base opacity-70 leading-relaxed">
-              ниже — проводники, которые будут рядом на всём протяжении лаборатории.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 md:gap-x-12 md:gap-y-16 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-20">
+          
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8 md:gap-x-12 md:gap-y-16 lg:gap-x-12 lg:gap-y-20">
             {TEAM_MEMBERS.map((member, i) => {
-              const currentRowIndex = Math.floor(i / 2);
-              const isLastInRow = i % 2 === 1 || i === TEAM_MEMBERS.length - 1;
-              
+              // Row calculation for stable layout
+              const cols = typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 : 2;
+              const isLastInRow = (i + 1) % cols === 0 || i === TEAM_MEMBERS.length - 1;
+              const currentRowIndex = Math.floor(i / cols);
+              const activeRowIndex = activeSpeakerIndex !== null ? Math.floor(activeSpeakerIndex / cols) : -1;
+
               return (
                 <React.Fragment key={member.name}>
-                  <div
-                    className={`flex flex-col gap-3 md:gap-5 ${
-                      i === TEAM_MEMBERS.length - 1
-                        ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
-                        : ''
-                    }`}
-                  >
-                    <div className="group">
-                      <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative overflow-hidden">
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                          referrerPolicy="no-referrer"
-                          loading="lazy"
+                  {/* Photo Card */}
+                  <div className="flex flex-col gap-3 md:gap-5">
+                    <button 
+                      type="button" 
+                      onClick={() => toggleSpeaker(i)} 
+                      className="group w-full text-left"
+                      aria-expanded={activeSpeakerIndex === i}
+                    >
+                      <div className={`aspect-square rounded-[24px] bg-[#332b2b]/5 border relative overflow-hidden transition-all duration-300 ${
+                        activeSpeakerIndex === i
+                          ? 'border-[#8DC63F]/45 shadow-[0_16px_34px_rgba(141,198,63,0.12)]'
+                          : 'border-[#332b2b]/10'
+                      }`}>
+                        <img 
+                          src={member.image} 
+                          alt={member.name} 
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" 
+                          referrerPolicy="no-referrer" 
+                          loading="lazy" 
                         />
+                        {/* Interactive Overlays */}
                         <div className={`absolute inset-0 transition-colors duration-300 md:hidden ${activeSpeakerIndex === i ? 'bg-black/20' : 'bg-black/0 group-hover:bg-black/8'}`} />
-                        
-                        <div className="hidden md:flex absolute inset-0 overflow-hidden bg-black/85 px-4 py-6 md:px-4 md:py-6 flex-col justify-center items-start text-left opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                          <p
-                            className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 w-full max-w-full"
-                            style={getSpeakerOverlayTextStyle(member.description)}
-                          >
+                        <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                          <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
+                        </div>
+                        <div className="absolute left-3 bottom-3 rounded-full bg-black/48 px-2.5 py-1 text-[8px] font-bold uppercase tracking-[0.16em] text-white/92 backdrop-blur-sm">
+                          подробнее
+                        </div>
+
+                        {/* Desktop Hover Bio (Single Column, Dark) - "As it was before and was good" */}
+                        <div className="hidden md:flex absolute inset-0 bg-black/92 p-12 md:p-16 flex-col justify-center items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
+                          <p className="text-white text-[clamp(14px,1vw,17px)] leading-[1.65] opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 w-full px-8 underline-offset-4 decoration-[#8DC63F]/30">
                             {member.description}
                           </p>
                         </div>
-
-                        <div className="md:hidden absolute inset-0 z-10">
-                          <button
-                            type="button"
-                            className="absolute inset-0 w-full h-full text-left"
-                            onClick={() => toggleSpeaker(i)}
-                          >
-                            <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-                              <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
-                            </div>
-                          </button>
-                        </div>
                       </div>
-                    </div>
+                    </button>
                     <div>
-                      <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
-                      <p className="text-[8px] md:text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
+                      <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight text-black/86">{member.name}</h3>
+                      <p className="text-[8px] md:text-[10px] opacity-46 uppercase tracking-widest">{member.role}</p>
                     </div>
                   </div>
 
-                  {/* Expansion for Mobile */}
+                  {/* Row-based Expansion (Full Width, 2 Columns) - Appears after each row wrap */}
                   {isLastInRow && (
-                    <div className="col-span-2 md:hidden">
+                    <div className="col-span-full">
                        <AnimatePresence initial={false}>
                         {activeSpeakerIndex !== null && activeRowIndex === currentRowIndex && (
                           <motion.div
-                            key={`speaker-detail-mobile-${currentRowIndex}`}
+                            key={`speaker-row-detail-${currentRowIndex}`}
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden bg-[#faf8f3] mt-0.5"
+                            transition={{ duration: 0.35, ease: 'easeInOut' }}
+                            className="overflow-hidden border-t border-black/10 mt-4"
                           >
-                            <div className="pt-2 pb-3 px-1">
-                               <div className="text-[12px] md:text-[15px] leading-[1.6] text-black/72">
-                                  {TEAM_MEMBERS[activeSpeakerIndex].description}
-                               </div>
+                            <div className="py-8 md:py-12">
+                              <div className="flex flex-col md:flex-row gap-6 md:gap-16 items-start">
+                                {/* Small Thumbnail for context */}
+                                <div className="shrink-0 hidden md:block">
+                                  <div className="w-24 h-24 rounded-full overflow-hidden border border-black/10">
+                                    <img 
+                                      src={TEAM_MEMBERS[activeSpeakerIndex].image} 
+                                      alt="Speaker" 
+                                      className="w-full h-full object-cover grayscale" 
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="mb-4">
+                                     <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8DC63F] mb-1">О спикере</div>
+                                     <h4 className="text-2xl font-black uppercase tracking-tight">{TEAM_MEMBERS[activeSpeakerIndex].name}</h4>
+                                  </div>
+                                  {/* 2-Column Layout for text when expanded */}
+                                  <div className="text-[13px] md:text-[17px] leading-[1.65] text-black/82 columns-2 gap-6 md:gap-12 lg:gap-20">
+                                    {TEAM_MEMBERS[activeSpeakerIndex].description}
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -2972,59 +2727,55 @@ export default function LabW26PageV3() {
         <Container>
           <EditorialSectionHeader eyebrow="Форматы участия" title="Тарифы" className="mb-16" />
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
-            <div className="flex snap-x snap-mandatory gap-4 md:grid md:grid-cols-1 md:gap-8 lg:grid-cols-3">
+          <div className="-mx-4 overflow-x-auto px-4 pb-3 lg:mx-0 lg:overflow-visible lg:px-0">
+            <div className="flex gap-4 snap-x snap-mandatory pr-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:pr-0 md:gap-8">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={plan.name}
-                className="w-[18rem] max-w-[82vw] shrink-0 snap-start md:w-auto md:max-w-none"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
+                className="min-w-[79%] shrink-0 snap-start sm:min-w-[62%] lg:min-w-0"
               >
-                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-5 md:p-6 flex flex-col">
-                  <div className="flex min-h-[2.55rem] items-baseline justify-between gap-4 mb-3 md:mb-3">
-                    {plan.tagHref ? (
-                      <button
-                        type="button"
-                        onClick={scrollToProgramFromPricing}
-                        className="inline-flex items-baseline border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors rounded-sm"
-                      >
-                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
-                      </button>
-                    ) : plan.tag ? (
-                      <div
-                        className="inline-flex items-baseline px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] border border-black/15 rounded-sm"
-                      >
-                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
-                      </div>
-                    ) : idx === 0 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">base</div>
-                    ) : idx === 2 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">свой маршрут</div>
-                    ) : <div />}
-                  </div>
-
+                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-6 md:p-8 flex flex-col">
                   {/* Top Part: Unified fixed height for alignment */}
-                  <div className="h-[7.5rem] md:h-[8.6rem] flex flex-col justify-start mb-3 md:mb-3">
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-xl md:text-[23px] font-black uppercase tracking-tight text-black/70 leading-none">
-                        {plan.name}
+                  <div className="h-[12.5rem] md:h-[13.5rem] flex flex-col justify-start mb-6 w-full">
+                    <div className="h-6 flex items-center mb-6">
+                       {idx === 0 && (
+                         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25">base</div>
+                       )}
+                       {idx === 1 && (
+                         <button
+                           type="button"
+                           onClick={scrollToProgramFromPricing}
+                           className="inline-flex items-center px-2.5 py-1 rounded-[2px] bg-[#8DC63F]/10 border border-[#8DC63F]/20 text-[9px] font-black uppercase tracking-[0.18em] text-[#5b7f23] hover:bg-[#8DC63F] hover:text-white transition-all"
+                         >
+                           +4 занятия
+                         </button>
+                       )}
+                       {idx === 2 && (
+                         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25">свой маршрут</div>
+                       )}
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5">
+                      <h3 className="text-xl md:text-[24px] font-black uppercase tracking-tight text-black/70 leading-none">
+                        {idx === 1 ? 'ADVANCED' : plan.name}
                       </h3>
                       <div className="flex items-baseline gap-2">
-                         <span className="text-[50px] md:text-[72px] font-black tracking-[-0.045em] leading-[0.88] text-black">€{plan.price}</span>
+                         <span className="text-[54px] md:text-[78px] font-black tracking-[-0.045em] leading-[0.9] text-black">€{plan.price}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-1 md:justify-between">
+                  <div className="flex-1 flex flex-col justify-between">
                     {/* Main Features: Reduced gap to description */}
-                    <div className="h-[10.75rem] md:h-[8.9rem] mb-2 md:mb-2 overflow-hidden">
-                      <div className="space-y-2.5 md:space-y-2.5">
+                    <div className="min-h-[160px] mb-4">
+                      <div className="space-y-3">
                         {plan.features.map((feature) => (
-                          <div key={feature} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/75">
-                            <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" />
+                          <div key={feature} className="flex items-start gap-4 text-[13px] md:text-[14px] leading-tight text-black/75">
+                            <span className="mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" />
                             <span>{feature}</span>
                           </div>
                         ))}
@@ -3032,25 +2783,25 @@ export default function LabW26PageV3() {
                     </div>
 
                     {/* Styled Description: Bold CAPS, no grey bg */}
-                    <div className="h-[4rem] md:h-[3.2rem] mb-2 md:mb-2 pt-0 flex items-start overflow-hidden">
-                      <div className="text-[15px] md:text-[16px] font-black uppercase tracking-tight leading-[1.38] md:leading-[1.3] text-black/90">
+                    <div className="mb-6 pt-2">
+                      <div className="text-[15px] md:text-[16px] font-black uppercase tracking-tight leading-[1.3] text-black/90">
                         {plan.desc}
                       </div>
                     </div>
 
                     <AnimatePresence initial={false}>
-                      {pricingDetailsOpen && (
+                      {expandedPricingPlans.includes(plan.name) && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.28, ease: 'easeOut' }}
-                          className="overflow-hidden mb-6 md:mb-6"
+                          className="overflow-hidden mb-6"
                         >
-                          <div className="space-y-2.5 md:space-y-2.5">
+                          <div className="space-y-2.5">
                             {plan.more.map((item) => (
-                              <div key={item} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/82">
-                                <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
+                              <div key={item} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.3] text-black/82">
+                                <span className="mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
                                 <span>{item}</span>
                               </div>
                             ))}
@@ -3060,23 +2811,23 @@ export default function LabW26PageV3() {
                     </AnimatePresence>
                   </div>
 
-                  <div className="mt-2 md:mt-auto pt-0 md:pt-0 flex flex-col gap-2 md:gap-2">
+                  <div className="mt-auto pt-4 flex flex-col gap-4">
                     <button
                       type="button"
                       aria-label="Показать подробности тарифов"
-                      onClick={() => setPricingDetailsOpen((prev) => !prev)}
-                      className="flex h-8 w-full items-center justify-center text-black/25 hover:text-black transition-colors"
+                      onClick={() => togglePricingPlan(plan.name)}
+                      className="flex w-full items-center justify-center text-black/40 hover:text-black transition-colors"
                     >
                       <ChevronDown
-                        size={22}
-                        className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
+                        size={24}
+                        className={`transition-transform duration-300 ${expandedPricingPlans.includes(plan.name) ? 'rotate-180' : ''}`}
                       />
                     </button>
 
                     <a
                       href="#pricing"
                       onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                      className="flex h-12 w-full items-center justify-center bg-[#8DC63F] px-6 text-center text-[14px] md:text-[15px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
+                      className="w-full bg-[#8DC63F] px-6 py-3.5 text-center text-[14px] md:text-[15px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
                     >
                       выбрать
                     </a>
@@ -3130,29 +2881,24 @@ export default function LabW26PageV3() {
               </button>
             </div>
           ) : null}
-        </Container>
-      </section>
 
-      <SlashDivider />
-      <ReviewsSection />
-
-      <section className="py-24 md:py-32 overflow-hidden">
-        <Container>
-          <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
-            <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
-              <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
+          <section className="py-56 md:py-72 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
+              <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
+                <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
 {`   /\\     /\\
   /  \\   /  \\
  /    \\_/    \\`}
-              </pre>
-            </div>
+                </pre>
+              </div>
 
-            <div className="max-w-3xl md:ml-auto text-right">
-              <h2 className="text-3xl md:text-5xl leading-tight">
-                Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
-              </h2>
+              <div className="max-w-3xl md:ml-auto text-right">
+                <h2 className="text-3xl md:text-5xl leading-tight">
+                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
+                </h2>
+              </div>
             </div>
-          </div>
+          </section>
         </Container>
       </section>
 
@@ -3340,7 +3086,7 @@ export default function LabW26PageV3() {
           </motion.div>
         )}
       </AnimatePresence>
-         </div>
+          </div>
       </main>
 
       <CookieConsent />

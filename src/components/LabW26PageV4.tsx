@@ -8,7 +8,6 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
-import { MorphSvg } from './MorphSvg';
 import ReviewsSection from './ReviewsSection';
 
 
@@ -31,21 +30,12 @@ interface CaseCard {
   filters: string[];
 }
 
-const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
-
-const getSpeakerOverlayTextStyle = (description: string): React.CSSProperties => {
-  if (description.length > 260) return { fontSize: '15.4px', lineHeight: 1.34 };
-  if (description.length > 235) return { fontSize: '16px', lineHeight: 1.35 };
-  return { fontSize: '16.6px', lineHeight: 1.36 };
-};
-
 // --- CONSTANTS ---
 const SIDEBAR_NAV: NavItem[] = [
   { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
   { label: 'ПРОГРАММА', href: '#program' },
   { label: 'КЕЙСЫ', href: '#cases' },
   { label: 'ТАРИФЫ', href: '#pricing' },
-  { label: 'ОТЗЫВЫ', href: '#reviews' },
 ];
 
 const EXTERNAL_LINKS = [
@@ -228,7 +218,7 @@ const CASE_CARDS: CaseCard[] = [
   },
 ];
 
-export const PROGRAM_TRACKS = [
+const PROGRAM_TRACKS = [
   {
     id: '01',
     week: 'WEEK 1',
@@ -294,7 +284,7 @@ const PROGRAM_TRACK_VARIANTS = {
   },
 } as const;
 
-export const ADVANCED_TRACKS = [
+const ADVANCED_TRACKS = [
   {
     id: 'T1',
     week: 'WEEK 1',
@@ -477,10 +467,10 @@ const LargeDiamondArt = ({ className = "" }: { className?: string }) => (
 );
 
 const EditorialSectionHeader = ({ eyebrow, title, className = "" }: { eyebrow: string; title: string; className?: string }) => (
-  <div className={`flex items-end gap-3 md:gap-10 ${className}`}>
-    <div className="text-[10px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
-    <div className="h-px min-w-[20px] flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
-    <div className="font-black uppercase tracking-widest text-xl md:text-5xl/none text-right shrink-0">{title}</div>
+  <div className={`flex items-end gap-6 md:gap-10 ${className}`}>
+    <div className="text-[11px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
+    <div className="h-px flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
+    <div className="font-black uppercase tracking-widest text-2xl md:text-5xl/none text-right">{title}</div>
   </div>
 );
 
@@ -862,12 +852,12 @@ const ProgramContextArt = () => (
       .               .
     .                   .
    .                     .
-   .                       .
-   .                       .
-    .                     .
-     .                   .
-       .               .
-         .  .  .  .  .`}
+  .                       .
+  .                       .
+   .                     .
+    .                   .
+      .               .
+        .  .  .  .  .`}
     </motion.div>
 
     <div className="relative z-10 flex gap-4">
@@ -975,14 +965,13 @@ const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' 
 const PROGRAM_WEEKLY_RHYTHM = [
   { day: 'ПН', label: 'Воркшоп', type: 'workshop' as const },
   { day: 'ВТ', label: 'Коворкинг', type: 'coworking' as const },
-  { day: 'СР', label: 'Advanced', type: 'advanced' as const },
+  { day: 'СР', label: 'Advanced Track', type: 'advanced' as const },
   { day: 'ЧТ', label: '', type: 'off' as const },
   { day: 'ПТ', label: 'Лекция', type: 'lecture' as const },
   { day: 'СБ', label: 'Q&A session', type: 'qna' as const },
-  { day: 'ВС', label: '', type: 'off' as const },
 ];
 
-export const PROGRAM_WEEK_COPY: Record<
+const PROGRAM_WEEK_COPY: Record<
   string,
   {
     dateRange: string;
@@ -1085,7 +1074,7 @@ const ProgramIntegratedTimeline = ({
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const advancedCardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const metaTagClass = 'font-mono text-[8px] md:text-[10px] tracking-[0.14em] font-bold text-black/46';
+  const metaTagClass = 'font-mono text-[8px] md:text-[9px] tracking-[0.12em] font-bold text-black/46';
   const metaTrackClass = `${metaTagClass} inline-flex items-center gap-1.5`;
 
   const toggleCard = (idx: number) => {
@@ -1211,8 +1200,8 @@ const ProgramIntegratedTimeline = ({
                         </div>
                       )}
                       <h3
-                        className={`uppercase tracking-[-0.04em] leading-[0.96] text-black/90 text-left ${
-                          largeHeading ? 'text-[28px] md:text-[40px] font-black' : 'text-[20px] md:text-[28px] font-black'
+                        className={`uppercase tracking-tight leading-[1.04] text-black/86 ${
+                          largeHeading ? 'text-[24px] md:text-[34px] font-extrabold' : 'text-[14px] md:text-[24px] font-black'
                         }`}
                         style={{ textWrap: 'balance' }}
                       >
@@ -1245,27 +1234,27 @@ const ProgramIntegratedTimeline = ({
                         <div className="relative grid gap-5 lg:gap-7">
                           <div className="min-w-0">
                             {showMainTrackTag && (
-                              <div className={`mb-2 flex flex-row items-center justify-end gap-1.5 ${metaTagClass}`}>
+                              <div className={`mb-2 flex items-center justify-end ${metaTrackClass}`}>
                                 <span className="w-1.5 h-1.5 rounded-full bg-black/28" />
                                 <span>Main Track</span>
                               </div>
                             )}
                             {showSecondaryTitle && !secondaryInHeader && (
                               <div
-                                className={`mb-2 uppercase tracking-[0.06em] ${
+                                className={`mb-2 uppercase tracking-[0.05em] ${
                                   secondaryTitleAccent
-                                    ? 'text-[12px] md:text-[15px] font-semibold text-[#8DC63F]'
+                                    ? 'text-[11px] md:text-[14px] font-medium text-[#a6da49]'
                                     : subtitleStrong
-                                      ? 'text-[15px] md:text-[17px] font-bold opacity-74'
-                                      : 'text-[12px] md:text-[14px] font-medium text-black/76'
+                                      ? 'text-[14px] md:text-[16px] font-bold opacity-74'
+                                      : 'text-[12px] md:text-[14px] font-normal text-black/76'
                                 }`}
                               >
                                 {weekCopy.framedDescription}
                               </div>
                             )}
                             <p
-                              className={`leading-[1.5] text-left ${
-                                strongerBody ? 'text-[16px] md:text-[18px] font-medium text-black/82' : 'text-[14px] md:text-[16px] font-normal text-black/66'
+                              className={`leading-[1.45] font-normal text-left ${
+                                strongerBody ? 'text-[15px] md:text-[17px] text-black/78' : 'text-[12px] md:text-[15px] text-black/52'
                               }`}
                             >
                               {weekCopy.bodyDescription}
@@ -1273,30 +1262,23 @@ const ProgramIntegratedTimeline = ({
 
                             <div className="mt-3.5 relative">
                               <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 md:gap-1.5">
+                              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
-                                    className={`relative rounded-[8px] border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[42px] md:h-[46px] flex flex-col ${
+                                    className={`relative rounded-[10px] border px-2 py-1.5 text-[8px] uppercase tracking-[0.05em] min-h-[46px] ${
                                       day.type === 'advanced'
-                                        ? 'bg-[#f5f6f5] border-black/16 text-black/68 shadow-sm'
+                                        ? 'bg-[#ececec] border-black/15 text-black/46'
                                         : day.type === 'off'
-                                          ? 'bg-[#f5f6f5]/60 border-black/10 text-black/62'
-                                          : 'bg-white border-black/15 text-black/80 shadow-sm font-bold'
+                                          ? 'bg-transparent border-black/8 text-black/16'
+                                          : 'bg-[#fffdfa] border-black/10 text-black/54'
                                     }`}
                                   >
-                                    <div className="flex justify-between items-start">
-                                      <div className="font-black opacity-40">{day.day}</div>
-                                      {day.type === 'advanced' && (
-                                        <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
-                                      )}
-                                    </div>
-                                    <div className="mt-auto flex min-h-[1.1rem] md:min-h-[1.5rem] items-end">
-                                      <div className="font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal]">
-                                        {day.label || ' '}
-                                      </div>
-                                    </div>
-                                    
+                                    {day.type === 'advanced' && (
+                                      <span className="absolute right-1 top-0.5 text-[10px] leading-none font-bold opacity-45">*</span>
+                                    )}
+                                    <div className="font-black opacity-45">{day.day}</div>
+                                    <div className="font-semibold mt-0.5 min-h-[1rem] leading-tight">{day.label || ' '}</div>
                                     {day.type === 'advanced' && (
                                       <>
                                         <div className="lg:hidden absolute left-full top-[48%] w-[44px] h-[92px] pointer-events-none">
@@ -1333,15 +1315,15 @@ const ProgramIntegratedTimeline = ({
                                     : 'bg-[#f1f2f2]'
                               }`}
                             >
-                              <div className={`mb-1.5 flex justify-end items-center gap-1.5 ${metaTrackClass}`}>
-                                <span className="text-[10px] leading-none text-black/30 font-bold">*</span>
+                              <div className={`mb-1.5 ${metaTrackClass}`}>
+                                <span className="text-[10px] leading-none">*</span>
                                 <span>{combinedAdvancedLabel ? 'Advanced Track Pro' : 'Advanced Track'}</span>
                               </div>
                               <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-26 mb-0.5">Тема</div>
-                              <div className={`font-semibold ${mutedAdvanced ? 'text-[12px] text-black/60' : 'text-[21px] md:text-[23px] leading-[1.02] text-black/76'}`}>
+                              <div className={`font-semibold ${mutedAdvanced ? 'text-[11px] text-black/60' : 'text-[18px] leading-[1.05] text-black/68'}`}>
                                 {weekCopy.advancedTopic}
                               </div>
-                              <p className={`leading-[1.42] mt-1 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[12px] md:text-[13px] text-black/54'}`}>
+                              <p className={`leading-[1.35] mt-1 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[11px] opacity-48'}`}>
                                 {weekCopy.advancedDescription}
                               </p>
                               <div className="mt-2">
@@ -1684,208 +1666,6 @@ const ProgramReferenceTechUi = () => {
               </button>
             );
           })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const DesktopTechUiV5 = () => {
-  const [activeWeek, setActiveWeek] = useState(0);
-  const track = PROGRAM_TRACKS[activeWeek];
-  const weekCopy = PROGRAM_WEEK_COPY[track.id];
-  const advanced = ADVANCED_TRACKS[activeWeek];
-
-  const weeklyRhythm = [
-    { day: 'ПН', task: 'ВОРКШОП', type: 'default' as const },
-    { day: 'ВТ', task: 'КОВОРКИНГ', type: 'default' as const },
-    { day: 'СР', task: 'ADVANCED', type: 'advanced' as const, advanced: true },
-    { day: 'ЧТ', task: '', type: 'off' as const },
-    { day: 'ПТ', task: 'ЛЕКЦИЯ', type: 'default' as const },
-    { day: 'СБ', task: 'Q&A SESSION', type: 'default' as const },
-    { day: 'ВС', task: '', type: 'off' as const },
-  ];
-
-  return (
-    <div className="w-full mx-auto pt-12 pb-5 px-0 font-mono">
-      <div className="flex flex-col lg:flex-row gap-6 xl:gap-10 items-stretch justify-start">
-        <div className="w-[110px] shrink-0 flex flex-col py-[50px] justify-between h-[580px]">
-          {PROGRAM_TRACKS.map((t, idx) => {
-            const isActive = activeWeek === idx;
-            return (
-              <button
-                key={`${t.id}-${idx}`}
-                onClick={() => setActiveWeek(idx)}
-                className="flex items-center gap-5 group text-left relative h-12"
-              >
-                {idx < PROGRAM_TRACKS.length - 1 && (
-                  <div className="absolute left-[14px] top-[40px] w-[1px] h-[calc(550px/3)] bg-black/[0.08]" />
-                )}
-
-                <div
-                  className={cn(
-                    'w-6 h-6 rounded-full border flex items-center justify-center transition-all z-10 shrink-0 shadow-sm',
-                    isActive
-                      ? 'bg-[#8DC63F] border-[#8DC63F] shadow-[#8DC63F]/20'
-                      : 'bg-white border-black/[0.1] group-hover:border-black/20'
-                  )}
-                >
-                  {isActive && <div className="w-1 h-1 rounded-full bg-white shadow-sm" />}
-                  {!isActive && <div className="w-1 h-1 rounded-full bg-black/10 group-hover:bg-black/30 transition-colors" />}
-                </div>
-
-                <div className="flex flex-col">
-                  <div className={cn('text-[12px] font-mono font-bold uppercase transition-colors mb-0.5 whitespace-nowrap', isActive ? 'text-[#8DC63F]' : 'text-black/30')}>
-                    НЕДЕЛЯ
-                  </div>
-                  <div className={cn('text-[20px] font-black tracking-tighter leading-none transition-colors', isActive ? 'text-black' : 'text-black/20')}>
-                    0{idx + 1}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="flex-1 bg-white border border-black/15 h-[580px] shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col rounded-[12px] pt-12 w-full">
-          <div
-            className="absolute inset-0 pointer-events-none opacity-[0.02] z-10"
-            style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }}
-          />
-
-          <motion.div
-            animate={{
-              scale: activeWeek === 3 ? 1.05 : 0.82,
-              opacity: activeWeek === 3 ? 0.75 : 0.65,
-              top: activeWeek === 3 ? '-10%' : '0%',
-            }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-[-44px] w-[740px] h-[740px] pointer-events-none mix-blend-multiply z-0 flex justify-center"
-          >
-            <MorphSvg week={activeWeek} />
-          </motion.div>
-
-          <div className="relative z-20 flex flex-col flex-1 px-12 pb-12">
-            <div className="flex items-center justify-between mb-4 h-6">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
-                <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
-              </div>
-              <div className="flex items-center gap-2 pr-1 h-full relative">
-                <span className="text-[20px] font-black text-[#8DC63F] leading-none select-none font-sans absolute left-[-18px] top-[64%] -translate-y-1/2">*</span>
-                <span className="text-[10px] font-mono font-bold tracking-[0.25em] text-black/40 uppercase leading-none pl-1">ADVANCED TRACK</span>
-              </div>
-            </div>
-
-            <div className="flex-1 flex flex-col lg:flex-row gap-6 relative overflow-hidden">
-              <div className="flex-1 min-w-0 relative">
-                <AnimatePresence>
-                  <motion.div
-                    key={`content-${activeWeek}`}
-                    initial={{ opacity: 0, filter: 'blur(8px)' }}
-                    animate={{ opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, filter: 'blur(8px)' }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex flex-col absolute inset-0 pt-0 text-left"
-                  >
-                    <h2 className="text-[48px] md:text-[62px] font-black uppercase tracking-tighter leading-[0.85] text-black mb-4 max-w-[800px]">
-                      {track.title}
-                    </h2>
-
-                    <div className="text-[#8DC63F] font-mono text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                      {weekCopy.framedDescription}
-                    </div>
-
-                    <p className="text-[15px] leading-[1.6] text-black/80 font-medium max-w-[600px] mb-8">
-                      {weekCopy.bodyDescription}
-                    </p>
-
-                    <div className="mt-auto items-start w-[calc(100%+180px)] max-w-none">
-                      <div className="text-[11px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-5 ml-1">НЕДЕЛЬНЫЙ РИТМ</div>
-                      <div className="grid grid-cols-7 border border-black/[0.1] w-full max-w-none bg-black/[0.05] gap-px rounded-[1px] overflow-hidden shadow-none">
-                        {weeklyRhythm.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex min-h-[40px] flex-col px-3 pt-[9px] pb-[7px] text-left transition-colors duration-300"
-                            style={{
-                              backgroundColor:
-                                item.type === 'advanced'
-                                  ? 'rgba(223, 228, 220, 0.22)'
-                                  : item.type === 'off'
-                                    ? 'rgba(223, 228, 220, 0.04)'
-                                    : '#ffffff',
-                            }}
-                          >
-                            <div className="flex justify-between items-start shrink-0">
-                              <span
-                                className="text-[8px] font-mono font-bold tracking-widest leading-none"
-                                style={{
-                                  color:
-                                    item.type === 'off'
-                                      ? 'rgba(0, 0, 0, 0.08)'
-                                      : item.type === 'advanced'
-                                        ? 'rgba(0, 0, 0, 0.22)'
-                                        : 'rgba(0, 0, 0, 0.30)',
-                                }}
-                              >
-                                {item.day}
-                              </span>
-                              {item.advanced && <div className="text-[18px] font-black text-[#8DC63F] leading-none mt-[-5px] select-none font-sans">*</div>}
-                            </div>
-                            <div className="mt-auto flex min-h-[1.35rem] items-end">
-                              <div
-                                className="text-[9px] font-black uppercase leading-[1.02] tracking-[-0.03em] font-mono"
-                                style={{
-                                  color:
-                                    item.type === 'off'
-                                      ? 'rgba(0, 0, 0, 0.10)'
-                                      : item.type === 'advanced'
-                                        ? 'rgba(0, 0, 0, 0.76)'
-                                        : 'rgba(0, 0, 0, 0.90)',
-                                }}
-                              >
-                                {item.task}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              <div className="w-full lg:w-[286px] shrink-0 relative pt-8">
-                <AnimatePresence>
-                  <motion.div
-                    key={`adv-${activeWeek}`}
-                    initial={{ opacity: 0, filter: 'blur(6px)' }}
-                    animate={{ opacity: 1, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, filter: 'blur(6px)' }}
-                    transition={{ duration: 0.5 }}
-                    className="absolute inset-0 pt-8 flex flex-col items-end text-right pr-0"
-                  >
-                    <div className="bg-gradient-to-l from-gray-100/100 via-gray-100/60 via-gray-50/20 to-transparent p-5 py-12 flex-col items-end justify-start w-full backdrop-blur-[1px] flex min-h-[196px]">
-                      <h4 className="text-[26px] font-black uppercase text-black/80 tracking-tighter leading-none mb-4">
-                        {advanced.title}
-                      </h4>
-
-                      <p className="text-[13px] leading-[1.6] text-black/60 font-medium mb-12 max-w-[260px]">
-                        {advanced.description}
-                      </p>
-
-                      <div className="mt-auto flex flex-col items-end pt-2">
-                        <div className="text-[8px] font-mono font-bold uppercase tracking-[0.3em] text-black/40 mb-1">CURATOR_ID</div>
-                        <div className="text-[15px] font-black text-black/70 font-mono tracking-tighter uppercase whitespace-nowrap">
-                          {advanced.speaker}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -2271,6 +2051,7 @@ const ProgramScheduleGrid = () => {
       highlight: true,
       features: [
         'всё из MAIN LAB',
+        'четыре advanced занятия',
         'дополнительный чат advanced участников',
         'еженедельные закрытые разборы',
       ],
@@ -2305,32 +2086,8 @@ const ProgramScheduleGrid = () => {
   ];
 
 
-export default function LabW26PageV3() {
+export default function LabW26PageV4() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
-  const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
-  
-  const toggleSpeaker = (idx: number) => {
-    const rowIndex = Math.floor(idx / 2); // 2 columns on mobile
-    if (activeSpeakerIndex === idx) {
-      setActiveSpeakerIndex(null);
-      setActiveRowIndex(null);
-    } else {
-      setActiveSpeakerIndex(idx);
-      setActiveRowIndex(rowIndex);
-    }
-  };
-
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isMenuOpen]);
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
@@ -2340,6 +2097,7 @@ export default function LabW26PageV3() {
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
   const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
+  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -2464,11 +2222,11 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-[10005] flex flex-col p-8 overflow-y-auto md:hidden"
+            className="fixed inset-0 z-[450] flex flex-col p-8 overflow-y-auto md:hidden"
             style={{ backgroundColor: colors.bg, color: colors.text }}
           >
             <div className="flex justify-between items-center mb-12">
-              <div className="text-xl font-bold uppercase tracking-widest">НАВИГАЦИЯ //</div>
+              <div className="text-xl font-bold uppercase tracking-widest">МЕНЮ //</div>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-current/5 rounded-full border border-current">
                 <X size={24} />
               </button>
@@ -2476,7 +2234,7 @@ export default function LabW26PageV3() {
 
             <div className="grid gap-12">
               <div>
-                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы текущей страницы</div>
+                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы страницы</div>
                 <div className="flex flex-col gap-4">
                   {SIDEBAR_NAV.map((link) => (
                     <button
@@ -2491,37 +2249,16 @@ export default function LabW26PageV3() {
               </div>
 
               <div>
-                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">меню сайта</div>
-                <div className="flex flex-col gap-4">
-                  <a
-                    href="#hero"
-                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
-                    className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
-                  >
-                    Labs
-                  </a>
-
-                  {LAB_MENU_LINKS.slice(0, 3).map((link) => (
+                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">меню</div>
+                <div className="flex flex-col gap-4 pl-4 border-l border-current/15">
+                  {LAB_MENU_LINKS.map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setIsMenuOpen(false)}
-                      className="pl-5 text-[1.35rem] font-bold uppercase tracking-tight opacity-40 hover:line-through"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
-
-                  {PRIMARY_MENU_LINKS.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
+                      className="text-2xl font-bold uppercase tracking-tight hover:line-through"
                     >
                       {link.label}
                     </a>
@@ -2586,7 +2323,7 @@ export default function LabW26PageV3() {
                   </div>
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
-                     Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
+                    Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6">
                      <a
@@ -2609,48 +2346,49 @@ export default function LabW26PageV3() {
 
          <div className="md:ml-[18%] md:w-[82%] w-full">
 
-            <section className="py-20 md:py-24 relative bg-black/[0.03]">
+            <section className="py-20 md:py-32 relative bg-black/[0.03]">
               <Container>
-                <div className="w-full max-w-5xl mx-auto flex flex-col gap-10 md:gap-12">
-                  {/* Top segment: Title and Description match heights */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-stretch">
-                    <div className="pr-4">
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[1.1] text-left">
+                <div className="w-full max-w-5xl mx-auto">
+                  <div className="flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-12 md:gap-24">
+                    <div className="flex flex-col gap-6 max-w-xl text-left">
+                      <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.885]">
                         лаборатория <br />
                         нового мышления <br />
                         в эпоху AI
                       </div>
-                      <div className="inline-flex items-center gap-3 text-[10px] leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 mt-6 border border-black/10">
+                    </div>
+                    <div className="flex w-full flex-col gap-6 text-left">
+                      <div className="inline-flex items-center gap-3 text-[10px] leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 self-start border border-black/10">
                         <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
                         базовое обучение, старт раз в квартал
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-sm md:text-base uppercase leading-relaxed opacity-70 text-left">
+                      <p className="text-sm md:text-base uppercase leading-relaxed opacity-70">
                         AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
                       </p>
                     </div>
                   </div>
-                  
-                  {/* Bottom segment: Badge aligned with "Next Batch" label */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-                    <div className="flex flex-col hidden md:block">
-                      {/* Placeholder to maintain grid alignment on desktop */}
-                    </div>
-                    
-                    <div className="flex flex-col gap-5 text-left">
-                      <div className="flex flex-col gap-2.5">
-                         <div className="text-[10px] leading-none opacity-40 font-bold uppercase tracking-[0.18em]">Следующий поток:</div>
-                         <div className="text-[14px] font-black tracking-[0.18em] uppercase">20 апреля 2026</div>
+
+                  <div className="mt-6 md:mt-8 flex flex-col gap-4 md:gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-24 items-start md:items-baseline">
+                      <div className="flex items-center gap-3 text-[10px] md:text-xs leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 self-start border border-black/10 hidden md:inline-flex">
+                          <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                          базовое обучение, старт раз в квартал
                       </div>
-                      
-                      <a
-                        href="#pricing"
-                        onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                        className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-[#181616] transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_8px_24px_rgba(141,198,63,0.12)] w-full md:w-auto text-center rounded-md"
-                      >
-                        подать заявку на x26 main lab
-                      </a>
+                      <div className="mt-3 md:mt-0 text-[10px] md:text-xs leading-none opacity-40 font-bold uppercase tracking-widest text-left">следующий поток</div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-24 items-start">
+                      <div />
+                      <div className="flex flex-col items-start gap-2 text-left">
+                        <div className="text-[14px] md:text-[16px] font-black tracking-[0.18em]">20 апреля 2026</div>
+                        <a
+                          href="#pricing"
+                          onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
+                          className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-[#181616] transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_8px_24px_rgba(141,198,63,0.12)] w-auto max-w-full text-center rounded-md"
+                        >
+                          подать заявку на x26 main lab
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2659,11 +2397,11 @@ export default function LabW26PageV3() {
 
             <div className="py-4 md:hidden">
               <Container>
-                <div className="mx-auto h-[1px] w-full bg-black/10" />
+                <div className="mx-auto h-[0.5px] w-full bg-black/10" />
               </Container>
             </div>
 
-            <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
+            <section id="philosophy-cards" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
               <Container>
                 <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
@@ -2686,29 +2424,24 @@ export default function LabW26PageV3() {
               </Container>
             </section>
 
-            <div className="py-2 md:py-4">
+            <div className="py-12 md:py-20">
               <Container>
                 <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
               </Container>
             </div>
 
-            <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
+            <section id="mindset" className="pt-0 pb-24 md:pt-0 md:pb-32 overflow-hidden">
               <Container>
-                <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
-                  <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
-                    <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
-                      <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
-                    </div>
-                  </div>
-                  <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
-                    <div className="relative flex flex-col justify-end h-full py-0">
-                      {/* Quote Text: Attached to bottom, expands UPWARDS */}
-                      <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
+                <div className="grid md:grid-cols-[1.35fr_0.65fr] lg:grid-cols-[1.45fr_0.55fr] gap-12 md:gap-16 items-center">
+                  <div className="order-2 md:order-1">
+                    <div className="relative flex flex-col justify-end h-[30rem] md:h-[38rem] lg:h-[42rem] py-8">
+                      {/* Quote Text: Expands upwards via flex items-end */}
+                      <div className="flex-1 flex items-end pb-32">
                         <motion.h2 
                           key={activeMindsetQuote}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="w-full pr-0 md:pr-4 text-3xl md:text-5xl font-black tracking-tight leading-tight text-left normal-case"
+                          className="max-w-[34rem] md:max-w-[40rem] lg:max-w-[44rem] pr-6 md:pr-8 text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[0.95] items-end text-left"
                         >
                           {MINDSET_QUOTES[activeMindsetQuote].text}
                         </motion.h2>
@@ -2718,7 +2451,7 @@ export default function LabW26PageV3() {
                           Do not modify these positioning classes. The buttons must remain 
                           in a fixed absolute position at the bottom of the section 
                           to prevent jumping when quotes change length. */}
-                      <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                      <div className="absolute bottom-8 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
                         <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
                           <button
                             type="button"
@@ -2746,56 +2479,202 @@ export default function LabW26PageV3() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </Container>
-            </section>
-
-            <section id="program" className="pt-20 md:pt-32 pb-24 md:pb-32 overflow-hidden">
-              <Container>
-                <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24 text-left" />
-
-                <div className="mb-12 md:mb-16 text-left">
-                  <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
-                  <p className="max-w-[18rem] md:max-w-3xl text-[11px] md:text-sm opacity-60 leading-relaxed mt-[5px]">
-                    не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта. основная программа дает фундамент, а треки — это углубление.
-                  </p>
-                </div>
-
-                <div className="md:hidden">
-                  <div id="dots-v1">
-                    <ProgramIntegratedTimeline
-                      triggerVariant="text-link"
-                      secondaryInHeader={false}
-                      subtitleStrong={false}
-                      showSecondaryTitle={true}
-                      showMainTrackTag={true}
-                      showGridOverlay={true}
-                      secondaryTitleAccent={true}
-                      allowMultipleDesktop={true}
-                      desktopMainTrackBottom={true}
-                      desktopHideMainAdvancedDivider={true}
-                      lighterAdvancedBackground={true}
-                      forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
-                      forcedOpenNonce={programFocusNonce}
-                      focusAdvancedOnForce={true}
-                    />
+                  <div className="order-1 md:order-2 flex justify-center md:justify-end">
+                    <div className="w-80 h-80 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] relative flex items-center justify-center">
+                      <MindsetDynamicArt className="scale-100" />
+                    </div>
                   </div>
                 </div>
+              </Container>
+            </section>
 
-                <div className="hidden md:block">
-                  <DesktopTechUiV5 />
-                </div>
-
-
-                <div className="mt-2 md:mt-1 flex justify-end">
-                  <p className="max-w-[18rem] md:max-w-[23rem] text-left text-[11px] md:text-[13px] leading-[1.45] text-black/46">
-                    <span className="mr-1.5 font-bold">*</span>
-                    {PROGRAM_TRACKS_CAPTION}
-                  </p>
+            <section className="pt-20 pb-0 md:pt-32 md:pb-0 overflow-hidden">
+              <Container>
+                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
+                  {PHILOSOPHY_PILLARS.map((item) => (
+                    <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
+                      <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
+                        <PhilosophyPillarArt art={item.art} />
+                      </div>
+                      <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
+                        <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
+                          {item.title}
+                        </h3>
+                        <p className="w-full max-w-[22rem] text-left text-[15px] md:text-[13px] leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </Container>
             </section>
 
+            <div className="py-0">
+              <Container>
+                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
+              </Container>
+            </div>
+
+<section id="philosophy" className="pt-0 pb-24 md:pt-0 md:pb-32 overflow-hidden">
+        <Container>
+          <div className="grid md:grid-cols-[1.35fr_0.65fr] lg:grid-cols-[1.45fr_0.55fr] gap-12 md:gap-16 items-center">
+            <div className="order-2 md:order-1">
+              <div className="relative flex flex-col justify-end h-[30rem] md:h-[38rem] lg:h-[42rem] py-8">
+                {/* Quote Text: Expands upwards via flex items-end */}
+                <div className="flex-1 flex items-end pb-32">
+                  <h2 className="max-w-[34rem] md:max-w-[40rem] lg:max-w-[44rem] pr-6 md:pr-8 text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[0.95] items-end">
+                    {MINDSET_QUOTES[activeMindsetQuote].text}
+                  </h2>
+                </div>
+
+                {/* [CRITICAL: FIXED_BUTTONS_POSITION] 
+                    Do not modify these positioning classes. The buttons must remain 
+                    in a fixed absolute position at the bottom of the section 
+                    to prevent jumping when quotes change length. */}
+                <div className="absolute bottom-8 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                  <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label="Предыдущая цитата"
+                      onClick={() => cycleMindsetQuote(-1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-[22px] leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Следующая цитата"
+                      onClick={() => cycleMindsetQuote(1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
+                    </button>
+                  </div>
+                  <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'}`}>
+                    <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
+                    <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
+                      {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="order-1 md:order-2 flex justify-center md:justify-end text-[#8DC63F]">
+              <div className="w-48 h-48 md:w-80 md:h-80 lg:w-96 lg:h-96 relative flex items-center justify-center text-[4px] md:text-[8px] leading-[4px] md:leading-[8px]">
+                <LargeDiamondArt className="scale-100 md:scale-150" />
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+<section id="program" className="pt-24 md:pt-32 pb-24 md:pb-32 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24 text-left" />
+
+          <div className="mb-12 md:mb-16 text-left">
+            <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
+            <p className="max-w-[18rem] ml-auto md:ml-0 md:max-w-3xl text-[11px] md:text-sm opacity-60">
+              не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта.
+            </p>
+          </div>
+
+          <div className="md:hidden">
+            <div id="dots-v1">
+              <ProgramIntegratedTimeline
+                triggerVariant="text-link"
+                secondaryInHeader={false}
+                subtitleStrong={false}
+                showSecondaryTitle={true}
+                showMainTrackTag={true}
+                showGridOverlay={true}
+                secondaryTitleAccent={true}
+                allowMultipleDesktop={true}
+                desktopMainTrackBottom={true}
+                desktopHideMainAdvancedDivider={true}
+                lighterAdvancedBackground={true}
+                forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
+                forcedOpenNonce={programFocusNonce}
+                focusAdvancedOnForce={true}
+              />
+            </div>
+          </div>
+
+          <div className="hidden md:block">
+            <ProgramReferenceSwipeCard
+              selectorPlacement="top"
+              showGridOverlay={true}
+              forcedWeekIndex={programFocusNonce === undefined ? undefined : 0}
+              forcedWeekNonce={programFocusNonce}
+              focusAdvancedOnForce={true}
+            />
+          </div>
+
+          <div className="mt-6 md:mt-8 flex justify-end">
+            <p className="max-w-[18rem] md:max-w-[23rem] text-left text-[11px] md:text-[13px] leading-[1.45] text-black/46">
+              <span className="mr-1.5 font-bold">*</span>
+              {PROGRAM_TRACKS_CAPTION}
+            </p>
+          </div>
+        </Container>
+      </section>
+
+      {/* Tracks Section
+      <SlashDivider />
+      <section id="tracks" className="py-24 md:py-32 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="ДОПОЛНИТЕЛЬНАЯ ГРУППА" title="Advanced Tracks" className="mb-24" />
+          <div className="mb-16 text-center max-w-3xl mx-auto">
+            <p className="text-sm opacity-60 uppercase leading-relaxed">
+              основная программа даёт фундамент. треки — это углубление в конкретный домен. выбираешь то, что нужно.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 border-l border-black/10 bg-white/30">
+            {ADVANCED_TRACKS.map((track, idx) => (
+              <motion.div
+                key={track.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover="hover"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: idx * 0.06 }}
+              >
+                <div className="h-full border-r border-black/10">
+                  <AsciiCardBorder className={`group min-h-[250px] md:min-h-[290px] transition-all duration-500 ${colors.card}`}>
+                    <div className="flex h-full flex-col justify-between gap-6">
+                      <div className="flex justify-between items-start">
+                        <div className="text-[10px] font-bold opacity-40 uppercase">{track.week}</div>
+                      </div>
+
+                      <div className="flex flex-col gap-3 min-h-[6.25rem] md:min-h-[7rem]">
+                        <motion.h3
+                          variants={{
+                            hover: { color: '#8DC63F' },
+                          }}
+                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em] transition-colors duration-300"
+                        >
+                          {track.title}
+                        </motion.h3>
+                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest min-h-[1.2rem]">
+                          {track.speaker}
+                        </div>
+                      </div>
+
+                      <p className="text-sm leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                        {track.description}
+                      </p>
+                    </div>
+                  </AsciiCardBorder>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </Container>
+      </section>
+      */}
 
       {/* Cases Section */}
       <SlashDivider />
@@ -2838,29 +2717,29 @@ export default function LabW26PageV3() {
             <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[14.5rem] md:auto-cols-[15rem]">
             {visibleCases.map((card, i) => (
               <button
-                key={card.title}
+                key={`${card.title}-${i}`}
                 type="button"
                 onClick={() => setActiveCase(card)}
-                className="relative overflow-hidden min-h-[146px] rounded-[6px] bg-white p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#8DC63F] hover:border-[#8DC63F] flex flex-col justify-between"
+                className="relative overflow-hidden min-h-[146px] rounded-[6px] bg-white p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#fbfcf7] hover:border-[#8DC63F]/70 flex flex-col justify-between"
               >
                 <div className="pointer-events-none absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
-                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] opacity-[0.14] group-hover:opacity-[0.5] text-black group-hover:text-white" />
+                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] text-current opacity-[0.14] group-hover:opacity-[0.18]" />
                 </div>
                 <div className="relative z-10 mb-6 flex w-full items-start justify-end">
                   <div className="ml-auto flex flex-col items-end text-right">
-                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em] text-black/82 group-hover:text-white transition-colors duration-300">
+                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em] text-black/82">
                       {card.author}
                     </div>
-                    <div className="text-[9px] md:text-[10px] uppercase tracking-[0.04em] text-black/48 group-hover:text-white/80 transition-colors duration-300">
+                    <div className="text-[9px] md:text-[10px] uppercase tracking-[0.04em] text-black/48">
                       {card.role}
                     </div>
                   </div>
                 </div>
                 <div className="relative z-10 max-w-[11rem]">
-                  <h4 className="mb-1 text-[11px] font-bold uppercase tracking-widest leading-tight text-black group-hover:text-white transition-colors duration-300">
+                  <h4 className="mb-1 text-[12px] md:text-[13px] font-bold uppercase tracking-[0.12em] leading-tight text-black/92">
                     {card.title}
                   </h4>
-                  <p className="text-[9px] leading-relaxed text-black/68 group-hover:text-white/90 line-clamp-2 transition-colors duration-300">
+                  <p className="text-[10px] md:text-[11px] leading-[1.45] text-black/68 line-clamp-2">
                     {card.desc}
                   </p>
                 </div>
@@ -2882,83 +2761,74 @@ export default function LabW26PageV3() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-6 md:grid-cols-2 md:gap-x-12 md:gap-y-16 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-20">
-            {TEAM_MEMBERS.map((member, i) => {
-              const currentRowIndex = Math.floor(i / 2);
-              const isLastInRow = i % 2 === 1 || i === TEAM_MEMBERS.length - 1;
-              
-              return (
-                <React.Fragment key={member.name}>
-                  <div
-                    className={`flex flex-col gap-3 md:gap-5 ${
-                      i === TEAM_MEMBERS.length - 1
-                        ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
-                        : ''
-                    }`}
+            {TEAM_MEMBERS.map((member, i) => (
+              <React.Fragment key={member.name}>
+                <div
+                  className={`flex flex-col gap-3 md:gap-5 ${
+                    i === TEAM_MEMBERS.length - 1
+                      ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
+                      : ''
+                  }`}
+                >
+                   <div
+                    className="group"
                   >
-                    <div className="group">
-                      <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative overflow-hidden">
-                        <img
-                          src={member.image}
-                          alt={member.name}
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                          referrerPolicy="no-referrer"
-                          loading="lazy"
-                        />
-                        <div className={`absolute inset-0 transition-colors duration-300 md:hidden ${activeSpeakerIndex === i ? 'bg-black/20' : 'bg-black/0 group-hover:bg-black/8'}`} />
-                        
-                        <div className="hidden md:flex absolute inset-0 overflow-hidden bg-black/85 px-4 py-6 md:px-4 md:py-6 flex-col justify-center items-start text-left opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                          <p
-                            className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 w-full max-w-full"
-                            style={getSpeakerOverlayTextStyle(member.description)}
-                          >
+                    <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative overflow-hidden">
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                      />
+                      <div className={`absolute inset-0 transition-colors duration-300 md:hidden ${activeSpeakerIndex === i ? 'bg-black/20' : 'bg-black/0 group-hover:bg-black/8'}`} />
+                      
+                      {/* Desktop Hover Info */}
+                      <div className="hidden md:flex absolute inset-0 bg-black/85 p-8 flex-col justify-center items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
+                        <p className="text-white text-[15px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 max-w-[80%]">
+                          {member.description}
+                        </p>
+                      </div>
+
+                      {/* Mobile Arrow and Trigger */}
+                      <div className="md:hidden absolute inset-0 z-10">
+                        <button
+                          type="button"
+                          className="absolute inset-0 w-full h-full text-left"
+                          onClick={() => setActiveSpeakerIndex((prev) => (prev === i ? null : i))}
+                        >
+                          <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                            <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
+                    <p className="text-[8px] md:text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
+                  </div>
+                  <AnimatePresence initial={false}>
+                    {activeSpeakerIndex === i && (
+                         <motion.div
+                        key={`speaker-detail-${member.name}`}
+                        initial={{ height: 0, opacity: 0, y: -10 }}
+                        animate={{ height: 'auto', opacity: 1, y: 0 }}
+                        exit={{ height: 0, opacity: 0, y: -10 }}
+                        transition={{ duration: 0.28, ease: 'easeInOut' }}
+                        className="overflow-hidden md:hidden"
+                      >
+                        <div className="pt-1 md:pt-0">
+                          <p className="max-w-5xl text-[13px] md:text-[16px] leading-[1.75] text-black/78">
                             {member.description}
                           </p>
                         </div>
-
-                        <div className="md:hidden absolute inset-0 z-10">
-                          <button
-                            type="button"
-                            className="absolute inset-0 w-full h-full text-left"
-                            onClick={() => toggleSpeaker(i)}
-                          >
-                            <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-                              <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
-                      <p className="text-[8px] md:text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
-                    </div>
-                  </div>
-
-                  {/* Expansion for Mobile */}
-                  {isLastInRow && (
-                    <div className="col-span-2 md:hidden">
-                       <AnimatePresence initial={false}>
-                        {activeSpeakerIndex !== null && activeRowIndex === currentRowIndex && (
-                          <motion.div
-                            key={`speaker-detail-mobile-${currentRowIndex}`}
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden bg-[#faf8f3] mt-0.5"
-                          >
-                            <div className="pt-2 pb-3 px-1">
-                               <div className="text-[12px] md:text-[15px] leading-[1.6] text-black/72">
-                                  {TEAM_MEMBERS[activeSpeakerIndex].description}
-                               </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </React.Fragment>
+            ))}
           </div>
         </Container>
       </section>
@@ -2967,124 +2837,108 @@ export default function LabW26PageV3() {
       {false && <ProgramScheduleGrid />}
 
       {/* Pricing Section */}
+      <ReviewsSection />
       <SlashDivider />
       <section id="pricing" className="py-20 md:py-32">
         <Container>
           <EditorialSectionHeader eyebrow="Форматы участия" title="Тарифы" className="mb-16" />
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
-            <div className="flex snap-x snap-mandatory gap-4 md:grid md:grid-cols-1 md:gap-8 lg:grid-cols-3">
+          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={plan.name}
-                className="w-[18rem] max-w-[82vw] shrink-0 snap-start md:w-auto md:max-w-none"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
               >
-                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-5 md:p-6 flex flex-col">
-                  <div className="flex min-h-[2.55rem] items-baseline justify-between gap-4 mb-3 md:mb-3">
+                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-6 md:p-8 flex flex-col">
+                  <div className="flex items-start justify-between gap-4 mb-6">
                     {plan.tagHref ? (
                       <button
                         type="button"
                         onClick={scrollToProgramFromPricing}
-                        className="inline-flex items-baseline border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors rounded-sm"
+                        className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors rounded-sm"
                       >
-                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
+                        {plan.tag}
                       </button>
                     ) : plan.tag ? (
                       <div
-                        className="inline-flex items-baseline px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] border border-black/15 rounded-sm"
+                        className="text-[10px] font-bold px-3 py-1 uppercase tracking-[0.18em] border border-black/15 rounded-sm"
                       >
-                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
+                        {plan.tag}
                       </div>
-                    ) : idx === 0 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">base</div>
-                    ) : idx === 2 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">свой маршрут</div>
                     ) : <div />}
                   </div>
 
-                  {/* Top Part: Unified fixed height for alignment */}
-                  <div className="h-[7.5rem] md:h-[8.6rem] flex flex-col justify-start mb-3 md:mb-3">
-                    <div className="flex flex-col gap-1">
-                      <h3 className="text-xl md:text-[23px] font-black uppercase tracking-tight text-black/70 leading-none">
-                        {plan.name}
-                      </h3>
-                      <div className="flex items-baseline gap-2">
-                         <span className="text-[50px] md:text-[72px] font-black tracking-[-0.045em] leading-[0.88] text-black">€{plan.price}</span>
-                      </div>
-                    </div>
+                  <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-5">
+                    {plan.name}
+                  </h3>
+
+                  <div className="flex items-end gap-2 mb-8">
+                    <span className="text-6xl md:text-7xl font-black tracking-tighter leading-none">€{plan.price}</span>
                   </div>
 
-                  <div className="flex flex-col md:flex-1 md:justify-between">
-                    {/* Main Features: Reduced gap to description */}
-                    <div className="h-[10.75rem] md:h-[8.9rem] mb-2 md:mb-2 overflow-hidden">
-                      <div className="space-y-2.5 md:space-y-2.5">
-                        {plan.features.map((feature) => (
-                          <div key={feature} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/75">
-                            <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" />
-                            <span>{feature}</span>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="flex-1 flex flex-col min-h-[16rem]">
+                    <div className="space-y-4 mb-8">
+                      {plan.features.map((feature) => (
+                        <div key={feature} className="flex items-start gap-3 text-[14px] md:text-[15px] leading-[1.38] text-black/72">
+                          <span className="mt-[0.32rem] h-2 w-2 shrink-0 rounded-full bg-black" />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Styled Description: Bold CAPS, no grey bg */}
-                    <div className="h-[4rem] md:h-[3.2rem] mb-2 md:mb-2 pt-0 flex items-start overflow-hidden">
-                      <div className="text-[15px] md:text-[16px] font-black uppercase tracking-tight leading-[1.38] md:leading-[1.3] text-black/90">
+                    <div className="mt-auto mb-8">
+                      <div className="inline-block py-1 px-3 bg-black/[0.04] border border-black/5 rounded-sm text-[11px] md:text-[12px] uppercase tracking-wider font-bold text-black/60">
                         {plan.desc}
                       </div>
                     </div>
-
-                    <AnimatePresence initial={false}>
-                      {pricingDetailsOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: 'easeOut' }}
-                          className="overflow-hidden mb-6 md:mb-6"
-                        >
-                          <div className="space-y-2.5 md:space-y-2.5">
-                            {plan.more.map((item) => (
-                              <div key={item} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/82">
-                                <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
-                                <span>{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
 
-                  <div className="mt-2 md:mt-auto pt-0 md:pt-0 flex flex-col gap-2 md:gap-2">
-                    <button
-                      type="button"
-                      aria-label="Показать подробности тарифов"
-                      onClick={() => setPricingDetailsOpen((prev) => !prev)}
-                      className="flex h-8 w-full items-center justify-center text-black/25 hover:text-black transition-colors"
-                    >
-                      <ChevronDown
-                        size={22}
-                        className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
+                  <AnimatePresence initial={false}>
+                    {pricingDetailsOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.28, ease: 'easeOut' }}
+                        className="overflow-hidden"
+                      >
+                        <div className="border-t border-black/10 pt-8 mb-8 space-y-4">
+                          {plan.more.map((item) => (
+                            <div key={item} className="flex items-start gap-3 text-[14px] md:text-[15px] leading-[1.45] text-black/82">
+                              <span className="mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                    <a
-                      href="#pricing"
-                      onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                      className="flex h-12 w-full items-center justify-center bg-[#8DC63F] px-6 text-center text-[14px] md:text-[15px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
-                    >
-                      выбрать
-                    </a>
-                  </div>
+                  <button
+                    type="button"
+                    aria-label="Показать подробности тарифов"
+                    onClick={() => setPricingDetailsOpen((prev) => !prev)}
+                    className="mt-auto mb-5 flex w-full items-center justify-center text-black/40 hover:text-black transition-colors"
+                  >
+                    <ChevronDown
+                      size={24}
+                      className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  <a
+                    href="#pricing"
+                    onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
+                    className="w-full bg-[#8DC63F] px-6 py-5 text-center text-[15px] md:text-[16px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
+                  >
+                    выбрать
+                  </a>
                 </div>
               </motion.div>
             ))}
-            </div>
           </div>
 
           <motion.a
@@ -3130,29 +2984,24 @@ export default function LabW26PageV3() {
               </button>
             </div>
           ) : null}
-        </Container>
-      </section>
 
-      <SlashDivider />
-      <ReviewsSection />
-
-      <section className="py-24 md:py-32 overflow-hidden">
-        <Container>
-          <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
-            <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
-              <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
+          <section className="py-56 md:py-72 overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
+              <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
+                <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
 {`   /\\     /\\
   /  \\   /  \\
  /    \\_/    \\`}
-              </pre>
-            </div>
+                </pre>
+              </div>
 
-            <div className="max-w-3xl md:ml-auto text-right">
-              <h2 className="text-3xl md:text-5xl leading-tight">
-                Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
-              </h2>
+              <div className="max-w-3xl md:ml-auto text-right">
+                <h2 className="text-3xl md:text-5xl leading-tight">
+                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
+                </h2>
+              </div>
             </div>
-          </div>
+          </section>
         </Container>
       </section>
 
@@ -3265,7 +3114,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10010] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
+            className="fixed inset-0 z-[920] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
             onClick={() => setActiveCase(null)}
           >
             <motion.div
@@ -3363,7 +3212,7 @@ const CookieConsent = () => {
     setShow(false);
   };
   return (
-    <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
+    <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[600] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
         <button
           type="button"
           onClick={dismissConsent}
