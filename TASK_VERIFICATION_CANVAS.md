@@ -80,6 +80,63 @@
   Last Checked: 2026-03-19
   Note: `Отзывы` добавлены в anchor-меню, переставлены после `Тарифов` и перед финальной цитатой `Мы не учим кодить...`; порядок локально перепроверен по рендеру
 
+- Task: Make the project monospace text render more consistently across computers
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-24
+  Note: `font-mono` now resolves to `IBM Plex Mono` project-wide so monospace text renders consistently across machines
+
+- Task: Tighten the desktop hero text styling so the left title block, right description block, and `Следующий поток` row line up like before
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: Hero block returned to a simpler two-column composition: the title is back to a three-line layout, the extra green `подать заявку` CTA was removed, `Следующий поток` replaced with `19 января — 16 февраля · 4 недели`, and the top row was re-tuned through font size and line-height rather than a fake container-height hack
+
+- Task: Переставить блоки `Философия` и большую цитату после `Спикеров` и перед `Тарифами`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: Порядок секций перестроен на `program -> cases -> team -> philosophy -> mindset -> pricing`
+
+- Task: Переделать блок `Спикеры`: 4 карточки в ряд на desktop, раскрытие описания по клику на стрелку и затемнение неактивных карточек
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: После нового пользовательского фидбэка статус понижен обратно: найден реальный дефект desktop-сетки, из-за которого последний ряд рисовался в 3 колонки и карточки выглядели разного размера; текущий проход фиксирует жёсткие 4 колонки, квадратность карточек, ограничение описания первыми тремя колонками, отсутствие линии/повтора имени и убирает прыжок следующей строки за счёт общей высоты detail-area по самому длинному описанию в активном ряду
+
+- Task: Перенести neon glassmorphic popups оплаты из локального V2-референса в git-backed страницу `/v3` этого репозитория, открывая их по кнопке `выбрать` в блоке `Тарифы`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: Ошибочная первая попытка ушла в untracked snapshot-дубликат; затем правка перенесена в боевой repo `eppelas/aimwebsite0.5` и подключена к реальному `/v3`
+
+- Task: Доработать перенесённый popup оплаты после пользовательского ревью: убрать чёрный текст на чёрном фоне, вернуть более красивую success-анимацию из исходного V2 и выровнять регистр/шрифт CTA-кнопок
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: Второй проход завершён: overlay теперь центрируется внутри правого тёмного полотна (`md:left-[18%]`), close button поднята выше, контраст текстов и меток усилен ещё раз, зелёные CTA в popup приведены к общему стилю через shared button tokens, локальный build прошёл, свежий preview поднят на `http://192.168.1.180:3023/aimwebsite0.5/v3`; финальная success-анимация всё ещё может быть заменена после нового пользовательского референса
+
+- Task: Свести CTA-кнопки на странице `/v3` и в popup к одной локальной дизайн-системе: одинаковые цвета, скругления, шрифты и casing
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: Вынесены shared styles в `src/components/ctaButtonStyles.ts`; к ним подключены sidebar/mobile `хочу на лабораторию`, cookie `понятно`, popup-кнопки `оплатить`, `я оплатил`, `закрыть`, а также tariff CTA `выбрать`; дополнительно method-selector кнопки оплаты (`USDT`, `РУ-КАРТЫ`, `ЗАРУБЕЖНЫЕ КАРТЫ` и внутренние submethods) приведены к одному secondary-variant
+
+- Task: Перепроверить git-backed `/v3` после переноса popups оплаты через локальную сборку и dev server
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-25
+  Note: `/v3` боевого repo отвечает локально по `http://192.168.1.180:3001/v3`; общий `lint/build` всё ещё падает из-за старого синтаксического дефекта в `src/components/ConsultingPage.tsx`, не связанного с попапом
+  Owner: user
+  Last Checked: —
+  Note: User wants the hero adjusted through text style and line-height changes first; background height reduction should wait until spacing naturally settles
+
+- Task: Subdue the desktop `Недельный ритм` block so it reads lighter and thinner
+  Status: requested
+  Owner: user
+  Last Checked: —
+  Note: User wants the schedule grid, labels, and typography to feel less heavy without changing the section concept
+
 ## Agent Self-Checks
 
 - Task: Найти конкретные классы, которые создают лишний вертикальный зазор между секциями `philosophy-cards` и `mindset`
@@ -92,5 +149,11 @@
   Owner: assistant
   Last Checked: 2026-03-19
   Note: `npm run build` завершился успешно после переноса desktop-программы внутрь `LabW26PageV3.tsx`, перестановки блока `Отзывы` и дополнительной правки mobile pricing/calendar/menu
+
+- Task: Update the project monospace stack to a consistent named font and verify the CSS override
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-24
+  Note: CSS override is in place and build verification already passed
 
 ## Approved / Closed

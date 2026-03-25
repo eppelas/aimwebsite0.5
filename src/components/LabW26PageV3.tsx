@@ -9,6 +9,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
+import PricingPaymentPopupNeon from './PricingPaymentPopupNeon';
+import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS } from './ctaButtonStyles';
 import ReviewsSection from './ReviewsSection';
 
 
@@ -33,6 +35,11 @@ interface CaseCard {
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
 
+const chunkArray = <T,>(items: T[], size: number) =>
+  Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+    items.slice(index * size, index * size + size),
+  );
+
 const getSpeakerOverlayTextStyle = (description: string): React.CSSProperties => {
   if (description.length > 260) return { fontSize: '15.4px', lineHeight: 1.34 };
   if (description.length > 235) return { fontSize: '16px', lineHeight: 1.35 };
@@ -49,9 +56,9 @@ const SIDEBAR_NAV: NavItem[] = [
 ];
 
 const EXTERNAL_LINKS = [
-  { label: 'community {space}', href: 'https://aimindset.org/ai-mindset-community' },
-  { label: '{for-teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
-  { label: 'non-profit', href: 'https://aimindset.org/' },
+  { label: 'community {space}', href: '/ai-mindset-community' },
+  { label: '{for-teams}', href: '/ai-mindset-consulting' },
+  { label: 'non-profit', href: '/non-profit' },
 ];
 
 const LAB_MENU_LINKS = [
@@ -61,11 +68,10 @@ const LAB_MENU_LINKS = [
 ];
 
 const PRIMARY_MENU_LINKS = [
-  { label: 'Community {Space}', href: 'https://aimindset.org/ai-mindset-community' },
-  { label: 'Special Projects', href: 'https://aimindset.org/special-projects' },
-  { label: 'Blog', href: 'https://aimindset.org/blog' },
-  { label: '{For Teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
-  { label: '{For Non-profit}', href: 'https://aimindset.org/' },
+  { label: 'Community {Space}', href: '/ai-mindset-community' },
+  { label: 'Research', href: '/research' },
+  { label: '{For Teams}', href: '/ai-mindset-consulting' },
+  { label: '{For Non-Profit}', href: '/non-profit' },
 ];
 
 const BASE_URL = import.meta.env.BASE_URL;
@@ -1796,29 +1802,29 @@ const DesktopTechUiV5 = () => {
                       {weekCopy.framedDescription}
                     </div>
 
-                    <p className="text-[15px] leading-[1.6] text-black/80 font-medium max-w-[600px] mb-8">
+                    <p className="text-[14px] leading-[1.45] text-black/76 font-medium max-w-[560px] mb-6">
                       {weekCopy.bodyDescription}
                     </p>
 
                     <div className="mt-auto items-start w-[calc(100%+180px)] max-w-none">
-                      <div className="text-[11px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-5 ml-1">НЕДЕЛЬНЫЙ РИТМ</div>
-                      <div className="grid grid-cols-7 border border-black/[0.1] w-full max-w-none bg-black/[0.05] gap-px rounded-[1px] overflow-hidden shadow-none">
+                      <div className="text-[10px] font-mono font-black uppercase tracking-[0.34em] text-black/72 mb-4 ml-1">НЕДЕЛЬНЫЙ РИТМ</div>
+                      <div className="grid grid-cols-7 border border-black/[0.08] w-full max-w-none bg-black/[0.03] gap-px rounded-[1px] overflow-hidden shadow-none">
                         {weeklyRhythm.map((item, idx) => (
                           <div
                             key={idx}
-                            className="flex min-h-[40px] flex-col px-3 pt-[9px] pb-[7px] text-left transition-colors duration-300"
+                            className="flex min-h-[34px] flex-col px-2.5 pt-[7px] pb-[5px] text-left transition-colors duration-300"
                             style={{
                               backgroundColor:
                                 item.type === 'advanced'
-                                  ? 'rgba(223, 228, 220, 0.22)'
+                                  ? 'rgba(223, 228, 220, 0.18)'
                                   : item.type === 'off'
-                                    ? 'rgba(223, 228, 220, 0.04)'
+                                    ? 'rgba(223, 228, 220, 0.03)'
                                     : '#ffffff',
                             }}
                           >
                             <div className="flex justify-between items-start shrink-0">
                               <span
-                                className="text-[8px] font-mono font-bold tracking-widest leading-none"
+                                className="text-[7px] font-mono font-bold tracking-[0.22em] leading-none"
                                 style={{
                                   color:
                                     item.type === 'off'
@@ -1830,11 +1836,11 @@ const DesktopTechUiV5 = () => {
                               >
                                 {item.day}
                               </span>
-                              {item.advanced && <div className="text-[18px] font-black text-[#8DC63F] leading-none mt-[-5px] select-none font-sans">*</div>}
+                              {item.advanced && <div className="text-[14px] font-black text-[#8DC63F] leading-none mt-[-4px] select-none font-sans">*</div>}
                             </div>
-                            <div className="mt-auto flex min-h-[1.35rem] items-end">
+                            <div className="mt-auto flex min-h-[1.1rem] items-end">
                               <div
-                                className="text-[9px] font-black uppercase leading-[1.02] tracking-[-0.03em] font-mono"
+                                className="text-[8px] font-black uppercase leading-[0.98] tracking-[-0.02em] font-mono"
                                 style={{
                                   color:
                                     item.type === 'off'
@@ -2310,8 +2316,8 @@ export default function LabW26PageV3() {
   const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
   const [activeRowIndex, setActiveRowIndex] = useState<number | null>(null);
   
-  const toggleSpeaker = (idx: number) => {
-    const rowIndex = Math.floor(idx / 2); // 2 columns on mobile
+  const toggleSpeaker = (idx: number, rowSize: number) => {
+    const rowIndex = Math.floor(idx / rowSize);
     if (activeSpeakerIndex === idx) {
       setActiveSpeakerIndex(null);
       setActiveRowIndex(null);
@@ -2336,6 +2342,7 @@ export default function LabW26PageV3() {
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
   const [pricingDetailsOpen, setPricingDetailsOpen] = useState(false);
+  const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
   const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
@@ -2450,7 +2457,7 @@ export default function LabW26PageV3() {
           <a
             href="#pricing"
             onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-            className="block box-border mx-[calc(-10px-1vw)] w-[calc(100%+20px+2vw)] max-w-none whitespace-nowrap bg-black text-white px-4 py-[15px] text-[12px] leading-none font-black tracking-[0.08em] text-center hover:bg-[#8DC63F] hover:text-white transition-all rounded-sm"
+            className={`${DARK_CTA_BUTTON_CLASS} box-border mx-[calc(-10px-1vw)] w-[calc(100%+20px+2vw)] max-w-none whitespace-nowrap px-4 py-[15px] text-center`}
           >
             хочу на лабораторию
           </a>
@@ -2592,7 +2599,7 @@ export default function LabW26PageV3() {
                      <a
                        href="#pricing"
                        onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                       className="inline-flex min-w-[18rem] md:min-w-[22rem] items-center justify-center bg-black text-white px-10 md:px-14 py-5 md:py-6 text-xs font-black tracking-widest hover:bg-[#8DC63F] transition-all text-center rounded-sm"
+                       className={`${DARK_CTA_BUTTON_CLASS} min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6`}
                      >
                        хочу на лабораторию
                      </a>
@@ -2611,46 +2618,31 @@ export default function LabW26PageV3() {
 
             <section className="py-20 md:py-24 relative bg-black/[0.03]">
               <Container>
-                <div className="w-full max-w-5xl mx-auto flex flex-col gap-10 md:gap-12">
-                  {/* Top segment: Title and Description match heights */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-stretch">
-                    <div className="pr-4">
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[1.1] text-left">
-                        лаборатория <br />
-                        нового мышления <br />
-                        в эпоху AI
-                      </div>
-                      <div className="inline-flex items-center gap-3 text-[10px] leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 mt-6 border border-black/10">
-                        <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                        базовое обучение, старт раз в квартал
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-sm md:text-base uppercase leading-relaxed opacity-70 text-left">
-                        AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
-                      </p>
+                <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-x-24 gap-y-7 md:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] md:grid-rows-[auto_auto] md:items-end md:gap-y-5">
+                  <div>
+                    <div className="max-w-[33rem] text-left text-3xl font-black uppercase tracking-[-0.05em] leading-[0.92] sm:text-4xl md:text-5xl md:leading-[0.88]">
+                      лаборатория <br />
+                      нового мышления <br />
+                      в эпоху AI
                     </div>
                   </div>
-                  
-                  {/* Bottom segment: Badge aligned with "Next Batch" label */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
-                    <div className="flex flex-col hidden md:block">
-                      {/* Placeholder to maintain grid alignment on desktop */}
+
+                  <div>
+                    <p className="max-w-[35rem] text-left text-[13px] uppercase leading-[1.42] tracking-[0.03em] opacity-70 sm:text-sm md:text-[13px]">
+                      AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="inline-flex items-baseline gap-3 self-start border border-black/10 bg-black/[0.03] px-3 py-1 text-[10px] font-bold leading-none tracking-[0.18em] opacity-60">
+                      <div className="h-2 w-2 self-center rounded-full bg-current animate-pulse" />
+                      базовое обучение, старт раз в квартал
                     </div>
-                    
-                    <div className="flex flex-col gap-5 text-left">
-                      <div className="flex flex-col gap-2.5">
-                         <div className="text-[10px] leading-none opacity-40 font-bold uppercase tracking-[0.18em]">Следующий поток:</div>
-                         <div className="text-[14px] font-black tracking-[0.18em] uppercase">20 апреля 2026</div>
-                      </div>
-                      
-                      <a
-                        href="#pricing"
-                        onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                        className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-[#181616] transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_8px_24px_rgba(141,198,63,0.12)] w-full md:w-auto text-center rounded-md"
-                      >
-                        подать заявку на x26 main lab
-                      </a>
+                  </div>
+
+                  <div className="md:-translate-y-[3px]">
+                    <div className="whitespace-nowrap text-left text-[13px] font-black uppercase leading-none tracking-[0.16em] md:text-[14px]">
+                      19 января — 16 февраля · 4 недели
                     </div>
                   </div>
                 </div>
@@ -2662,93 +2654,6 @@ export default function LabW26PageV3() {
                 <div className="mx-auto h-[1px] w-full bg-black/10" />
               </Container>
             </div>
-
-            <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
-              <Container>
-                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
-                  {PHILOSOPHY_PILLARS.map((item) => (
-                    <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                      <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
-                        <PhilosophyPillarArt art={item.art} />
-                      </div>
-                      <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
-                        <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
-                          {item.title}
-                        </h3>
-                        <p className="w-full max-w-[22rem] text-left text-[15px] md:text-[13px] leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Container>
-            </section>
-
-            <div className="py-2 md:py-4">
-              <Container>
-                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
-              </Container>
-            </div>
-
-            <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
-              <Container>
-                <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
-                  <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
-                    <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
-                      <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
-                    </div>
-                  </div>
-                  <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
-                    <div className="relative flex flex-col justify-end h-full py-0">
-                      {/* Quote Text: Attached to bottom, expands UPWARDS */}
-                      <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
-                        <motion.h2 
-                          key={activeMindsetQuote}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="w-full pr-0 md:pr-4 text-3xl md:text-5xl font-black tracking-tight leading-tight text-left normal-case"
-                        >
-                          {MINDSET_QUOTES[activeMindsetQuote].text}
-                        </motion.h2>
-                      </div>
-
-                      {/* [CRITICAL: FIXED_BUTTONS_POSITION] 
-                          Do not modify these positioning classes. The buttons must remain 
-                          in a fixed absolute position at the bottom of the section 
-                          to prevent jumping when quotes change length. */}
-                      <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
-                        <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
-                          <button
-                            type="button"
-                            aria-label="Предыдущая цитата"
-                            onClick={() => cycleMindsetQuote(-1)}
-                            className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                          >
-                            <span className="font-normal text-[22px] leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
-                          </button>
-                          <button
-                            type="button"
-                            aria-label="Следующая цитата"
-                            onClick={() => cycleMindsetQuote(1)}
-                            className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                          >
-                            <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
-                          </button>
-                        </div>
-                        <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'} text-left`}>
-                          <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
-                          <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
-                            {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Container>
-            </section>
 
             <section id="program" className="pt-20 md:pt-32 pb-24 md:pb-32 overflow-hidden">
               <Container>
@@ -2881,63 +2786,47 @@ export default function LabW26PageV3() {
               ниже — проводники, которые будут рядом на всём протяжении лаборатории.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 md:gap-x-12 md:gap-y-16 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-20">
+          <div className="md:hidden grid grid-cols-2 gap-5">
             {TEAM_MEMBERS.map((member, i) => {
               const currentRowIndex = Math.floor(i / 2);
               const isLastInRow = i % 2 === 1 || i === TEAM_MEMBERS.length - 1;
-              
+              const isActive = activeSpeakerIndex === i;
+              const dimmed = activeSpeakerIndex !== null && !isActive;
+
               return (
                 <React.Fragment key={member.name}>
-                  <div
-                    className={`flex flex-col gap-3 md:gap-5 ${
-                      i === TEAM_MEMBERS.length - 1
-                        ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
-                        : ''
-                    }`}
-                  >
-                    <div className="group">
-                      <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative overflow-hidden">
+                  <div className={cn('flex flex-col gap-3 transition-opacity duration-300', dimmed && 'opacity-42')}>
+                    <button
+                      type="button"
+                      onClick={() => toggleSpeaker(i, 2)}
+                      className="group text-left"
+                    >
+                      <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
                         <img
                           src={member.image}
                           alt={member.name}
-                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                           referrerPolicy="no-referrer"
                           loading="lazy"
                         />
-                        <div className={`absolute inset-0 transition-colors duration-300 md:hidden ${activeSpeakerIndex === i ? 'bg-black/20' : 'bg-black/0 group-hover:bg-black/8'}`} />
-                        
-                        <div className="hidden md:flex absolute inset-0 overflow-hidden bg-black/85 px-4 py-6 md:px-4 md:py-6 flex-col justify-center items-start text-left opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                          <p
-                            className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 w-full max-w-full"
-                            style={getSpeakerOverlayTextStyle(member.description)}
-                          >
-                            {member.description}
-                          </p>
-                        </div>
-
-                        <div className="md:hidden absolute inset-0 z-10">
-                          <button
-                            type="button"
-                            className="absolute inset-0 w-full h-full text-left"
-                            onClick={() => toggleSpeaker(i)}
-                          >
-                            <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-                              <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
-                            </div>
-                          </button>
+                        <div className={cn(
+                          'absolute inset-0 transition-colors duration-300',
+                          isActive ? 'bg-black/16' : dimmed ? 'bg-black/42' : 'bg-black/6 group-hover:bg-black/12',
+                        )} />
+                        <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                          <ArrowRight size={20} strokeWidth={2.25} className={cn('transition-transform duration-300', isActive && 'rotate-90')} />
                         </div>
                       </div>
-                    </div>
+                    </button>
                     <div>
-                      <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
-                      <p className="text-[8px] md:text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
+                      <h3 className="text-[12px] font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
+                      <p className="text-[8px] opacity-40 uppercase tracking-widest">{member.role}</p>
                     </div>
                   </div>
 
-                  {/* Expansion for Mobile */}
                   {isLastInRow && (
-                    <div className="col-span-2 md:hidden">
-                       <AnimatePresence initial={false}>
+                    <div className="col-span-2">
+                      <AnimatePresence initial={false}>
                         {activeSpeakerIndex !== null && activeRowIndex === currentRowIndex && (
                           <motion.div
                             key={`speaker-detail-mobile-${currentRowIndex}`}
@@ -2946,10 +2835,10 @@ export default function LabW26PageV3() {
                             exit={{ height: 0, opacity: 0 }}
                             className="overflow-hidden bg-[#faf8f3] mt-0.5"
                           >
-                            <div className="pt-2 pb-3 px-1">
-                               <div className="text-[12px] md:text-[15px] leading-[1.6] text-black/72">
-                                  {TEAM_MEMBERS[activeSpeakerIndex].description}
-                               </div>
+                            <div className="px-1 pt-2 pb-3">
+                              <div className="text-[12px] leading-[1.6] text-black/72">
+                                {TEAM_MEMBERS[activeSpeakerIndex].description}
+                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -2959,6 +2848,175 @@ export default function LabW26PageV3() {
                 </React.Fragment>
               );
             })}
+          </div>
+
+          <div className="hidden md:flex md:flex-col md:gap-8">
+            {chunkArray(TEAM_MEMBERS, 4).map((row, rowIndex) => (
+              <div key={`speaker-row-${rowIndex}`} className="flex flex-col gap-4 lg:gap-5">
+                <div className="grid grid-cols-4 gap-6 lg:gap-8">
+                  {row.map((member, indexInRow) => {
+                    const memberIndex = rowIndex * 4 + indexInRow;
+                    const isActive = activeSpeakerIndex === memberIndex;
+                    const dimmed = activeSpeakerIndex !== null && !isActive;
+
+                    return (
+                      <div key={member.name} className={cn('flex flex-col gap-2 transition-opacity duration-300', dimmed && 'opacity-42')}>
+                        <button
+                          type="button"
+                          onClick={() => toggleSpeaker(memberIndex, 4)}
+                          className="group text-left"
+                        >
+                          <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
+                            <img
+                              src={member.image}
+                              alt={member.name}
+                              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                              referrerPolicy="no-referrer"
+                              loading="lazy"
+                            />
+                            <div className={cn(
+                              'absolute inset-0 transition-colors duration-300',
+                              isActive ? 'bg-black/14' : dimmed ? 'bg-black/48' : 'bg-black/8 group-hover:bg-black/14',
+                            )} />
+                            <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                              <ArrowRight size={20} strokeWidth={2.25} className={cn('transition-transform duration-300', isActive && 'rotate-90')} />
+                            </div>
+                          </div>
+                        </button>
+                        <div>
+                          <h3 className="text-[15px] font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
+                          <p className="text-[9px] opacity-40 uppercase tracking-widest">{member.role}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {Array.from({ length: 4 - row.length }).map((_, placeholderIndex) => (
+                    <div
+                      key={`speaker-placeholder-${rowIndex}-${placeholderIndex}`}
+                      aria-hidden="true"
+                      className="pointer-events-none opacity-0"
+                    />
+                  ))}
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {activeSpeakerIndex !== null && activeRowIndex === rowIndex && (
+                    <motion.div
+                      key={`speaker-detail-desktop-${rowIndex}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-4 gap-6 lg:gap-8">
+                        <div className="col-span-3 grid">
+                          {row.map((member, indexInRow) => {
+                            const memberIndex = rowIndex * 4 + indexInRow;
+                            const isVisible = activeSpeakerIndex === memberIndex;
+
+                            return (
+                              <motion.div
+                                key={`speaker-detail-copy-${member.name}`}
+                                className="col-start-1 row-start-1 text-[14px] leading-[1.62] text-black/72"
+                                initial={false}
+                                animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 6 }}
+                                transition={{ duration: 0.18, ease: 'easeOut' }}
+                                style={{ pointerEvents: 'none', visibility: isVisible ? 'visible' : 'hidden' }}
+                              >
+                                {member.description}
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <SlashDivider />
+      <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
+            {PHILOSOPHY_PILLARS.map((item) => (
+              <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
+                <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
+                  <PhilosophyPillarArt art={item.art} />
+                </div>
+                <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
+                  <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
+                    {item.title}
+                  </h3>
+                  <p className="w-full max-w-[22rem] text-left text-[15px] md:text-[13px] leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <div className="py-2 md:py-4">
+        <Container>
+          <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
+        </Container>
+      </div>
+
+      <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
+        <Container>
+          <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
+            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
+              <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
+                <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
+              </div>
+            </div>
+            <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
+              <div className="relative flex flex-col justify-end h-full py-0">
+                <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
+                  <motion.h2
+                    key={activeMindsetQuote}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full pr-0 md:pr-4 text-3xl md:text-5xl font-black tracking-tight leading-tight text-left normal-case"
+                  >
+                    {MINDSET_QUOTES[activeMindsetQuote].text}
+                  </motion.h2>
+                </div>
+
+                <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                  <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      aria-label="Предыдущая цитата"
+                      onClick={() => cycleMindsetQuote(-1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-[22px] leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Следующая цитата"
+                      onClick={() => cycleMindsetQuote(1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
+                    </button>
+                  </div>
+                  <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'} text-left`}>
+                    <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
+                    <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
+                      {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </Container>
       </section>
@@ -3073,13 +3131,13 @@ export default function LabW26PageV3() {
                       />
                     </button>
 
-                    <a
-                      href="#pricing"
-                      onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                      className="flex h-12 w-full items-center justify-center bg-[#8DC63F] px-6 text-center text-[14px] md:text-[15px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
+                    <button
+                      type="button"
+                      onClick={() => setActivePaymentPlan({ name: plan.name, price: plan.price })}
+                      className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6`}
                     >
                       выбрать
-                    </a>
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -3340,6 +3398,11 @@ export default function LabW26PageV3() {
           </motion.div>
         )}
       </AnimatePresence>
+      <PricingPaymentPopupNeon
+        isOpen={activePaymentPlan !== null}
+        plan={activePaymentPlan}
+        onClose={() => setActivePaymentPlan(null)}
+      />
          </div>
       </main>
 
@@ -3374,7 +3437,7 @@ const CookieConsent = () => {
         </button>
         <div className="text-[8px] md:text-[9px] font-black opacity-30 mb-2 md:mb-3 uppercase tracking-widest">SYSTEM NOTICE</div>
         <p className="text-[9px] md:text-[10px] font-bold leading-relaxed mb-4 md:mb-4 uppercase text-black">МЫ ИСПОЛЬЗУЕМ КУКИ ДЛЯ ВАШЕЙ AI-СИНХРОНИЗАЦИИ.</p>
-        <button onClick={dismissConsent} className="w-full bg-black text-white py-2 md:py-3 text-[9px] md:text-[10px] font-black uppercase hover:bg-[#8DC63F] transition-colors">ПОНЯТНО</button>
+        <button onClick={dismissConsent} className={`${DARK_CTA_BUTTON_CLASS} w-full px-4 py-3 text-[12px]`}>понятно</button>
     </div>
   );
 };
