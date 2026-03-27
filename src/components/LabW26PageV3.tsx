@@ -14,6 +14,7 @@ import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS } from './ctaButton
 import ReviewsSection from './ReviewsSection';
 import { FooterFaqBlock } from './FooterFaqBlock';
 import { FooterLabsNavigatorBlock } from './FooterLabsNavigatorBlock';
+import { InvertedVoxelLogoFace } from './InvertedVoxelLogoFace';
 
 
 
@@ -98,7 +99,6 @@ const PRIMARY_MENU_LINKS = [
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
-const LOGO_LEFT_SRC = `${BASE_URL}AIMLeft-02.png`;
 const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
 
 const CASE_FILTERS = [
@@ -1001,12 +1001,12 @@ const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' 
 };
 
 const PROGRAM_WEEKLY_RHYTHM = [
-  { day: 'ПН', label: 'Воркшоп', type: 'workshop' as const },
-  { day: 'ВТ', label: 'Коворкинг', type: 'coworking' as const },
-  { day: 'СР', label: 'Advanced', type: 'advanced' as const },
+  { day: 'ПН', label: 'MAIN ВОРКШОП', type: 'workshop' as const, time: '18:00 CET' },
+  { day: 'ВТ', label: 'КОВОРКИНГ', type: 'coworking' as const, time: '' },
+  { day: 'СР', label: 'ADVANCED TRACK', type: 'advanced' as const, time: '18:00 CET' },
   { day: 'ЧТ', label: '', type: 'off' as const },
-  { day: 'ПТ', label: 'Лекция', type: 'lecture' as const },
-  { day: 'СБ', label: 'Q&A session', type: 'qna' as const },
+  { day: 'ПТ', label: 'ЛЕКЦИЯ', type: 'lecture' as const, time: '' },
+  { day: 'СБ', label: 'Q&A СЕССИЯ', type: 'qna' as const, time: '18:00 CET' },
   { day: 'ВС', label: '', type: 'off' as const },
 ];
 
@@ -1305,40 +1305,40 @@ const ProgramIntegratedTimeline = ({
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
-                                    className={`relative rounded-[8px] border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[42px] md:h-[46px] flex flex-col ${
+                                    className={`relative border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[54px] md:h-[46px] flex flex-col ${
                                       day.type === 'advanced'
-                                        ? 'bg-[#f5f6f5] border-black/16 text-black/68 shadow-sm'
+                                        ? 'bg-black border-black text-white'
                                         : day.type === 'off'
-                                          ? 'bg-[#f5f6f5]/60 border-black/10 text-black/62'
-                                          : 'bg-white border-black/15 text-black/80 shadow-sm font-bold'
+                                          ? 'bg-black/[0.05] border-black/10 text-black/36'
+                                          : day.type === 'workshop'
+                                            ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
+                                            : day.type === 'qna'
+                                              ? 'bg-[#eff3ea] border-black/12 text-black/70'
+                                              : 'bg-white border-black/12 text-black/72'
                                     }`}
                                   >
                                     <div className="flex justify-between items-start">
-                                      <div className="font-black opacity-40">{day.day}</div>
+                                      <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
                                       {day.type === 'advanced' && (
                                         <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
                                       )}
                                     </div>
-                                    <div className="mt-auto flex min-h-[1.1rem] md:min-h-[1.5rem] items-end">
-                                      <div className="font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal]">
+                                    {'time' in day && day.time ? (
+                                      <div className={`mt-[2px] font-mono text-[6.5px] font-bold tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
+                                        {day.time}
+                                      </div>
+                                    ) : null}
+                                    <div className="mt-auto flex min-h-[1.55rem] md:min-h-[1.5rem] items-end">
+                                      <div className={`font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal] ${
+                                        day.type === 'advanced' || day.type === 'workshop'
+                                          ? 'text-white'
+                                          : day.type === 'off'
+                                            ? 'text-transparent'
+                                            : 'text-black/70'
+                                      }`}>
                                         {day.label || ' '}
                                       </div>
                                     </div>
-                                    
-                                    {day.type === 'advanced' && (
-                                      <>
-                                        <div className="lg:hidden absolute left-full top-[48%] w-[44px] h-[92px] pointer-events-none">
-                                          <div className="absolute left-0 top-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute right-0 top-0 w-px h-full bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute left-0 bottom-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                        </div>
-                                        <div className="hidden lg:block absolute left-full top-[44%] w-[112px] h-[156px] pointer-events-none">
-                                          <div className="absolute left-0 top-0 w-[28px] h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute right-0 top-0 w-px h-full bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute left-0 bottom-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                        </div>
-                                      </>
-                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1353,29 +1353,25 @@ const ProgramIntegratedTimeline = ({
                             }}
                           >
                             <div
-                              className={`relative rounded-[16px] p-4 opacity-80 ${
+                              className={`relative rounded-[16px] p-4 ${
                                 advancedColorway === 'violet'
-                                  ? 'bg-[#eeebf5]'
+                                  ? 'bg-[#181616] text-white'
                                   : lighterAdvancedBackground
-                                    ? 'bg-[#f5f6f6]'
-                                    : 'bg-[#f1f2f2]'
+                                    ? 'bg-[#181616] text-white'
+                                    : 'bg-[#181616] text-white'
                               }`}
                             >
-                              <div className={`mb-1.5 flex justify-end items-center gap-1.5 ${metaTrackClass}`}>
-                                <span className="text-[10px] leading-none text-black/30 font-bold">*</span>
+                              <div className="mb-1.5 flex justify-end items-center gap-1.5 font-mono text-[8px] md:text-[10px] tracking-[0.14em] font-bold text-white/46">
+                                <span className="text-[10px] leading-none text-[#8DC63F] font-bold">*</span>
                                 <span>{combinedAdvancedLabel ? 'Advanced Track Pro' : 'Advanced Track'}</span>
                               </div>
-                              <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-26 mb-0.5">Тема</div>
-                              <div className={`font-semibold ${mutedAdvanced ? 'text-[12px] text-black/60' : 'text-[21px] md:text-[23px] leading-[1.02] text-black/76'}`}>
+                              <div className="text-[8px] font-bold uppercase tracking-[0.16em] text-white/26 mb-0.5">Тема</div>
+                              <div className={`font-semibold ${mutedAdvanced ? 'text-[12px] text-white/72' : 'text-[21px] md:text-[23px] leading-[1.02] text-white'}`}>
                                 {weekCopy.advancedTopic}
                               </div>
-                              <p className={`leading-[1.42] mt-1 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[12px] md:text-[13px] text-black/54'}`}>
+                              <p className={`leading-[1.42] mt-1 ${mutedAdvanced ? 'text-[10px] text-white/52' : 'text-[12px] md:text-[13px] text-white/62'}`}>
                                 {weekCopy.advancedDescription}
                               </p>
-                              <div className="mt-2">
-                                <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-30">Спикер</div>
-                                <div className="text-[12px] font-semibold mt-0.5 text-black/66">{advanced.speaker}</div>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -1989,89 +1985,6 @@ const SectionLabel = ({ text, number }: { text: string, number?: string }) => (
   </div>
 );
 
-const VoxelLogoFace = ({ scale = 1, opacity = 1, className = "" }: { scale?: number; opacity?: number; className?: string }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const interactionRef = useRef({ x: -999, y: -999 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (canvasRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        interactionRef.current.x = (e.clientX - rect.left) * (600 / rect.width);
-        interactionRef.current.y = (e.clientY - rect.top) * (600 / rect.height);
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 600;
-    canvas.height = 600;
-    const voxels: any[] = [];
-    const size = 11, gap = 3, total = size + gap;
-    const width = AI_MINDSET_LOGO_MAP[0].length;
-    const height = AI_MINDSET_LOGO_MAP.length;
-    const startX = 300 - (width * total) / 2;
-    const startY = 300 - (height * total) / 2;
-
-    for (let r = 0; r < height; r++) {
-      for (let c = 0; c < width; c++) {
-        if (AI_MINDSET_LOGO_MAP[r][c] === '1' && c >= width / 2 - 1) {
-            voxels.push({
-              homeX: startX + c * total, homeY: startY + r * total,
-              x: startX + c * total + (Math.random() - 0.5) * 400,
-              y: startY + r * total + (Math.random() - 0.5) * 400,
-              vx: 0, vy: 0, firmness: 0.05 + Math.random() * 0.05
-            });
-        }
-      }
-    }
-
-    const logoLeft = new Image();
-    logoLeft.src = LOGO_LEFT_SRC;
-    let logoLoaded = false;
-    logoLeft.onload = () => { logoLoaded = true; };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, 600, 600);
-      if (logoLoaded && logoLeft.height > 0) {
-         const scaleFactor = 1.07;
-         const targetHeight = height * total * scaleFactor;
-         const targetWidth = targetHeight * (logoLeft.width / logoLeft.height);
-         const targetX = startX + ((width / 2) * total) - targetWidth;
-         const offsetY = (targetHeight - (height * total)) / 2;
-         const seamOffsetY = total * 0.3;
-         ctx.drawImage(logoLeft, targetX, startY - offsetY + seamOffsetY, targetWidth, targetHeight);
-      }
-      voxels.forEach(v => {
-        const dx = v.x - interactionRef.current.x, dy = v.y - interactionRef.current.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 100) { v.vx += (dx / dist) * 2; v.vy += (dy / dist) * 2; }
-        v.vx += (v.homeX - v.x) * v.firmness;
-        v.vy += (v.homeY - v.y) * v.firmness;
-        v.vx *= 0.8; v.vy *= 0.8;
-        v.x += v.vx; v.y += v.vy;
-        ctx.fillStyle = '#181616';
-        ctx.fillRect(v.x, v.y, size, size);
-      });
-      requestAnimationFrame(draw);
-    };
-    draw();
-  }, []);
-
-  return (
-    <div className={`aspect-square ${className}`} style={{ transform: `scale(${scale})`, opacity }}>
-      <canvas ref={canvasRef} width={600} height={600} className="w-full h-full object-contain" />
-    </div>
-  );
-};
-
 const LabsHoverMenu = () => (
   <motion.div
     initial={{ opacity: 0, x: 10 }}
@@ -2280,7 +2193,7 @@ const ProgramScheduleGrid = () => {
     {
       name: 'MAIN LAB',
       price: '590',
-      tag: '',
+      tag: 'БАЗА',
       features: [
         'четыре воркшопа, четыре коворкинга, четыре Q&A сессии, дополнительные гостевые лекции',
         'закрытый чат участников',
@@ -2352,12 +2265,12 @@ export default function LabW26PageV3() {
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
-  const [pricingDetailsOpen, setPricingDetailsOpen] = useState(false);
   const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
-  const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
-  const [activeCaseFilter, setActiveCaseFilter] = useState('all');
+  const [isCasesExpanded, setIsCasesExpanded] = useState(false);
+  const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
+  const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -2394,10 +2307,7 @@ export default function LabW26PageV3() {
     }
   }[theme];
 
-  const visibleCases = CASE_CARDS.filter((card) => {
-    if (activeCaseFilter === 'all') return true;
-    return card.filters.includes(activeCaseFilter);
-  });
+  const visibleCases = isCasesExpanded ? CASE_CARDS : CASE_CARDS.slice(0, 4);
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2436,6 +2346,18 @@ export default function LabW26PageV3() {
       setLabsDropdownOpen(false);
       labsCloseTimeoutRef.current = null;
     }, 220);
+  };
+
+  const toggleMobileSpeaker = (index: number, rowSize: number) => {
+    const rowIndex = Math.floor(index / rowSize);
+    if (activeMobileSpeakerIndex === index) {
+      setActiveMobileSpeakerIndex(null);
+      setActiveMobileSpeakerRowIndex(null);
+      return;
+    }
+
+    setActiveMobileSpeakerIndex(index);
+    setActiveMobileSpeakerRowIndex(rowIndex);
   };
 
   return (
@@ -2600,7 +2522,7 @@ export default function LabW26PageV3() {
                   
                   {/* MODAL ORDER FOR MOBILE: LOGO BETWEEN TITLE AND DESCRIPTION */}
                   <div className="lg:hidden mb-12">
-                     <VoxelLogoFace className="w-full max-w-[280px] mx-auto -translate-x-3" scale={1} />
+                     <InvertedVoxelLogoFace className="w-full max-w-[280px] mx-auto -translate-x-3" scale={1} />
                   </div>
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
@@ -2619,7 +2541,7 @@ export default function LabW26PageV3() {
                
                {/* DESKTOP LOGO */}
                <div className="hidden lg:block w-full lg:w-2/5">
-                  <VoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
+                  <InvertedVoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
                </div>
             </div>
           </Container>
@@ -2727,63 +2649,68 @@ export default function LabW26PageV3() {
             </p>
           </div>
 
-          <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-3">
-            <div className="mr-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
-              кем создано
-            </div>
-            {CASE_FILTERS.map((filter) => {
-              const isActive = activeCaseFilter === filter.id;
-              return (
-                <button
-                  key={filter.id}
-                  type="button"
-                  onClick={() => setActiveCaseFilter(filter.id)}
-                  className={`px-3 py-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-colors rounded-sm text-left leading-[1.15] ${
-                    isActive
-                      ? 'bg-black text-white'
-                      : 'border border-black/10 bg-white/60 text-black/55 hover:bg-[#8DC63F] hover:border-[#8DC63F] hover:text-black'
-                  }`}
-                >
-                  {filter.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-12 md:px-12">
-            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[14.5rem] md:auto-cols-[15rem]">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
             {visibleCases.map((card, i) => (
-              <button
+              <article
                 key={card.title}
-                type="button"
-                onClick={() => setActiveCase(card)}
-                className="relative overflow-hidden min-h-[146px] rounded-[6px] bg-white p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#8DC63F] hover:border-[#8DC63F] flex flex-col justify-between"
+                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#eef5d7]"
               >
-                <div className="pointer-events-none absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
-                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] opacity-[0.14] group-hover:opacity-[0.5] text-black group-hover:text-white" />
-                </div>
-                <div className="relative z-10 mb-6 flex w-full items-start justify-end">
-                  <div className="ml-auto flex flex-col items-end text-right">
-                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em] text-black/82 group-hover:text-white transition-colors duration-300">
-                      {card.author}
-                    </div>
-                    <div className="text-[9px] md:text-[10px] uppercase tracking-[0.04em] text-black/48 group-hover:text-white/80 transition-colors duration-300">
-                      {card.role}
-                    </div>
+                <div className="relative mb-4 h-[92px] overflow-hidden border border-black/8 bg-[#f4f4ef] group-hover:border-[#8DC63F] group-hover:bg-[#eef5d7]">
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px] opacity-70" />
+                  <div className="absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
+                    <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] opacity-[0.14] group-hover:opacity-[0.36] text-black" />
+                  </div>
+                  <div className="absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.18em] text-black/42">
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <div className="absolute right-3 top-3 font-mono text-[8px] uppercase tracking-[0.16em] text-black/30">
+                    case
                   </div>
                 </div>
-                <div className="relative z-10 max-w-[11rem]">
-                  <h4 className="mb-1 text-[11px] font-bold uppercase tracking-widest leading-tight text-black group-hover:text-white transition-colors duration-300">
+
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <h4 className="max-w-[11rem] text-[16px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black">
                     {card.title}
                   </h4>
-                  <p className="text-[9px] leading-relaxed text-black/68 group-hover:text-white/90 line-clamp-2 transition-colors duration-300">
-                    {card.desc}
-                  </p>
+                  <div className="shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-black/34">
+                    case
+                  </div>
                 </div>
-              </button>
+
+                <p className="text-[12px] font-semibold leading-[1.45] text-black/78">
+                  {card.details}
+                </p>
+
+                <div className="mt-auto flex flex-col gap-3 pt-4">
+                  <div className="font-mono text-[9px] tracking-[0.08em] text-black/42">
+                    {card.author}, {card.role.toLowerCase()}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                    {card.tools.split(' · ').map((tool, toolIndex) => (
+                      <span key={`${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/52">
+                        {toolIndex > 0 ? '· ' : ''}
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </article>
             ))}
-            </div>
           </div>
+
+          {CASE_CARDS.length > 4 ? (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setIsCasesExpanded((prev) => !prev)}
+                className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black/48 transition-colors hover:text-black/76"
+                aria-expanded={isCasesExpanded}
+              >
+                <span>{isCasesExpanded ? 'свернуть' : 'ещё'}</span>
+                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCasesExpanded ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+          ) : null}
         </Container>
       </section>
 
@@ -2797,7 +2724,70 @@ export default function LabW26PageV3() {
               ниже — проводники, которые будут рядом на всём протяжении лаборатории.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-5 md:hidden">
+            {TEAM_MEMBERS.map((member, index) => {
+              const currentRowIndex = Math.floor(index / 2);
+              const isLastInRow = index % 2 === 1 || index === TEAM_MEMBERS.length - 1;
+              const isActive = activeMobileSpeakerIndex === index;
+              const dimmed = activeMobileSpeakerIndex !== null && !isActive;
+
+              return (
+                <div key={member.name} className="contents">
+                  <article className={cn('flex flex-col gap-3 transition-opacity duration-300', dimmed && 'opacity-40')}>
+                    <button type="button" onClick={() => toggleMobileSpeaker(index, 2)} className="group text-left">
+                      <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
+                        />
+                        <div className={cn('absolute inset-0 transition-colors duration-300', isActive ? 'bg-black/16' : dimmed ? 'bg-black/42' : 'bg-black/6 group-hover:bg-black/12')} />
+                        <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                          <ArrowRight size={20} strokeWidth={2.25} className={cn('transition-transform duration-300', isActive && 'rotate-90')} />
+                        </div>
+                      </div>
+                    </button>
+
+                    <div>
+                      <h3 className="text-[12px] font-bold uppercase tracking-tight leading-tight text-black/92">
+                        {member.name}
+                      </h3>
+                      <p className="mt-1 text-[8px] opacity-40 uppercase tracking-widest">
+                        {member.role}
+                      </p>
+                    </div>
+                  </article>
+
+                  {isLastInRow ? (
+                    <div className="col-span-2">
+                      <AnimatePresence initial={false}>
+                        {activeMobileSpeakerIndex !== null && activeMobileSpeakerRowIndex === currentRowIndex ? (
+                          <motion.div
+                            key={`speaker-detail-mobile-${currentRowIndex}`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="mt-0.5 overflow-hidden bg-[#faf8f3]"
+                          >
+                            <div className="px-1 pt-2 pb-3 text-[12px] leading-[1.6] text-black/72">
+                              {renderSpeakerDescription(
+                                TEAM_MEMBERS[activeMobileSpeakerIndex].name,
+                                TEAM_MEMBERS[activeMobileSpeakerIndex].description,
+                              )}
+                            </div>
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
             {TEAM_MEMBERS.map((member) => (
               <article key={member.name} className="group flex flex-col gap-3">
                 <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
@@ -2813,15 +2803,15 @@ export default function LabW26PageV3() {
 
                 <div className="flex flex-col gap-2">
                   <div>
-                    <h3 className="text-[12px] md:text-[15px] font-bold uppercase tracking-tight leading-tight text-black/92">
+                    <h3 className="text-[15px] font-bold uppercase tracking-tight leading-tight text-black/92">
                       {member.name}
                     </h3>
-                    <p className="mt-1 text-[8px] md:text-[9px] opacity-40 uppercase tracking-widest">
+                    <p className="mt-1 text-[9px] opacity-40 uppercase tracking-widest">
                       {member.role}
                     </p>
                   </div>
 
-                  <p className="text-[11px] md:text-[12px] leading-[1.58] text-black/68">
+                  <p className="text-[12px] leading-[1.58] text-black/68">
                     {renderSpeakerDescription(member.name, member.description)}
                   </p>
                 </div>
@@ -2923,113 +2913,89 @@ export default function LabW26PageV3() {
         <Container>
           <EditorialSectionHeader eyebrow="Форматы участия" title="Тарифы" className="mb-16" />
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:mx-0 md:overflow-visible md:px-0 md:pb-0">
-            <div className="flex snap-x snap-mandatory gap-4 md:grid md:grid-cols-1 md:gap-8 lg:grid-cols-3">
+          <div className="pb-3 md:pb-0">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={plan.name}
-                className="w-[18rem] max-w-[82vw] shrink-0 snap-start md:w-auto md:max-w-none"
+                className="w-full"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
               >
-                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-5 md:p-6 flex flex-col">
-                  <div className="flex min-h-[2.55rem] items-baseline justify-between gap-4 mb-3 md:mb-3">
+                <div className="flex h-full flex-col rounded-[0.4rem] border border-black/10 bg-white/80 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.04)] md:p-6">
+                  <div className="mb-3 flex min-h-[2.55rem] items-start justify-between gap-4">
                     {plan.tagHref ? (
                       <button
                         type="button"
                         onClick={scrollToProgramFromPricing}
-                        className="inline-flex items-baseline border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors rounded-sm"
+                        className="inline-flex items-baseline rounded-sm border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] transition-colors hover:bg-black hover:text-white"
                       >
                         <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </button>
                     ) : plan.tag ? (
                       <div
-                        className="inline-flex items-baseline px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] border border-black/15 rounded-sm"
+                        className="inline-flex items-baseline rounded-sm border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em]"
                       >
                         <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </div>
-                    ) : idx === 0 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">base</div>
                     ) : idx === 2 ? (
                       <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">свой маршрут</div>
                     ) : <div />}
                   </div>
 
-                  {/* Top Part: Unified fixed height for alignment */}
-                  <div className="h-[7.5rem] md:h-[8.6rem] flex flex-col justify-start mb-3 md:mb-3">
+                  <div className="mb-3 flex min-h-[8.75rem] flex-col justify-start md:min-h-[9rem]">
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-xl md:text-[23px] font-black uppercase tracking-tight text-black/70 leading-none">
+                      <h3 className="text-xl font-black uppercase leading-none tracking-tight text-black/70 md:text-[23px]">
                         {plan.name}
                       </h3>
                       <div className="flex items-baseline gap-2">
-                         <span className="text-[50px] md:text-[72px] font-black tracking-[-0.045em] leading-[0.88] text-black">€{plan.price}</span>
+                         <span className="text-[50px] font-black leading-[0.88] tracking-[-0.045em] text-black md:text-[72px]">€{plan.price}</span>
+                      </div>
+                      <div className="mt-2 text-[15px] font-black uppercase leading-[1.32] tracking-tight text-black/90 md:text-[16px] md:leading-[1.28]">
+                        {plan.desc}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-1 md:justify-between">
-                    {/* Main Features: Reduced gap to description */}
-                    <div className="h-[10.75rem] md:h-[8.9rem] mb-2 md:mb-2 overflow-hidden">
+                  <div className="flex flex-col md:flex-1">
+                    <div className="mb-2">
+                      <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
+                        программа
+                      </div>
                       <div className="space-y-2.5 md:space-y-2.5">
                         {plan.features.map((feature) => (
-                          <div key={feature} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/75">
-                            <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/30" />
-                            <span>{feature}</span>
+                          <div key={feature} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/78 md:text-[14px] md:leading-[1.34]">
+                            <span className="mt-[0.14rem] shrink-0 text-[12px] font-bold leading-none text-[#8DC63F]">›</span>
+                            <span className="font-semibold">{feature}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Styled Description: Bold CAPS, no grey bg */}
-                    <div className="h-[4rem] md:h-[3.2rem] mb-2 md:mb-2 pt-0 flex items-start overflow-hidden">
-                      <div className="text-[15px] md:text-[16px] font-black uppercase tracking-tight leading-[1.38] md:leading-[1.3] text-black/90">
-                        {plan.desc}
+                    <div className="mb-6 border-t border-black/8 pt-4">
+                      <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
+                        что получаешь
+                      </div>
+                      <div className="space-y-2.5 md:space-y-2.5">
+                        {plan.more.map((item) => (
+                          <div key={item} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/70 md:text-[14px] md:leading-[1.34]">
+                            <span className="mt-[0.14rem] shrink-0 text-[12px] font-bold leading-none text-[#8DC63F]">›</span>
+                            <span>{item}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    <AnimatePresence initial={false}>
-                      {pricingDetailsOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: 'easeOut' }}
-                          className="overflow-hidden mb-6 md:mb-6"
-                        >
-                          <div className="space-y-2.5 md:space-y-2.5">
-                            {plan.more.map((item) => (
-                              <div key={item} className="flex items-start gap-3 text-[13px] md:text-[14px] leading-[1.42] md:leading-[1.34] text-black/82">
-                                <span className="mt-[0.4rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
-                                <span>{item}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
 
-                  <div className="mt-2 md:mt-auto pt-0 md:pt-0 flex flex-col gap-2 md:gap-2">
-                    <button
-                      type="button"
-                      aria-label="Показать подробности тарифов"
-                      onClick={() => setPricingDetailsOpen((prev) => !prev)}
-                      className="flex h-8 w-full items-center justify-center text-black/25 hover:text-black transition-colors"
-                    >
-                      <ChevronDown
-                        size={22}
-                        className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
-                      />
-                    </button>
-
+                  <div className="mt-auto flex flex-col gap-2">
                     <button
                       type="button"
                       onClick={() => setActivePaymentPlan({ name: plan.name, price: plan.price })}
                       className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6`}
                     >
-                      выбрать
+                      записаться
                     </button>
                   </div>
                 </div>
@@ -3220,87 +3186,6 @@ export default function LabW26PageV3() {
         </Container>
       </footer>
 
-      <AnimatePresence>
-        {activeCase && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10010] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
-            onClick={() => setActiveCase(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="flex h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-black/12 bg-white text-black shadow-2xl md:h-[min(46rem,calc(100vh-3rem))]"
-            >
-              <div className="flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
-                <div className="min-w-0">
-                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">кейс</div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
-                  <p className="mt-2 max-w-2xl text-sm opacity-70 md:text-base">{activeCase.desc}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
-                    <span>{activeCase.author}</span>
-                    <span>{activeCase.role}</span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="shrink-0 p-2 text-black/40 transition-colors hover:text-black hover:bg-black/5 rounded-full"
-                  onClick={() => setActiveCase(null)}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="grid min-h-0 flex-1 gap-0 md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)]">
-                <div className="border-b border-black/8 bg-[#f5f7f2] p-5 md:border-b-0 md:border-r md:border-black/8 md:p-7">
-                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">артефакт</div>
-                  <div className="flex h-[14rem] items-center justify-center overflow-hidden rounded-[22px] border border-[#8DC63F]/20 bg-white md:h-full md:min-h-[24rem]">
-                    <AsciiCaseArt frames={activeCase.artFrames} className="origin-center scale-[2.35] md:scale-[3.15] transform text-[#8DC63F]" />
-                  </div>
-                  <p className="mt-3 text-[11px] leading-[1.5] text-black/48">
-                    Здесь можно разместить скриншот интерфейса, схему workflow или любой визуальный результат кейса.
-                  </p>
-                </div>
-                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
-                  <div className="space-y-5 pb-8">
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">задача</div>
-                      <p className="text-[14px] leading-[1.65] text-black/72 md:text-[15px]">
-                        {activeCase.desc}
-                      </p>
-                    </section>
-
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
-                      <p className="text-[14px] leading-[1.7] text-black/78 md:text-[15px]">
-                        {activeCase.details}
-                      </p>
-                    </section>
-
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">инструменты</div>
-                      <div className="rounded-[18px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
-                        {activeCase.tools}
-                      </div>
-                    </section>
-
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">результат</div>
-                      <div className="text-[13px] md:text-[14px] font-semibold uppercase tracking-[0.08em] text-[#56771f]">
-                        {activeCase.metric}
-                      </div>
-                    </section>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <PricingPaymentPopupNeon
         isOpen={activePaymentPlan !== null}
         plan={activePaymentPlan}
