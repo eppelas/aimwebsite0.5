@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { ChevronDown } from 'lucide-react';
 
 interface Review {
   id: string;
@@ -56,7 +57,7 @@ const reviews: Review[] = [
 
 export const ReviewsSection = () => {
   const [isMobile, setIsMobile] = React.useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   React.useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -65,20 +66,21 @@ export const ReviewsSection = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const itemsPerPage = isMobile ? 2 : 3;
-  const totalPages = Math.ceil(reviews.length / itemsPerPage);
+  const previewCount = isMobile ? 2 : 3;
+  const visibleReviews = isExpanded ? reviews : reviews.slice(0, previewCount);
 
-  // Reset page if it exceeds total pages after resize
-  React.useEffect(() => {
-    if (currentPage >= totalPages) {
-      setCurrentPage(0);
-    }
-  }, [totalPages, currentPage]);
+  const expandedLayoutClass = (idx: number) => {
+    const variants = [
+      'md:col-span-2 lg:col-span-2 lg:row-span-2 min-h-[24rem]',
+      'md:col-span-2 lg:col-span-1 min-h-[19rem]',
+      'md:col-span-2 lg:col-span-2 min-h-[22rem]',
+      'md:col-span-2 lg:col-span-1 min-h-[18rem]',
+      'md:col-span-2 lg:col-span-1 min-h-[20rem]',
+      'md:col-span-4 lg:col-span-2 min-h-[18rem]',
+    ];
 
-  const nextPage = () => setCurrentPage((prev) => (prev + 1) % totalPages);
-  const prevPage = () => setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
-
-  const currentReviews = reviews.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
+    return variants[idx % variants.length];
+  };
 
   return (
     <section id="reviews" className="py-20 px-6 md:px-24 bg-[#f9f9f7] overflow-hidden">
@@ -96,27 +98,44 @@ export const ReviewsSection = () => {
           </div>
         </div>
 
-        {/* FEEDBACK GRID - MOBILE REFINEMENT (2 ITEMS, BRIGHTER DIVIDERS) */}
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-0.5 bg-black/20' : 'gap-px bg-black/5'} border border-black/5 h-auto lg:h-[320px] overflow-hidden`}>
-          <AnimatePresence mode="wait">
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 ${
+            isExpanded ? 'lg:grid-cols-4 auto-rows-[minmax(12rem,auto)] gap-3 md:gap-4' : 'lg:grid-cols-3 gap-0.5 md:gap-px'
+          } ${isExpanded ? '' : 'bg-black/5 border border-black/5'} h-auto overflow-hidden transition-all duration-500`}
+        >
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div 
-              key={currentPage}
-              initial={{ opacity: 0, y: -20 }}
+              key={isExpanded ? 'expanded' : 'collapsed'}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              exit={{ opacity: 0, y: -18 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
               className="contents"
             >
-              {currentReviews.map((review, idx) => (
+              {visibleReviews.map((review, idx) => (
                 <div
                   key={review.id}
-                  className={`group relative flex flex-col bg-[#f9f9f7] p-6 transition-all hover:bg-white ${isMobile ? 'h-[220px]' : 'h-[320px]'}`}
+                  className={`group relative flex flex-col bg-[#f9f9f7] p-6 md:p-7 transition-all hover:bg-white border border-black/5 ${
+                    isExpanded
+                      ? expandedLayoutClass(idx)
+                      : isMobile
+                        ? 'min-h-[220px]'
+                        : 'min-h-[320px]'
+                  }`}
                 >
-                  {/* Card Header/ID */}
-                  <div className={`flex justify-between items-center ${isMobile ? 'mb-2' : 'mb-6'}`}>
-                    <span className="font-mono text-[9px] bg-black text-white px-1.5 py-0.5 tracking-tighter">
+                  <div className={`flex justify-between items-start gap-4 ${isExpanded ? 'mb-5' : isMobile ? 'mb-2' : 'mb-6'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black/68">
+                        {review.name
+                          .split(' ')
+                          .slice(0, 2)
+                          .map((part) => part[0])
+                          .join('')}
+                      </div>
+                      <span className="font-mono text-[9px] bg-black text-white px-1.5 py-0.5 tracking-tighter">
                       ID::{review.id}
-                    </span>
+                      </span>
+                    </div>
                     <div className="flex gap-1.5">
                       {[1, 2, 3].map(i => (
                         <div key={i} className="w-1 h-1 rounded-full bg-black/10 group-hover:bg-[#8DC63F]/40" />
@@ -124,15 +143,22 @@ export const ReviewsSection = () => {
                     </div>
                   </div>
 
-                  {/* Quote - Scrollable if text overflows fixed height */}
-                  <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
-                    <p className={`font-mono ${isMobile ? 'text-[11px]' : 'text-[12px] md:text-[13px]'} leading-relaxed mb-4 opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
+                  <div className={`flex flex-wrap gap-2 ${isExpanded ? 'mb-5' : 'mb-4'}`}>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-black/36">
+                      feedback log
+                    </span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8DC63F]">
+                      practice-first
+                    </span>
+                  </div>
+
+                  <div className="flex-grow">
+                    <p className={`font-mono ${isExpanded ? 'text-[12px] md:text-[14px]' : isMobile ? 'text-[11px]' : 'text-[12px] md:text-[13px]'} leading-relaxed mb-4 opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
                       <span className="text-[#8DC63F] mr-1">{'»'}</span>
                       {review.quote}
                     </p>
                   </div>
                   
-                  {/* Metadata - Dense */}
                   <div className="mt-auto pt-6 border-t border-dashed border-black/10">
                     <div className="flex justify-between items-end gap-4 text-left">
                       <div className="min-w-0">
@@ -143,12 +169,9 @@ export const ReviewsSection = () => {
                           {`[ ${review.role} ]`}
                         </p>
                       </div>
-                      <motion.span 
-                        whileHover={{ x: 3 }}
-                        className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter cursor-pointer"
-                      >
-                        {'LINK ->'}
-                      </motion.span>
+                      <span className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter">
+                        {review.tg}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -157,56 +180,21 @@ export const ReviewsSection = () => {
           </AnimatePresence>
         </div>
         
-        {/* UNIFIED NAVIGATION - RECTANGULAR & CENTERED UNIT */}
-        <div className="mt-8 flex items-center justify-center w-full">
-          <div className="flex items-center gap-6 w-full max-w-2xl px-4">
-            {/* Left Progress Line */}
-            <div className="flex-1 h-px bg-black/5 relative overflow-hidden hidden md:block">
-              <motion.div 
-                animate={{ 
-                  scaleX: currentPage === 0 ? 1 : 0,
-                  originX: 1
-                }}
-                className="absolute inset-0 bg-[#8DC63F]/20"
-              />
-            </div>
-
-            {/* Navigation Unit */}
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                aria-label="Previous reviews"
-                onClick={prevPage}
-                className="h-7 w-12 border border-black/5 bg-[#f9f9f7] flex items-center justify-center text-black/30 hover:text-black hover:bg-white transition-all group lg:w-16 h-8"
-              >
-                <span className="font-mono text-sm group-active:scale-95 transition-transform">{'<'}</span>
-              </button>
-
-              <div className="font-mono text-[11px] font-bold opacity-30 tracking-[0.2em] whitespace-nowrap min-w-[50px] text-center">
-                {currentPage + 1} / {totalPages}
-              </div>
-
-              <button
-                type="button"
-                aria-label="Next reviews"
-                onClick={nextPage}
-                className="h-7 w-12 border border-black/5 bg-[#f9f9f7] flex items-center justify-center text-black/30 hover:text-black hover:bg-white transition-all group lg:w-16 h-8"
-              >
-                <span className="font-mono text-sm group-active:scale-95 transition-transform">{'>'}</span>
-              </button>
-            </div>
-
-            {/* Right Progress Line */}
-            <div className="flex-1 h-px bg-black/5 relative overflow-hidden hidden md:block">
-              <motion.div 
-                animate={{ 
-                  scaleX: currentPage === 1 ? 1 : 0,
-                  originX: 0
-                }}
-                className="absolute inset-0 bg-[#8DC63F]/20"
-              />
-            </div>
-          </div>
+        <div className="mt-10 flex items-center justify-center w-full">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="group flex flex-col items-center gap-3 text-black/42 hover:text-black transition-colors"
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? 'Свернуть отзывы' : 'Открыть все отзывы'}
+          >
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em]">
+              {isExpanded ? 'свернуть отзывы' : 'открыть все отзывы'}
+            </span>
+            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white group-hover:border-black/24 group-hover:bg-black group-hover:text-white transition-all">
+              <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+            </span>
+          </button>
         </div>
       </div>
     </section>

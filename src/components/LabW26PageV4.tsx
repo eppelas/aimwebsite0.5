@@ -2304,7 +2304,7 @@ export default function LabW26PageV4() {
             color: colors.text === '#181616' ? 'rgba(24, 22, 22, 0.42)' : 'rgba(43, 61, 43, 0.46)',
           }}
         >
-          AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL . AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL .
+          [ AI MINDSET ] // NOT A COURSE ABOUT TOOLS . BUILD AN AI OPERATING SYSTEM FOR YOUR WORK . ATTENTION IS MORE THAN PROMPTS . SYSTEMS ARE MORE THAN HACKS . MINDSET IS MORE THAN TOOLS .
         </div>
 
         {/* Hero Section */}

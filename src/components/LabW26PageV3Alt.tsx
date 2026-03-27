@@ -2300,7 +2300,7 @@ export default function LabW26PageV3Alt() {
             color: colors.text === '#181616' ? 'rgba(24, 22, 22, 0.42)' : 'rgba(43, 61, 43, 0.46)',
           }}
         >
-          AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL . AI MINDSET LAB W26 . BATCH: WINTER 26 . APPLICATIONS: CLOSE . NEXT BATCH: 20 APRIL .
+          [ AI MINDSET ] // NOT A COURSE ABOUT TOOLS . BUILD AN AI OPERATING SYSTEM FOR YOUR WORK . ATTENTION IS MORE THAN PROMPTS . SYSTEMS ARE MORE THAN HACKS . MINDSET IS MORE THAN TOOLS .
         </div>
 
         {/* Hero Section */}
@@ -2353,7 +2353,7 @@ export default function LabW26PageV3Alt() {
                 <div className="w-full max-w-5xl mx-auto flex flex-col gap-10 md:gap-12">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-stretch">
                     <div className="pr-4">
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[1.1] text-left">
+                      <div className="text-3xl sm:text-4xl md:text-[58px] font-black uppercase tracking-tighter leading-[0.93] text-left">
                         лаборатория <br />
                         нового мышления <br />
                         в эпоху AI
@@ -2364,13 +2364,13 @@ export default function LabW26PageV3Alt() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm md:text-base uppercase leading-relaxed opacity-70 text-left">
+                      <p className="max-w-[560px] text-[13px] sm:text-sm md:text-[14px] uppercase leading-[1.45] tracking-[0.02em] opacity-70 text-left">
                         AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
                       </p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
                     <div className="flex flex-col hidden md:block">
                     </div>
                     
