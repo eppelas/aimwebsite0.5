@@ -2,6 +2,36 @@
 
 ## User Requests
 
+- Task: Сделать cleanup-only проход для GitHub Pages entry layer: новый `title`, меньше путаницы в роутинге и без изменения основной страницы `v3`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: `index.html` переведён на `AI Mindset`; из `App.tsx` убраны legacy/experimental aliases, `ai-mindset-lab-x26` и wildcard теперь канонизируются на `/`; `LabW26PageV3.tsx` локально не менялся; `npm run build` прошёл; untracked времянки и экспериментальные файлы вынесены в local shelf `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/_cleanup_shelf/AI Mindset/2026-03-29`
+
+- Task: Убрать `test-page` и `variants` из текущей репы `AI Mindset` и перенести их в `AIM Website/Elements Research`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: `ProgramShowcasePage.tsx` и `ProgramVariantsPage.tsx` перемещены в `Elements Research`, а маршруты удалены из текущего `App.tsx`
+
+- Task: Убрать `library` из текущей репы `AI Mindset`, перенести её в `Visual Elements Library` и завести там отдельный git repo
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: `StyleLibraryPage/StyleCard/StyleLibrary/StyleGenerator/generativeStyles` перемещены в `Visual Elements Library`, а в папке инициализирован локальный git repo
+
+- Task: Удалить `public/ostrich.html` из текущей репы
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: Файл удалён по явному запросу пользователя
+
+- Task: Дать локально посмотреть `DesktopTechUiV5.tsx` и `ProgramShowcaseAccordionCleanV2Page.tsx`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: Для просмотра были временно добавлены маршруты; после проверки установлено, что копии этих экранов уже существуют в соседних repos внутри `Vibe Coding`, поэтому временные маршруты затем удалены из текущей репы
+
 - Task: На основной странице `/v3` сделать карточки `Тарифы` шире, убрать раскрывашку, всегда показать весь контент, заменить кружочки на маленькие зелёные стрелки, перевести `base` в `База` и сделать mobile-раскладку вертикальной
   Status: self-checked
   Owner: assistant
