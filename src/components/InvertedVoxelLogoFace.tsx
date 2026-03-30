@@ -23,7 +23,6 @@ type InvertedVoxelLogoFaceProps = {
 };
 
 function roundedRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
-  context.beginPath();
   context.moveTo(x + radius, y);
   context.lineTo(x + width - radius, y);
   context.quadraticCurveTo(x + width, y, x + width, y + radius);
@@ -40,7 +39,8 @@ function getIntroPosition(homeX: number, homeY: number, drawX: number, drawY: nu
   const centerX = drawX + drawSize / 2;
   const centerY = drawY + drawSize / 2;
   const angle = Math.random() * Math.PI * 2;
-  const radius = drawSize * (0.72 + Math.random() * 0.24);
+  const radius = drawSize * (0.72 + Math.random() * 0.22);
+
   return {
     x: centerX + Math.cos(angle) * radius,
     y: centerY + Math.sin(angle) * radius,
@@ -64,16 +64,17 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
     const drawSize = 560;
     const drawX = (internalSize - drawSize) / 2;
     const drawY = (internalSize - drawSize) / 2;
-    const cellSize = 5;
-    const gap = 2;
+    const cellSize = 8;
+    const gap = 1;
     const step = cellSize + gap;
     const seamInset = 6;
     const seamX = drawX + drawSize / 2;
     const rightHalfStart = seamX - cellSize - seamInset;
-    const repulsionRadius = 88;
+    const repulsionRadius = 112;
     const edgeRadius = Math.max(1.6, cellSize * 0.2);
-    const scrollAmplitude = 5;
-    const randomCull = 0.2;
+    const scrollAmplitude = 0;
+    const introSpeed = 0.011;
+    const rightHalfYOffset = -3.5;
 
     canvas.width = internalSize;
     canvas.height = internalSize;
@@ -135,20 +136,52 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       scrollRef.current = window.scrollY;
     };
 
-    const isInsideEyeZone = (x: number, y: number) => {
+    const isInsideEyeZone = (x: number, y: number, padding = 0) => {
       const normalizedX = (x - drawX) / drawSize;
       const normalizedY = (y - drawY) / drawSize;
-      return normalizedX > 0.62 && normalizedX < 0.9 && normalizedY > 0.43 && normalizedY < 0.61;
+      const left = 0.625 - padding;
+      const right = 0.89 + padding;
+      const topBound = 0.435 - padding;
+      const bottomBound = 0.595 + padding;
+
+      if (normalizedX < left || normalizedX > right || normalizedY < topBound || normalizedY > bottomBound) {
+        return false;
+      }
+
+      const t = (normalizedX - left) / Math.max(0.001, right - left);
+      const topLineY = 0.482 - t * 0.004 - padding * 0.2;
+      const ellipseCenterX = 0.756;
+      const ellipseCenterY = 0.505 + padding * 0.04;
+      const radiusX = 0.13 + padding * 1.0;
+      const radiusY = 0.061 + padding * 0.7;
+      const ellipseValue =
+        ((normalizedX - ellipseCenterX) / radiusX) * ((normalizedX - ellipseCenterX) / radiusX) +
+        ((normalizedY - ellipseCenterY) / radiusY) * ((normalizedY - ellipseCenterY) / radiusY);
+      const insideMainEye = normalizedY >= topLineY && ellipseValue <= 1;
+      const fillTopGap = normalizedX > 0.83 - padding && normalizedX < 0.865 + padding && normalizedY < 0.49;
+      const trimLowerLeftA =
+        normalizedX > 0.64 - padding &&
+        normalizedX < 0.69 + padding &&
+        normalizedY > 0.52 - padding &&
+        normalizedY < 0.545 + padding;
+      const trimLowerLeftB =
+        normalizedX > 0.69 - padding &&
+        normalizedX < 0.72 + padding &&
+        normalizedY > 0.535 - padding &&
+        normalizedY < 0.56 + padding;
+
+      return (insideMainEye && !fillTopGap) || trimLowerLeftA || trimLowerLeftB;
     };
 
     const isInsideEyeContourZone = (x: number, y: number) => {
-      const normalizedX = (x - drawX) / drawSize;
-      const normalizedY = (y - drawY) / drawSize;
-      return normalizedX > 0.6 && normalizedX < 0.92 && normalizedY > 0.41 && normalizedY < 0.63;
+      return isInsideEyeZone(x, y, 0.02);
     };
 
-    const getSeamShift = (x: number) => {
-      const contourProgress = Math.max(0, Math.min(1, (x - rightHalfStart) / Math.max(1, drawX + drawSize - rightHalfStart)));
+    const getSeamShift = (x: number, y: number) => {
+      const contourProgress = Math.max(
+        0,
+        Math.min(1, (x - rightHalfStart) / Math.max(1, drawX + drawSize - rightHalfStart)),
+      );
       return 5 * Math.pow(1 - contourProgress, 1.75);
     };
 
@@ -225,10 +258,38 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
     };
 
     const buildVoxels = (imageData: Uint8ClampedArray) => {
-      voxels = [];
+      const candidates: Array<{
+        x: number;
+        y: number;
+        shouldFill: boolean;
+        insideEye: boolean;
+        nearSeam: boolean;
+        nearTail: boolean;
+        nearOuter: boolean;
+        nearTopCurve: boolean;
+        nearEyeContour: boolean;
+        coverage: number;
+      }> = [];
+      const manualEyeVoidKeys = new Set<string>([
+        '12,31',
+        '11,32',
+        '10,33',
+      ]);
+      const manualEyeFillKeys = new Set<string>([
+        '13,31',
+        '16,30',
+        '16,31',
+        '17,30',
+        '17,31',
+        '18,30',
+        '18,31',
+        '18,32',
+        '18,33',
+        '18,34',
+      ]);
 
-      for (let y = drawY; y < drawY + drawSize; y += step) {
-        for (let x = rightHalfStart; x < drawX + drawSize; x += step) {
+      for (let row = 0, y = drawY; y < drawY + drawSize; y += step, row += 1) {
+        for (let column = 0, x = rightHalfStart; x < drawX + drawSize; x += step, column += 1) {
           const normalizedX = (x - drawX) / drawSize;
           const normalizedY = (y - drawY) / drawSize;
           const coverage = getCoverage(imageData, x, y);
@@ -236,36 +297,130 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
           const nearTail = y > drawY + drawSize * 0.78;
           const nearOuter = normalizedX > 0.82;
           const nearTopCurve = normalizedX > 0.7 && normalizedY < 0.24;
-          const nearEyeContour = isInsideEyeContourZone(x + cellSize * 0.5, y + cellSize * 0.5);
-          const insideEye = isInsideEyeZone(x + cellSize * 0.5, y + cellSize * 0.5) && getDarkCoverage(imageData, x, y) > 0.32;
-          const preserveDensity = nearSeam || nearTail || nearOuter || nearTopCurve || nearEyeContour;
-          const threshold = preserveDensity ? 0.04 : 0.14;
+          const nearEyeContour = false;
+          const cellKey = `${column},${row}`;
+          const manualVoid = manualEyeVoidKeys.has(cellKey);
+          const manualFill = manualEyeFillKeys.has(cellKey);
+          const sampledEye =
+            isInsideEyeZone(x + cellSize * 0.5, y + cellSize * 0.5) &&
+            getDarkCoverage(imageData, x, y) > 0.18;
+          const insideEye = manualVoid || (sampledEye && !manualFill);
+          const preserveDensity = nearSeam || nearTail || nearOuter || nearTopCurve;
+          let threshold = 0.15;
+          if (nearOuter || nearTopCurve) threshold = 0.012;
+          else if (preserveDensity) threshold = 0.018;
 
-          if (coverage <= threshold) continue;
-          if (!preserveDensity && Math.random() < randomCull) continue;
-          if (insideEye) continue;
-
-          const introPosition = getIntroPosition(x, y, drawX, drawY, drawSize);
-          voxels.push({
-            homeX: x - getSeamShift(x),
-            homeY: y,
-            x: introPosition.x,
-            y: introPosition.y,
-            vx: 0,
-            vy: 0,
-            firmness: 0.06 + Math.random() * 0.024,
-            size: cellSize,
-            phase: Math.random() * Math.PI * 2,
-            drift: 0.45 + Math.random() * 0.75,
+          candidates.push({
+            x,
+            y,
+            shouldFill: manualFill || (coverage > threshold && !insideEye),
+            insideEye,
+            nearSeam,
+            nearTail,
+            nearOuter,
+            nearTopCurve,
+            nearEyeContour,
+            coverage,
           });
         }
       }
+
+      const columns = Math.ceil((drawX + drawSize - rightHalfStart) / step);
+      const rows = Math.ceil(drawSize / step);
+      const isFilled = new Set<number>();
+
+      candidates.forEach((candidate, index) => {
+        if (candidate.shouldFill) isFilled.add(index);
+      });
+
+      const getIndex = (column: number, row: number) => row * columns + column;
+      const getKey = (column: number, row: number) => `${column},${row}`;
+      const isFilledAt = (column: number, row: number) => {
+        if (column < 0 || row < 0 || column >= columns || row >= rows) return false;
+        return isFilled.has(getIndex(column, row));
+      };
+
+      const countNeighbors = (column: number, row: number) => {
+        let count = 0;
+
+        for (let deltaY = -1; deltaY <= 1; deltaY += 1) {
+          for (let deltaX = -1; deltaX <= 1; deltaX += 1) {
+            if (deltaX === 0 && deltaY === 0) continue;
+            const neighborColumn = column + deltaX;
+            const neighborRow = row + deltaY;
+            if (neighborColumn < 0 || neighborRow < 0 || neighborColumn >= columns || neighborRow >= rows) continue;
+            if (isFilled.has(getIndex(neighborColumn, neighborRow))) count += 1;
+          }
+        }
+
+        return count;
+      };
+
+      for (let pass = 0; pass < 3; pass += 1) {
+        candidates.forEach((candidate, index) => {
+          if (isFilled.has(index) || candidate.insideEye) return;
+
+          const column = index % columns;
+          const row = Math.floor(index / columns);
+          const neighborCount = countNeighbors(column, row);
+          const up = isFilledAt(column, row - 1);
+          const down = isFilledAt(column, row + 1);
+          const left = isFilledAt(column - 1, row);
+          const right = isFilledAt(column + 1, row);
+          const upLeft = isFilledAt(column - 1, row - 1);
+          const downLeft = isFilledAt(column - 1, row + 1);
+          const closesVerticalGap = up && down && (left || right);
+          const closesHorizontalGap = left && right && (up || down);
+          const closesOuterGap = (candidate.nearOuter || candidate.nearTopCurve) && neighborCount >= 4;
+          const closesOuterStepGap = candidate.nearOuter && left && (up || down);
+          const closesOuterColumnGap = candidate.nearOuter && up && down;
+          const closesOuterDiagonalGap = candidate.nearOuter && left && (upLeft || downLeft);
+          const canCloseHole =
+            candidate.coverage > 0.006 ||
+            candidate.nearSeam ||
+            candidate.nearTail ||
+            candidate.nearOuter ||
+            candidate.nearTopCurve;
+
+          if (
+            closesVerticalGap ||
+            closesHorizontalGap ||
+            closesOuterGap ||
+            closesOuterStepGap ||
+            closesOuterColumnGap ||
+            closesOuterDiagonalGap ||
+            (neighborCount >= 5 && canCloseHole)
+          ) {
+            isFilled.add(index);
+          }
+        });
+      }
+
+      voxels = candidates.flatMap((candidate, index) => {
+        if (!isFilled.has(index)) return [];
+
+        const adjustedY = candidate.y + rightHalfYOffset;
+        const introPosition = getIntroPosition(candidate.x, adjustedY, drawX, drawY, drawSize);
+
+        return [{
+          homeX: candidate.x - getSeamShift(candidate.x, candidate.y),
+          homeY: adjustedY,
+          x: introPosition.x,
+          y: introPosition.y,
+          vx: 0,
+          vy: 0,
+          firmness: 0.06 + Math.random() * 0.024,
+          size: cellSize,
+          phase: Math.random() * Math.PI * 2,
+          drift: 0.45 + Math.random() * 0.75,
+        }];
+      });
     };
 
     const draw = () => {
       if (disposed) return;
 
-      introProgress = Math.min(1, introProgress + 0.02);
+      introProgress = Math.min(1, introProgress + introSpeed);
       context.clearRect(0, 0, internalSize, internalSize);
 
       if (leftMaskContext) {
@@ -273,21 +428,28 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       }
 
       context.fillStyle = '#181616';
-      context.shadowColor = 'rgba(24, 22, 22, 0.12)';
-      context.shadowBlur = 1.5;
+      context.shadowColor = 'rgba(24, 22, 22, 0.08)';
+      context.shadowBlur = 0.8;
+      context.beginPath();
 
       for (const voxel of voxels) {
-        const dx = voxel.x - pointerRef.current.x;
-        const dy = voxel.y - pointerRef.current.y;
+        const anchorX = voxel.homeX + voxel.size * 0.5;
+        const anchorY = voxel.homeY + voxel.size * 0.5;
+        const dx = anchorX - pointerRef.current.x;
+        const dy = anchorY - pointerRef.current.y;
         const distance = Math.hypot(dx, dy) || 1;
 
         if (distance < repulsionRadius) {
-          const force = (1 - distance / repulsionRadius) * 1.8;
+          const force = (1 - distance / repulsionRadius) * 2.2;
           voxel.vx += (dx / distance) * force;
           voxel.vy += (dy / distance) * force;
         }
 
-        const scrollWave = Math.sin(scrollRef.current * 0.012 + voxel.phase + voxel.homeY * 0.016) * scrollAmplitude * voxel.drift;
+        const scrollWave = scrollAmplitude
+          ? Math.sin(scrollRef.current * 0.012 + voxel.phase + voxel.homeY * 0.016) *
+            scrollAmplitude *
+            voxel.drift
+          : 0;
         const targetX = voxel.homeX + scrollWave * 0.45;
         const targetY = voxel.homeY + scrollWave * 0.18;
         const introPull = 0.72 - introProgress * 0.72;
@@ -300,9 +462,9 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
         voxel.y += voxel.vy;
 
         roundedRect(context, voxel.x, voxel.y, voxel.size, voxel.size, edgeRadius);
-        context.fill();
       }
 
+      context.fill();
       context.shadowBlur = 0;
       frameId = window.requestAnimationFrame(draw);
     };
