@@ -271,12 +271,18 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
         coverage: number;
       }> = [];
       const manualEyeVoidKeys = new Set<string>([
-        '12,31',
+        '14,31',
         '11,32',
         '10,33',
+        '7,33',
+        '10,32',
+        '9,32',
       ]);
       const manualEyeFillKeys = new Set<string>([
+        '11,31',
+        '12,31',
         '13,31',
+        '7,34',
         '16,30',
         '16,31',
         '17,30',
@@ -399,6 +405,12 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       voxels = candidates.flatMap((candidate, index) => {
         if (!isFilled.has(index)) return [];
 
+        const column = index % columns;
+        const row = Math.floor(index / columns);
+        const cellKey = `${column},${row}`;
+
+        const isRed = false;
+
         const adjustedY = candidate.y + rightHalfYOffset;
         const introPosition = getIntroPosition(candidate.x, adjustedY, drawX, drawY, drawSize);
 
@@ -413,6 +425,7 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
           size: cellSize,
           phase: Math.random() * Math.PI * 2,
           drift: 0.45 + Math.random() * 0.75,
+          color: isRed ? 'red' : undefined,
         }];
       });
     };
@@ -431,6 +444,8 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       context.shadowColor = 'rgba(24, 22, 22, 0.08)';
       context.shadowBlur = 0.8;
       context.beginPath();
+
+      const redVoxels: VoxelPoint[] = [];
 
       for (const voxel of voxels) {
         const anchorX = voxel.homeX + voxel.size * 0.5;
@@ -461,10 +476,24 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
         voxel.x += voxel.vx;
         voxel.y += voxel.vy;
 
-        roundedRect(context, voxel.x, voxel.y, voxel.size, voxel.size, edgeRadius);
+        if (voxel.color === 'red') {
+          redVoxels.push(voxel);
+        } else {
+          roundedRect(context, voxel.x, voxel.y, voxel.size, voxel.size, edgeRadius);
+        }
       }
 
       context.fill();
+
+      if (redVoxels.length > 0) {
+        context.fillStyle = 'red';
+        context.beginPath();
+        for (const redVoxel of redVoxels) {
+          roundedRect(context, redVoxel.x, redVoxel.y, redVoxel.size, redVoxel.size, edgeRadius);
+        }
+        context.fill();
+      }
+
       context.shadowBlur = 0;
       frameId = window.requestAnimationFrame(draw);
     };
