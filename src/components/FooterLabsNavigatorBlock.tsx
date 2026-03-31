@@ -122,9 +122,9 @@ export function FooterLabsNavigatorBlock() {
                 className="w-full flex justify-center"
               >
                 {activeTab === 0 ? (
-                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 w-full justify-items-start">
+                  <div className="flex w-full flex-wrap items-start gap-2.5 md:gap-3">
                     {ECOSYSTEM_CONTENT.map((card) => (
-                      <div key={card.id} className="relative group w-full max-w-[184px] aspect-[0.92] bg-white border border-black/10 px-4 py-4 md:px-[18px] md:py-[18px] flex flex-col hover:border-black/20 hover:shadow-[0_12px_22px_rgba(0,0,0,0.04)] transition-all cursor-pointer">
+                      <div key={card.id} className="relative group w-[184px] aspect-[0.92] bg-white border border-black/10 px-4 py-4 md:px-[18px] md:py-[18px] flex flex-col hover:border-black/20 hover:shadow-[0_12px_22px_rgba(0,0,0,0.04)] transition-all cursor-pointer shrink-0">
                         <div className="flex justify-start items-start w-full">
                           <div className="text-left">
                             {card.titleLines.map((line) => (

@@ -101,7 +101,8 @@ const SIDEBAR_NAV: NavItem[] = [
 ];
 
 const EXTERNAL_LINKS = [
-  { label: 'community {space}', href: '/ai-mindset-community' },
+  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
+  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
   { label: '{for-teams}', href: '/ai-mindset-consulting' },
   { label: 'non-profit', href: '/non-profit' },
 ];
@@ -113,8 +114,8 @@ const LAB_MENU_LINKS = [
 ];
 
 const PRIMARY_MENU_LINKS = [
-  { label: 'Community {Space}', href: '/ai-mindset-community' },
-  { label: 'Research', href: '/research' },
+  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
+  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
   { label: '{For Teams}', href: '/ai-mindset-consulting' },
   { label: '{For Non-Profit}', href: '/non-profit' },
 ];
@@ -2213,24 +2214,31 @@ const ProgramScheduleGrid = () => {
 };
 
 // --- MAIN PAGE ---
+type PricingPlan = {
+  name: string;
+  price: string;
+  tag: string;
+  tagHref?: string;
+  highlight?: boolean;
+  desc: React.ReactNode;
+  features: React.ReactNode[];
+  more: React.ReactNode[];
+};
 
-
-  const pricingPlans = [
+  const pricingPlans: PricingPlan[] = [
     {
       name: 'MAIN LAB',
       price: '590',
       tag: 'БАЗА',
       features: [
-        'четыре воркшопа, четыре коворкинга, четыре Q&A сессии, дополнительные гостевые лекции',
-        'закрытый чат участников',
-        'программа',
+        <><strong>4 воркшопа</strong>, 4 коворкинга, 4 Q&A-сессии и гостевые лекции</>,
+        <>закрытый чат участников</>,
+        <>программа</>,
       ],
-      desc: 'базовый формат для самостоятельной работы',
+      desc: <>базовый формат для самостоятельной работы</>,
       more: [
-        'Формат: 4 недели, online',
-        'подходит non-tech и advanced users',
-        'доступ к библиотеке материалов',
-        'возврат после первой недели — без вопросов',
+        <>доступ к библиотеке материалов</>,
+        <>возврат после первой недели без вопросов</>,
       ]
     },
     {
@@ -2240,36 +2248,31 @@ const ProgramScheduleGrid = () => {
       tagHref: '#tracks',
       highlight: true,
       features: [
-        'всё из MAIN LAB',
-        'дополнительный чат advanced участников',
-        'еженедельные закрытые разборы',
+        <>всё из MAIN LAB</>,
+        <><strong>4 дополнительных занятия</strong></>,
+        <>дополнительный чат advanced-участников</>,
+        <>еженедельные закрытые разборы</>,
+        <>приоритетная обратная связь</>,
       ],
-      desc: 'для тех, кто строит полный ai-стек',
+      desc: <>углублённый формат для личных кейсов</>,
       more: [
-        'AI coaching · AI agents · vibe-coding · AI creative',
-        'углубление в личные кейсы и доменные задачи',
-        'приоритетная обратная связь',
-        'лучший выбор для системного внедрения',
+        <>углубление в личные кейсы и доменные задачи</>,
       ]
     },
     {
       name: 'PREMIUM',
       price: '1490',
-      tag: '',
+      tag: 'СВОЙ МАРШРУТ',
       features: [
-        'всё из ADVANCED',
-        'индивидуальный маршрут',
-        'сессии 1:1',
-        'аудит процессов',
-        'priority support',
+        <>всё из ADVANCED</>,
+        <><strong>индивидуальный маршрут</strong></>,
+        <>приоритетная поддержка</>,
+        <>персональный канал связи</>,
       ],
-      desc: 'индивидуальный маршрут внедрения',
+      desc: <>персональный формат под ваш контекст</>,
       more: [
-        'персональная стратегия под ваш контекст',
-        'две сессии 1:1 со стратегами',
-        'аудит процессов и подбор экосистемы',
-        'персональный канал и точечная поддержка',
-        'фокус на реальные бизнес-задачи',
+        <>персональная стратегия под ваш контекст</>,
+        <>фокус на реальные бизнес-задачи</>,
       ]
     },
   ];
@@ -2406,6 +2409,13 @@ export default function LabW26PageV3() {
           <div className="font-black text-xs tracking-tighter uppercase">AI MINDSET</div>
         </div>
         <nav className="flex flex-col gap-6 text-[11px] font-bold uppercase tracking-widest">
+          <button
+            type="button"
+            onClick={() => scrollTo('#hero')}
+            className="group flex w-fit items-center gap-2 text-left opacity-60 transition-opacity hover:text-black hover:opacity-100"
+          >
+            <MenuStrikeText>главная</MenuStrikeText> <span className="opacity-30">|</span>
+          </button>
           <div className="relative flex items-center gap-2 w-fit" onMouseEnter={openLabsDropdown} onMouseLeave={closeLabsDropdown}>
             <div className="group flex items-center gap-2 opacity-60 hover:text-black hover:opacity-100 transition-opacity cursor-pointer">
               <MenuStrikeText>{`{labs}`}</MenuStrikeText> <span className="opacity-30">|</span>
@@ -2467,6 +2477,14 @@ export default function LabW26PageV3() {
               <div>
                 <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">меню сайта</div>
                 <div className="flex flex-col gap-4">
+                  <a
+                    href="#hero"
+                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
+                    className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
+                  >
+                    главная
+                  </a>
+
                   <a
                     href="#hero"
                     onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
@@ -3044,50 +3062,50 @@ export default function LabW26PageV3() {
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
               >
                 <div className="flex h-full flex-col rounded-[0.4rem] border border-black/10 bg-white/80 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.04)] md:p-6">
-                  <div className="mb-3 flex min-h-[2.55rem] items-start justify-between gap-4">
+                  <div className="mb-2 flex min-h-[1.1rem] items-start justify-end">
                     {plan.tagHref ? (
                       <button
                         type="button"
                         onClick={scrollToProgramFromPricing}
-                        className="inline-flex items-baseline rounded-sm border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em] transition-colors hover:bg-black hover:text-white"
+                        className="inline-flex min-h-[0.9rem] items-center bg-black/[0.04] px-2.5 py-[0.28rem] text-right uppercase tracking-[0.18em] text-black/42 transition-colors hover:bg-black/8 hover:text-black/68"
                       >
                         <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </button>
                     ) : plan.tag ? (
                       <div
-                        className="inline-flex items-baseline rounded-sm border border-black/15 px-3 pt-[0.7rem] pb-[0.56rem] uppercase tracking-[0.18em]"
+                        className="inline-flex min-h-[0.9rem] items-center bg-black/[0.04] px-2.5 py-[0.28rem] text-right uppercase tracking-[0.18em] text-black/42"
                       >
                         <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </div>
-                    ) : idx === 2 ? (
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-black/25 leading-none">свой маршрут</div>
                     ) : <div />}
                   </div>
 
-                  <div className="mb-3 flex min-h-[8.75rem] flex-col justify-start md:min-h-[9rem]">
+                  <div className="mb-3 flex min-h-[8.25rem] flex-col justify-start md:min-h-[8.75rem]">
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-xl font-black uppercase leading-none tracking-tight text-black/70 md:text-[23px]">
+                      <h3 className="text-xl font-black uppercase leading-none tracking-tight text-black/42 md:text-[23px]">
                         {plan.name}
                       </h3>
                       <div className="flex items-baseline gap-2">
                          <span className="text-[50px] font-black leading-[0.88] tracking-[-0.045em] text-black md:text-[72px]">€{plan.price}</span>
                       </div>
-                      <div className="mt-2 text-[15px] font-black uppercase leading-[1.32] tracking-tight text-black/90 md:text-[16px] md:leading-[1.28]">
-                        {plan.desc}
+                      <div className="mt-2">
+                        <div className="inline-flex bg-black/[0.05] px-2 py-1 text-[12px] font-semibold leading-[1.25] tracking-[0.01em] text-black/70 md:text-[13px]">
+                          {plan.desc}
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-col md:flex-1">
-                    <div className="mb-2 md:min-h-[9.5rem] lg:min-h-[10.75rem] xl:min-h-[11.75rem]">
+                    <div className="mb-2 md:min-h-[8.75rem] lg:min-h-[9.75rem] xl:min-h-[10.5rem]">
                       <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
-                        программа
+                        что включено:
                       </div>
                       <div className="space-y-2.5 md:space-y-2.5">
-                        {plan.features.map((feature) => (
-                          <div key={feature} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/78 md:text-[14px] md:leading-[1.34]">
+                        {plan.features.map((feature, featureIdx) => (
+                          <div key={`feature-${plan.name}-${featureIdx}`} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/78 md:text-[14px] md:leading-[1.34]">
                             <span className="mt-[0.14rem] shrink-0 text-[12px] font-bold leading-none text-[#8DC63F]">›</span>
-                            <span className="font-semibold">{feature}</span>
+                            <span>{feature}</span>
                           </div>
                         ))}
                       </div>
@@ -3098,8 +3116,8 @@ export default function LabW26PageV3() {
                         что получаешь
                       </div>
                       <div className="space-y-2.5 md:space-y-2.5">
-                        {plan.more.map((item) => (
-                          <div key={item} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/70 md:text-[14px] md:leading-[1.34]">
+                        {plan.more.map((item, itemIdx) => (
+                          <div key={`more-${plan.name}-${itemIdx}`} className="flex items-start gap-3 text-[13px] leading-[1.42] text-black/70 md:text-[14px] md:leading-[1.34]">
                             <span className="mt-[0.14rem] shrink-0 text-[12px] font-bold leading-none text-[#8DC63F]">›</span>
                             <span>{item}</span>
                           </div>
@@ -3271,7 +3289,7 @@ export default function LabW26PageV3() {
 
       {/* Footer */}
       <footer className="py-24 relative overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.04]">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.045]">
           <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
             AI MINDSET
           </div>
