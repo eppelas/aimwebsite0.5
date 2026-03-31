@@ -6,9 +6,8 @@ const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filt
 const ECOSYSTEM_CONTENT = [
   {
     id: 'spring-lab',
-    titleLines: ['ВЕСЕННЯЯ', 'ЛАБОРАТОРИЯ'],
+    titleLines: ['SPRING', 'MAIN LAB'],
     desc: 'Практический клуб AI-практиков',
-    status: 'ТЕКУЩАЯ',
     icon: (
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <motion.span
@@ -24,9 +23,8 @@ const ECOSYSTEM_CONTENT = [
   },
   {
     id: 'ai-native-orgs',
-    titleLines: ['AI-NATIVE', 'ОРГАНИЗАЦИИ'],
+    titleLines: ['AI-NATIVE', 'ORGS'],
     desc: 'AI-трансформация команд',
-    status: 'ТЕКУЩАЯ',
     icon: (
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <motion.span
@@ -42,9 +40,8 @@ const ECOSYSTEM_CONTENT = [
   },
   {
     id: 'health-sprint',
-    titleLines: ['ХЕЛС', 'СПРИНТ'],
+    titleLines: ['HEALTH', 'SPRINT'],
     desc: 'Агентная инфраструктура',
-    status: 'ТЕКУЩАЯ',
     icon: (
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <motion.span
@@ -60,9 +57,8 @@ const ECOSYSTEM_CONTENT = [
   },
   {
     id: 'summer-lab',
-    titleLines: ['ЛЕТНЯЯ', 'ЛАБОРАТОРИЯ'],
+    titleLines: ['SUMMER', 'MAIN LAB'],
     desc: 'Платформа обучения',
-    status: 'СЛЕДУЮЩАЯ',
     icon: (
       <div className="flex-1 flex flex-col items-center justify-center w-full">
         <motion.span
@@ -79,9 +75,9 @@ const ECOSYSTEM_CONTENT = [
 ];
 
 const TABS = [
-  { id: 0, label: 'ТЕКУЩИЕ ЛАБЫ' },
-  { id: 1, label: 'БУДУЩИЕ ЛАБЫ' },
-  { id: 2, label: 'АРХИВ ЛАБ' },
+  { id: 0, label: 'ТЕКУЩИЕ' },
+  { id: 1, label: 'БУДУЩИЕ' },
+  { id: 2, label: 'АРХИВ' },
 ];
 
 export function FooterLabsNavigatorBlock() {
@@ -91,15 +87,9 @@ export function FooterLabsNavigatorBlock() {
     <div className="w-full font-sans">
       <div className="w-full bg-transparent text-black flex flex-col relative overflow-hidden">
         <div className="flex flex-col p-5 md:p-8 relative">
-          <div className="flex items-center justify-between gap-4 mb-5 md:mb-6 border-b border-black/10 pb-4 relative z-10 w-full overflow-x-auto scrollbar-hide">
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-[#8DC63F] rounded-full animate-pulse" />
-                <span className="font-mono text-[10px] uppercase font-bold tracking-[0.2em] text-black/40 hidden sm:inline">СИСТЕМА</span>
-              </div>
-              <div className="font-sans text-[12px] md:text-[14px] font-black uppercase tracking-[0.16em] text-[#8DC63F]">
-                НАВИГАТОР ЛАБ
-              </div>
+          <div className="flex items-center justify-between gap-4 mb-5 md:mb-6 relative z-10 w-full overflow-x-auto scrollbar-hide">
+            <div className="font-sans text-[14px] md:text-[16px] font-black lowercase tracking-tight text-black shrink-0">
+              другие лаборатории:
             </div>
 
             <div className="flex gap-2 shrink-0">
@@ -132,36 +122,28 @@ export function FooterLabsNavigatorBlock() {
                 className="w-full flex justify-center"
               >
                 {activeTab === 0 ? (
-                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 w-full justify-items-center">
+                  <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 w-full justify-items-start">
                     {ECOSYSTEM_CONTENT.map((card) => (
-                      <div key={card.id} className="relative group w-full max-w-[184px] aspect-square bg-white border border-black/10 px-3.5 py-3.5 md:px-4 md:py-4 flex flex-col hover:border-black/20 hover:shadow-[0_12px_22px_rgba(0,0,0,0.04)] transition-all cursor-pointer">
-                        <div className="flex justify-between items-start w-full">
-                          <div className="pr-3 text-left">
+                      <div key={card.id} className="relative group w-full max-w-[184px] aspect-[0.92] bg-white border border-black/10 px-4 py-4 md:px-[18px] md:py-[18px] flex flex-col hover:border-black/20 hover:shadow-[0_12px_22px_rgba(0,0,0,0.04)] transition-all cursor-pointer">
+                        <div className="flex justify-start items-start w-full">
+                          <div className="text-left">
                             {card.titleLines.map((line) => (
                               <span
                                 key={line}
-                                className="block whitespace-nowrap font-sans text-[14px] md:text-[15px] font-black tracking-[-0.045em] uppercase text-black leading-[0.92] group-hover:text-[#8DC63F] transition-colors"
+                                className="block whitespace-nowrap font-sans text-[15px] md:text-[16px] font-black tracking-[-0.045em] uppercase text-black leading-[0.92] group-hover:text-[#8DC63F] transition-colors"
                               >
                                 {line}
                               </span>
                             ))}
                           </div>
-                          <span
-                            className={cn(
-                              'font-mono text-[7px] md:text-[8px] font-bold tracking-[0.16em] uppercase px-2 py-[4px] border shrink-0 leading-none',
-                              card.status === 'ТЕКУЩАЯ' ? 'border-[#8DC63F]/50 text-[#8DC63F] bg-[#8DC63F]/5' : 'border-black/20 text-black/50',
-                            )}
-                          >
-                            {card.status}
-                          </span>
                         </div>
 
-                        <div className="flex-1 flex items-center justify-center py-2.5 md:py-3">
+                        <div className="flex-1 flex items-center justify-center py-2 md:py-2.5">
                           {card.icon}
                         </div>
 
-                        <div className="mt-auto min-h-[3rem] flex items-end">
-                          <p className="font-mono text-[10px] md:text-[11px] leading-[1.38] text-black/62 group-hover:text-black transition-colors text-left">
+                        <div className="mt-auto min-h-[2.85rem] flex items-end">
+                          <p className="font-mono text-[10px] md:text-[11px] leading-[1.34] text-black/62 group-hover:text-black transition-colors text-left">
                             {card.desc}
                           </p>
                         </div>
@@ -170,7 +152,7 @@ export function FooterLabsNavigatorBlock() {
                   </div>
                 ) : (
                   <div className="w-full min-h-[220px] bg-white border border-black/10 flex flex-col items-center justify-center p-6 text-center">
-                    <div className="text-[22px] md:text-[24px] font-black text-black mb-2 uppercase tracking-[0.06em]">ЗИМНЯЯ ЛАБОРАТОРИЯ</div>
+                    <div className="text-[22px] md:text-[24px] font-black text-black mb-2 uppercase tracking-[0.06em]">WINTER MAIN LAB</div>
                     <div className="font-mono text-[11px] uppercase text-black/40 tracking-[0.18em]">архив потока w26</div>
                   </div>
                 )}

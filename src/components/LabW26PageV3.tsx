@@ -125,7 +125,6 @@ const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filenam
 
 const CASE_FILTERS = [
   { id: 'all', label: 'все' },
-  { id: 'non-tech', label: 'нетехнический' },
   { id: 'manager', label: 'менеджер' },
   { id: 'creative', label: 'креатор' },
   { id: 'educator', label: 'преподаватель' },
@@ -180,7 +179,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Claude · Obsidian · Notion',
     metric: '−35% хаоса в задачах',
     artFrames: CASE_ARTS.coaching,
-    filters: ['non-tech']
+    filters: []
   },
   {
     title: 'AI VISION',
@@ -191,7 +190,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'GPT Vision · Claude',
     metric: '3x быстрее сортировка',
     artFrames: CASE_ARTS.vision,
-    filters: ['creative', 'non-tech']
+    filters: ['creative']
   },
   {
     title: 'AI LEARNING',
@@ -202,7 +201,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'GPT-4 · ElevenLabs',
     metric: '+40% регулярность практики',
     artFrames: CASE_ARTS.learning,
-    filters: ['educator', 'non-tech']
+    filters: ['educator']
   },
   {
     title: 'AI SUMMARY',
@@ -235,7 +234,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Linear · Notion · n8n',
     metric: '+25% предсказуемость сроков',
     artFrames: CASE_ARTS.project,
-    filters: ['manager', 'non-tech']
+    filters: ['manager']
   },
   {
     title: 'AI AUTOMATION',
@@ -268,7 +267,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Claude · ChatGPT · Midjourney',
     metric: '3x скорость публикаций',
     artFrames: CASE_ARTS.content,
-    filters: ['creative', 'non-tech']
+    filters: ['creative']
   },
   {
     title: 'AI ANALYTICS',
@@ -2342,6 +2341,7 @@ export default function LabW26PageV3() {
     .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter));
   const visibleCases = filteredCases.slice(0, 4);
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
+  const activeCaseVisualIndex = activeCaseIndex ?? 0;
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2684,8 +2684,8 @@ export default function LabW26PageV3() {
           </div>
 
           <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-3">
-            <div className="mr-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
-              теги
+            <div className="mr-2 text-[10px] md:text-[11px] font-black tracking-[0.12em] text-black/42">
+              Кем сделано:
             </div>
             {CASE_FILTERS.map((filter) => {
               const isActive = activeCaseFilter === filter.id;
@@ -2713,11 +2713,11 @@ export default function LabW26PageV3() {
                 key={`${card.title}-${index}`}
                 type="button"
                 onClick={() => setActiveCaseIndex(index)}
-                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
+                className="group relative flex min-h-[224px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
               >
                 <div
                   className={cn(
-                    "relative mb-4 h-[120px] overflow-hidden border border-black/8 transition-colors duration-300 group-hover:border-white/24 group-hover:bg-transparent md:h-[140px]",
+                    "relative mb-4 h-[116px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent md:h-[136px]",
                     CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
                   )}
                 >
@@ -2741,7 +2741,7 @@ export default function LabW26PageV3() {
 
                   <div
                     className={cn(
-                      "absolute transition-transform duration-500 group-hover:scale-[1.035]",
+                      "absolute transition-transform duration-500",
                       getCaseVisualFrameClassName(index),
                       CASE_DARK_VARIANTS.has(index)
                         ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
@@ -2787,17 +2787,7 @@ export default function LabW26PageV3() {
                 </p>
 
                 <div className="mt-auto flex flex-col gap-3 pt-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {card.filters.map((filterId) => (
-                      <span
-                        key={`${card.title}-${filterId}`}
-                        className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/52 transition-colors group-hover:border-white/20 group-hover:bg-white/8 group-hover:text-white/72"
-                      >
-                        {CASE_FILTER_LABELS[filterId]}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="font-mono text-[9px] tracking-[0.08em] text-black/42 transition-colors group-hover:text-white/66">
+                  <div className="font-mono text-[11px] tracking-[0.08em] text-black/46 transition-colors group-hover:text-white/74 md:text-[13px]">
                     {card.author}, {card.role.toLowerCase()}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -2825,9 +2815,7 @@ export default function LabW26PageV3() {
                 <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.24em] transition-colors">
                   Посмотреть все
                 </span>
-                <span className="flex h-8 w-10 items-center justify-center border border-black/12 bg-black/[0.03] text-black/72 transition-colors group-hover:border-black/45 group-hover:text-black">
-                  <ArrowRight className="-rotate-45 h-4 w-4" />
-                </span>
+                <ChevronDown className="h-5 w-5 -rotate-90 text-black/72 transition-colors group-hover:text-black" />
               </button>
             </div>
           ) : null}
@@ -3205,10 +3193,13 @@ export default function LabW26PageV3() {
       </section>
 
       <SlashDivider />
-      <section className="bg-[#f3f3f5] py-8 md:py-12">
+      <section className="bg-[#f3f3f5] py-10 md:py-14">
         <Container>
-          <div className="space-y-8 md:space-y-10">
+          <div className="space-y-10 md:space-y-14">
             <FooterFaqBlock title="вопросы и ответы" versionLabel={null} />
+            <div className="py-1 md:py-2">
+              <SlashDivider />
+            </div>
             <FooterLabsNavigatorBlock />
           </div>
         </Container>
@@ -3316,6 +3307,284 @@ export default function LabW26PageV3() {
           </div>
         </Container>
       </footer>
+
+      <AnimatePresence>
+        {isCasesOverlayOpen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/55 p-3 backdrop-blur-md md:items-center md:p-6"
+            onClick={() => setIsCasesOverlayOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 18 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="relative flex h-[calc(100vh-1.5rem)] w-full max-w-[92rem] flex-col overflow-hidden rounded-lg border border-black/10 bg-[#f8f8f5] text-black shadow-2xl md:h-[min(50rem,calc(100vh-3rem))]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:22px_22px] opacity-70" />
+              <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85),transparent_70%)]" />
+              <div className="relative z-10 flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
+                <div className="min-w-0">
+                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-black/36">case atlas</div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">Все кейсы</h3>
+                  <p className="mt-2 max-w-3xl text-sm leading-relaxed text-black/62 md:text-[15px]">
+                    большой каталог с тегами, инструментами и быстрым входом в подробный поп-ап по каждому кейсу.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
+                  onClick={() => setIsCasesOverlayOpen(false)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="border-b border-black/8 px-5 py-4 md:px-7">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <div className="mr-2 text-[10px] md:text-[11px] font-black tracking-[0.12em] text-black/42">
+                      Кем сделано:
+                    </div>
+                    {CASE_FILTERS.map((filter) => {
+                      const isActive = activeCaseFilter === filter.id;
+                      return (
+                        <button
+                          key={`overlay-${filter.id}`}
+                          type="button"
+                          onClick={() => setActiveCaseFilter(filter.id)}
+                          className={cn(
+                            "rounded-sm px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
+                            isActive
+                              ? "bg-black text-white"
+                              : "border border-black/10 bg-white/72 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                          )}
+                        >
+                          {filter.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredCases.map(({ card, index }) => (
+                      <button
+                        key={`overlay-card-${card.title}-${index}`}
+                        type="button"
+                        onClick={() => setActiveCaseIndex(index)}
+                        className="group relative overflow-hidden rounded-[18px] border border-black/10 bg-white/88 p-4 text-left shadow-[0_12px_40px_rgba(0,0,0,0.03)] transition-colors hover:border-black/16"
+                      >
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-black/34">
+                              {String(index + 1).padStart(2, '0')} case
+                            </div>
+                            <h4 className="mt-2 text-[18px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black">
+                              {card.title}
+                            </h4>
+                          </div>
+                          <span className="text-black/58 transition-colors group-hover:text-black">
+                            <ChevronDown className="h-5 w-5 -rotate-90" />
+                          </span>
+                        </div>
+
+                        <div
+                          className={cn(
+                            "relative mb-4 h-[182px] overflow-hidden",
+                            CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "absolute inset-0",
+                              CASE_DARK_VARIANTS.has(index)
+                                ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+                                : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+                            )}
+                          />
+                          <div
+                            className={cn(
+                              "absolute",
+                              getCaseVisualFrameClassName(index),
+                              CASE_DARK_VARIANTS.has(index) ? "opacity-100 mix-blend-screen" : "opacity-82 mix-blend-multiply",
+                            )}
+                          >
+                            <img
+                              src={getCaseVisualSrc(index)}
+                              alt=""
+                              className="h-full w-full origin-center object-contain"
+                            />
+                          </div>
+                        </div>
+
+                        <p className="text-[13px] font-semibold leading-[1.5] text-black/80">
+                          {card.details}
+                        </p>
+
+                        {card.filters.length ? (
+                          <div className="mt-4 flex flex-wrap gap-1.5">
+                            {card.filters.map((filterId) => (
+                              <span
+                                key={`overlay-filter-${card.title}-${filterId}`}
+                                className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54"
+                              >
+                                {CASE_FILTER_LABELS[filterId]}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className="mt-4 flex flex-col gap-2">
+                          <div className="font-mono text-[10px] tracking-[0.08em] text-black/44">
+                            {card.author}, {card.role.toLowerCase()}
+                          </div>
+                          <div className="flex flex-wrap gap-x-2 gap-y-1.5">
+                            {card.tools.split(' · ').map((tool, toolIndex) => (
+                              <span key={`overlay-tool-${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/56">
+                                {toolIndex > 0 ? '· ' : ''}
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#56771f]">
+                            {card.metric}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activeCase ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10010] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
+            onClick={() => setActiveCaseIndex(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 18 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="flex h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl md:h-[min(46rem,calc(100vh-3rem))]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
+                <div className="min-w-0">
+                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">кейс</div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
+                  <p className="mt-2 max-w-2xl text-sm opacity-70 md:text-base">{activeCase.desc}</p>
+                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
+                    <span>{activeCase.author}</span>
+                    <span>{activeCase.role}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
+                  onClick={() => setActiveCaseIndex(null)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="grid min-h-0 flex-1 gap-0 md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)]">
+                <div className="border-b border-black/8 bg-[#f5f7f2] p-5 md:border-b-0 md:border-r md:border-black/8 md:p-7">
+                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">визуал</div>
+                  <div
+                    className={cn(
+                      "relative flex h-[14rem] items-center justify-center overflow-hidden md:h-full md:min-h-[24rem]",
+                      CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "bg-[#111411]" : "bg-white",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "absolute inset-0",
+                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex)
+                          ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+                          : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+                      )}
+                    />
+                    <div
+                      className={cn(
+                        "absolute",
+                        getCaseVisualFrameClassName(activeCaseVisualIndex),
+                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "mix-blend-screen opacity-100" : "mix-blend-multiply opacity-82",
+                      )}
+                    >
+                      <img
+                        src={getCaseVisualSrc(activeCaseVisualIndex)}
+                        alt=""
+                        className={cn(
+                          "h-full w-full origin-center object-contain",
+                          CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "brightness-[1.08] contrast-[1.08] saturate-[1.08]" : "",
+                        )}
+                      />
+                    </div>
+                  </div>
+                  {activeCase.filters.length ? (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {activeCase.filters.map((filterId) => (
+                        <span
+                          key={`modal-filter-${activeCase.title}-${filterId}`}
+                          className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54"
+                        >
+                          {CASE_FILTER_LABELS[filterId]}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
+                  <div className="space-y-5 pb-8">
+                    <section>
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">задача</div>
+                      <p className="text-[14px] leading-[1.65] text-black/72 md:text-[15px]">
+                        {activeCase.desc}
+                      </p>
+                    </section>
+
+                    <section>
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
+                      <p className="text-[14px] leading-[1.7] text-black/78 md:text-[15px]">
+                        {activeCase.details}
+                      </p>
+                    </section>
+
+                    <section>
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">инструменты</div>
+                      <div className="rounded-[18px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
+                        {activeCase.tools}
+                      </div>
+                    </section>
+
+                    <section>
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">результат</div>
+                      <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#56771f] md:text-[14px]">
+                        {activeCase.metric}
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <PricingPaymentPopupNeon
         isOpen={activePaymentPlan !== null}
