@@ -1,24 +1,35 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LabW26PageV3 from './components/LabW26PageV3';
-import CommunityPage from './components/CommunityPage';
-import ConsultingPage from './components/ConsultingPage';
-import ResearchPage from './components/ResearchPage';
-import NonProfitPage from './components/NonProfitPage';
+import LabW26PageV3Alt from './components/LabW26PageV3Alt';
+import LabW26PageV3Switcher from './components/LabW26PageV3Switcher';
+import LabW26PageV4 from './components/LabW26PageV4';
+
+function NotFound() {
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        fontFamily: '"IBM Plex Mono", monospace',
+        letterSpacing: '0.08em',
+      }}
+    >
+      404
+    </main>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/" element={<LabW26PageV3 />} />
-        <Route path="/v3" element={<LabW26PageV3 />} />
-        
-        {/* Exact URLs from aimindset.org */}
-        <Route path="/ai-mindset-lab-x26" element={<Navigate to="/" replace />} />
-        <Route path="/ai-mindset-consulting" element={<ConsultingPage />} />
-        <Route path="/research" element={<ResearchPage />} />
-        <Route path="/non-profit" element={<NonProfitPage />} />
-        <Route path="/ai-mindset-community" element={<CommunityPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/lab-w26/v3" element={<LabW26PageV3 />} />
+        <Route path="/lab-w26/v3-alt" element={<LabW26PageV3Alt />} />
+        <Route path="/lab-w26/v3-switcher" element={<LabW26PageV3Switcher />} />
+        <Route path="/lab-w26/v4" element={<LabW26PageV4 />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

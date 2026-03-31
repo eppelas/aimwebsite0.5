@@ -69,6 +69,28 @@ const renderSpeakerDescription = (name: string, description: string): React.Reac
   );
 };
 
+const CASE_DARK_VARIANTS = new Set([0, 1]);
+
+const getCaseVisualSrc = (index: number) => {
+  if (index === 0) return `${BASE_URL}assets/cases/case-0-dark.svg`;
+  if (index === 1) return `${BASE_URL}assets/cases/case-1-dark.svg`;
+  return `${BASE_URL}assets/cases/case-${index}.svg`;
+};
+
+const getCaseVisualFrameClassName = (index: number) => {
+  if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
+  if (index === 1) return "inset-[-2%] translate-x-[4%] translate-y-[4%] scale-[2.1]";
+  if (index === 2) return "inset-[2%] translate-y-[12%] scale-[1.95]";
+  if (index === 3) return "inset-[3%] translate-y-[7%] scale-[1.9]";
+  if (index === 4) return "inset-[4%] -translate-x-[1%] translate-y-[4%] scale-[2.35]";
+  if (index === 5) return "inset-[4%] translate-y-[2%] scale-[2.2]";
+  if (index === 6) return "inset-[4%] translate-y-[4%] scale-[2.3]";
+  if (index === 7) return "inset-[1%] translate-y-[2%] scale-[1.95]";
+  if (index === 8) return "inset-[4%] translate-y-[4%] scale-[2.2]";
+  if (index === 9) return "inset-[2%] translate-y-[1%] scale-[2.1]";
+  return "inset-[6%] scale-[1.4]";
+};
+
 // --- CONSTANTS ---
 const SIDEBAR_NAV: NavItem[] = [
   { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
@@ -109,6 +131,11 @@ const CASE_FILTERS = [
   { id: 'educator', label: 'преподаватель' },
   { id: 'developer', label: 'разработчик' },
 ];
+
+const CASE_FILTER_LABELS = CASE_FILTERS.reduce<Record<string, string>>((acc, filter) => {
+  acc[filter.id] = filter.label;
+  return acc;
+}, {});
 
 const CASE_ARTS = {
   coaching: [
@@ -2251,16 +2278,6 @@ const ProgramScheduleGrid = () => {
 
 export default function LabW26PageV3() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isMenuOpen]);
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
@@ -2268,10 +2285,23 @@ export default function LabW26PageV3() {
   const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
-  const [isCasesExpanded, setIsCasesExpanded] = useState(false);
+  const [activeCaseFilter, setActiveCaseFilter] = useState('all');
+  const [isCasesOverlayOpen, setIsCasesOverlayOpen] = useState(false);
+  const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2307,7 +2337,11 @@ export default function LabW26PageV3() {
     }
   }[theme];
 
-  const visibleCases = isCasesExpanded ? CASE_CARDS : CASE_CARDS.slice(0, 4);
+  const filteredCases = CASE_CARDS
+    .map((card, index) => ({ card, index }))
+    .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter));
+  const visibleCases = filteredCases.slice(0, 4);
+  const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2522,7 +2556,7 @@ export default function LabW26PageV3() {
                   
                   {/* MODAL ORDER FOR MOBILE: LOGO BETWEEN TITLE AND DESCRIPTION */}
                   <div className="lg:hidden mb-12">
-                     <InvertedVoxelLogoFace className="w-full max-w-[280px] mx-auto -translate-x-3" scale={1} />
+                     <InvertedVoxelLogoFace className="w-full max-w-[392px] mx-auto -translate-x-4" scale={1.4} />
                   </div>
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
@@ -2649,65 +2683,151 @@ export default function LabW26PageV3() {
             </p>
           </div>
 
+          <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-3">
+            <div className="mr-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
+              теги
+            </div>
+            {CASE_FILTERS.map((filter) => {
+              const isActive = activeCaseFilter === filter.id;
+              return (
+                <button
+                  key={filter.id}
+                  type="button"
+                  onClick={() => setActiveCaseFilter(filter.id)}
+                  className={cn(
+                    "rounded-sm px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
+                    isActive
+                      ? "bg-black text-white"
+                      : "border border-black/10 bg-white/60 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                  )}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {visibleCases.map((card, i) => (
-              <article
-                key={card.title}
-                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#eef5d7]"
+            {visibleCases.map(({ card, index }) => (
+              <button
+                key={`${card.title}-${index}`}
+                type="button"
+                onClick={() => setActiveCaseIndex(index)}
+                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
               >
-                <div className="relative mb-4 h-[92px] overflow-hidden border border-black/8 bg-[#f4f4ef] group-hover:border-[#8DC63F] group-hover:bg-[#eef5d7]">
-                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px] opacity-70" />
-                  <div className="absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
-                    <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] opacity-[0.14] group-hover:opacity-[0.36] text-black" />
+                <div
+                  className={cn(
+                    "relative mb-4 h-[120px] overflow-hidden border border-black/8 transition-colors duration-300 group-hover:border-white/24 group-hover:bg-transparent md:h-[140px]",
+                    CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
+                      CASE_DARK_VARIANTS.has(index)
+                        ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+                        : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+                    )}
+                  />
+
+                  {CASE_DARK_VARIANTS.has(index) ? (
+                    <>
+                      <div className="absolute inset-x-3 top-3 h-8 rounded-[18px] border border-white/10 bg-white/6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
+                      <div className="absolute inset-x-4 top-[3.15rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
+                      <div className="absolute bottom-2 left-4 h-16 w-28 rounded-full bg-[#b7ff6a]/18 blur-[36px] transition-opacity duration-300 group-hover:opacity-0" />
+                      <div className="absolute right-3 top-6 h-14 w-16 rounded-full bg-[#d7ff9a]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
+                    </>
+                  ) : null}
+
+                  <div
+                    className={cn(
+                      "absolute transition-transform duration-500 group-hover:scale-[1.035]",
+                      getCaseVisualFrameClassName(index),
+                      CASE_DARK_VARIANTS.has(index)
+                        ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
+                        : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
+                    )}
+                  >
+                    <img
+                      src={getCaseVisualSrc(index)}
+                      alt=""
+                      className={cn(
+                        "h-full w-full origin-center object-contain transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert",
+                        CASE_DARK_VARIANTS.has(index) ? "brightness-[1.08] contrast-[1.08] saturate-[1.08]" : "",
+                      )}
+                    />
                   </div>
-                  <div className="absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.18em] text-black/42">
-                    {String(i + 1).padStart(2, '0')}
+
+                  {CASE_DARK_VARIANTS.has(index) ? (
+                    <>
+                      <div className="absolute left-[14%] top-[48%] h-16 w-32 -translate-y-1/2 rounded-full bg-[#d8ff90]/10 blur-[34px] transition-opacity duration-300 group-hover:opacity-0" />
+                      <div className="absolute right-[12%] top-[28%] h-12 w-20 rounded-full bg-[#d8ff90]/8 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
+                    </>
+                  ) : null}
+
+                  <div className={cn("absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.18em] transition-colors duration-300 group-hover:text-white/82", CASE_DARK_VARIANTS.has(index) ? "text-white/78" : "text-black/42")}>
+                    {String(index + 1).padStart(2, '0')}
                   </div>
-                  <div className="absolute right-3 top-3 font-mono text-[8px] uppercase tracking-[0.16em] text-black/30">
+                  <div className={cn("absolute right-3 top-3 font-mono text-[8px] uppercase tracking-[0.16em] transition-colors duration-300 group-hover:text-white/52", CASE_DARK_VARIANTS.has(index) ? "text-white/48" : "text-black/30")}>
                     case
                   </div>
                 </div>
 
                 <div className="mb-3 flex items-start justify-between gap-3">
-                  <h4 className="max-w-[11rem] text-[16px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black">
+                  <h4 className="max-w-[11rem] text-[16px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white">
                     {card.title}
                   </h4>
-                  <div className="shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-black/34">
+                  <div className="shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-black/34 transition-colors group-hover:text-white/60">
                     case
                   </div>
                 </div>
 
-                <p className="text-[12px] font-semibold leading-[1.45] text-black/78">
+                <p className="text-[12px] font-semibold leading-[1.45] text-black/78 transition-colors group-hover:text-white/88">
                   {card.details}
                 </p>
 
                 <div className="mt-auto flex flex-col gap-3 pt-4">
-                  <div className="font-mono text-[9px] tracking-[0.08em] text-black/42">
+                  <div className="flex flex-wrap gap-1.5">
+                    {card.filters.map((filterId) => (
+                      <span
+                        key={`${card.title}-${filterId}`}
+                        className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/52 transition-colors group-hover:border-white/20 group-hover:bg-white/8 group-hover:text-white/72"
+                      >
+                        {CASE_FILTER_LABELS[filterId]}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="font-mono text-[9px] tracking-[0.08em] text-black/42 transition-colors group-hover:text-white/66">
                     {card.author}, {card.role.toLowerCase()}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                     {card.tools.split(' · ').map((tool, toolIndex) => (
-                      <span key={`${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/52">
+                      <span key={`${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/52 transition-colors group-hover:text-white/74">
                         {toolIndex > 0 ? '· ' : ''}
                         {tool}
                       </span>
                     ))}
                   </div>
                 </div>
-              </article>
+              </button>
             ))}
           </div>
 
-          {CASE_CARDS.length > 4 ? (
-            <div className="mt-8 flex justify-center">
+          {filteredCases.length > 0 ? (
+            <div className="mt-10 flex items-center justify-center w-full">
               <button
                 type="button"
-                onClick={() => setIsCasesExpanded((prev) => !prev)}
-                className="flex items-center gap-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black/48 transition-colors hover:text-black/76"
-                aria-expanded={isCasesExpanded}
+                onClick={() => setIsCasesOverlayOpen(true)}
+                className="group flex min-w-0 flex-row items-center justify-center gap-3 border border-black/10 bg-transparent px-8 py-3 text-black/60 transition-colors hover:border-black/60 hover:bg-transparent"
+                aria-haspopup="dialog"
+                aria-label="Посмотреть все кейсы"
               >
-                <span>{isCasesExpanded ? 'свернуть' : 'ещё'}</span>
-                <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCasesExpanded ? 'rotate-180' : ''}`} />
+                <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.24em] transition-colors">
+                  Посмотреть все
+                </span>
+                <span className="flex h-8 w-10 items-center justify-center border border-black/12 bg-black/[0.03] text-black/72 transition-colors group-hover:border-black/45 group-hover:text-black">
+                  <ArrowRight className="-rotate-45 h-4 w-4" />
+                </span>
               </button>
             </div>
           ) : null}
@@ -2787,9 +2907,9 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="hidden md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="relative hidden md:flex flex-wrap justify-center gap-x-4 gap-y-8">
             {TEAM_MEMBERS.map((member) => (
-              <article key={member.name} className="group flex flex-col gap-3">
+              <article key={member.name} className="group flex flex-col gap-3 w-[calc(33.333%-10.66px)] lg:w-[calc(25%-12px)] xl:w-[calc(20%-12.8px)] relative z-10">
                 <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
                   <img
                     src={member.image}
@@ -2817,6 +2937,17 @@ export default function LabW26PageV3() {
                 </div>
               </article>
             ))}
+            
+            {/* Morph Animation replacing remaining whitespace */}
+            <div 
+              className="absolute pointer-events-none z-0 w-1/3 overflow-visible right-[-2%] lg:right-[-2%] bottom-[12%]"
+            >
+              <img 
+                src={`${BASE_URL}assets/speakers-morph-animation-8.svg`} 
+                alt="AI Mindset Animation" 
+                className="w-full ml-auto max-w-[200px] lg:max-w-[260px] xl:max-w-[380px] h-auto object-contain mix-blend-multiply opacity-90 transition-all hover:opacity-100 scale-125 -rotate-[18deg] origin-center"
+              />
+            </div>
           </div>
         </Container>
       </section>
@@ -2960,7 +3091,7 @@ export default function LabW26PageV3() {
                   </div>
 
                   <div className="flex flex-col md:flex-1">
-                    <div className="mb-2">
+                    <div className="mb-2 md:min-h-[9.5rem] lg:min-h-[10.75rem] xl:min-h-[11.75rem]">
                       <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
                         программа
                       </div>
@@ -2993,9 +3124,9 @@ export default function LabW26PageV3() {
                     <button
                       type="button"
                       onClick={() => setActivePaymentPlan({ name: plan.name, price: plan.price })}
-                      className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6`}
+                      className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6 !text-white`}
                     >
-                      записаться
+                      присоединиться
                     </button>
                   </div>
                 </div>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow-b" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-b" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5.4"/>
+    </filter>
+  </defs>
+
+  <g opacity="0.25">
+    <path d="M0 18 H100 M0 38 H100 M0 58 H100 M0 78 H100" stroke="#d9ff8b" stroke-width="0.24"/>
+    <path d="M12 0 V100 M32 0 V100 M52 0 V100 M72 0 V100 M92 0 V100" stroke="#d9ff8b" stroke-width="0.24"/>
+  </g>
+
+  <ellipse cx="63" cy="51" rx="18" ry="18" fill="#d7ff90" opacity="0.16" filter="url(#soft-b)">
+    <animate attributeName="opacity" values="0.1;0.18;0.1" dur="4.8s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="28" cy="28" rx="13" ry="11" fill="#d7ff90" opacity="0.11" filter="url(#soft-b)">
+    <animate attributeName="opacity" values="0.08;0.15;0.08" dur="5.6s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <rect x="8" y="6" width="31" height="10" rx="5" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.16)" stroke-width="0.55"/>
+  <text x="13" y="12.1" fill="#f2f7e7" opacity="0.8" font-size="3.2" letter-spacing="1.25" font-family="IBM Plex Mono, monospace">НЕДЕЛЯ 2</text>
+
+  <text x="72" y="16.5" fill="#dff9a1" opacity="0.9" font-size="4.1" letter-spacing="1.05" font-family="IBM Plex Mono, monospace">STACK</text>
+  <text x="60" y="22.5" fill="rgba(255,255,255,0.44)" font-size="3.9" letter-spacing="1.05" font-family="IBM Plex Mono, monospace">CONTEXT FIELD</text>
+
+  <g filter="url(#glow-b)" stroke="#d8ff90" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M42 60 H72 L84 48 V32 H33" stroke-width="2.2">
+      <animate attributeName="d" dur="6s" repeatCount="indefinite"
+        values="M42 60 H72 L84 48 V32 H33;M42 60 H70 L84 48 V32 H33;M42 60 H72 L84 48 V32 H33"/>
+    </path>
+    <path d="M44 44 H64" stroke-width="1.8"/>
+    <path d="M47 51 H60" stroke-width="1.8"/>
+    <path d="M50 37 H70" stroke-width="1.8"/>
+    <path d="M55 61 H55" stroke-width="2.1"/>
+  </g>
+
+  <g filter="url(#glow-b)">
+    <g fill="#e5ffb2">
+      <circle cx="33" cy="32" r="1.9">
+        <animate attributeName="opacity" values="0.55;1;0.55" dur="2.8s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="44" cy="32" r="1.7">
+        <animate attributeName="opacity" values="0.4;0.9;0.4" dur="3.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="56" cy="32" r="1.8">
+        <animate attributeName="opacity" values="0.45;1;0.45" dur="2.7s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="68" cy="32" r="1.7">
+        <animate attributeName="opacity" values="0.35;0.95;0.35" dur="3.1s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="84" cy="48" r="2.15">
+        <animate attributeName="r" values="1.8;2.5;1.8" dur="2.6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="77" cy="31" r="1.95">
+        <animate attributeName="opacity" values="0.4;0.95;0.4" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="44" cy="60" r="1.6">
+        <animate attributeName="opacity" values="0.35;0.75;0.35" dur="2.9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="72" cy="60" r="1.6">
+        <animate attributeName="opacity" values="0.35;0.75;0.35" dur="3.3s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+
+  <text x="14" y="59" fill="#d8ff90" opacity="0.94" font-size="7.4" letter-spacing="0.9" font-family="IBM Plex Mono, monospace">02</text>
+  <text x="45" y="50.5" fill="#d8ff90" opacity="0.84" font-size="7.4" letter-spacing="0.75" font-family="IBM Plex Mono, monospace">[ BASE ]</text>
+
+  <path d="M43 70 H82" stroke="#d8ff90" stroke-width="1.6" stroke-linecap="round" filter="url(#glow-b)"/>
+  <path d="M46 76 H65" stroke="#d8ff90" stroke-width="1.3" stroke-linecap="round" filter="url(#glow-b)"/>
+
+  <path d="M13 83 H46" stroke="rgba(255,255,255,0.12)" stroke-width="0.8" fill="none"/>
+  <text x="14" y="89" fill="rgba(255,255,255,0.38)" font-size="3.7" letter-spacing="1.1" font-family="IBM Plex Mono, monospace">AI MINDSET SIGNAL</text>
+</svg>

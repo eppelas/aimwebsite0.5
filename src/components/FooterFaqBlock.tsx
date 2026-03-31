@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 
 type FooterFaqBlockProps = {
   title?: string;
-  statusLabel?: string | null;
   versionLabel?: string | null;
 };
 
@@ -41,35 +40,28 @@ const FAQ_DATA = [
 
 export function FooterFaqBlock({
   title = 'вопросы и ответы',
-  statusLabel = 'sys_ready',
   versionLabel = null,
 }: FooterFaqBlockProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <div className="w-full border border-black/8 bg-[#f7f7f3] px-5 py-10 shadow-[0_10px_24px_rgba(0,0,0,0.035)] md:px-8 md:py-12">
+    <div className="w-full px-5 py-10 md:px-8 md:py-12">
       <div className="w-full flex flex-col">
-        <div className="flex justify-between items-end mb-4 border-b-2 border-black pb-2">
-          <div>
-            <div className="text-[10px] font-mono text-[#8DC63F] lowercase tracking-widest mb-1.5 flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 bg-[#8DC63F]" />
-              [f.a.q. module]
-            </div>
-            <h2 className="text-[20px] font-mono lowercase font-bold tracking-tight text-black leading-none">
-              {title}
-            </h2>
+        <div className="flex items-end gap-4 md:gap-10">
+          <div className="text-[11px] md:text-[13px] font-bold uppercase tracking-[0.2em] text-black/32 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">
+            <span className="hidden sm:inline">[06] </span>
+            FAQ_LOG
+            {versionLabel ? <span className="hidden sm:inline"> {`// ${versionLabel}`}</span> : <span className="hidden sm:inline"> // 2026</span>}
           </div>
-          {(statusLabel || versionLabel) && (
-            <div className="text-[10px] font-mono text-black/40 lowercase tracking-widest text-right leading-[1.3]">
-              {statusLabel && (
-                <>
-                  {statusLabel}
-                  {versionLabel ? <br /> : null}
-                </>
-              )}
-              {versionLabel}
-            </div>
-          )}
+          <div className="h-px flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
+          <h2 className="font-black uppercase tracking-[0.08em] text-2xl md:text-5xl/none text-right text-black">
+            {title}
+          </h2>
+        </div>
+
+        <div className="text-[10px] font-mono text-[#8DC63F] lowercase tracking-widest mt-4 mb-8 flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 bg-[#8DC63F]" />
+          [f.a.q. module]
         </div>
 
         <div className="flex flex-col border border-black/10 bg-white">

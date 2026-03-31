@@ -2,6 +2,66 @@
 
 ## User Requests
 
+- Task: В FAQ-блоке на странице `/lab-w26/v3` убрать внешний background и border, а верхнюю чёрную линию сделать тоньше
+  Status: implemented
+  Owner: user
+  Last Checked: 2026-03-31
+  Note: Первый вариант с удалением внешнего `bg/border/shadow` был сделан, но затем пользователь уточнил новый референс для полной замены шапки FAQ.
+
+- Task: В FAQ-блоке на странице `/lab-w26/v3` заменить текущую шапку на вариант в стилистике cocktail/reviews header, сохранив зелёную надпись `[f.a.q. module]`
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-31
+  Note: В `src/components/FooterFaqBlock.tsx` удалён старый header `вопросы и ответы / sys_ready`; зелёная надпись сохранена, ниже добавлен новый header с серым `FAQ_LOG`, тонкой линией и большим названием блока справа; ждёт визуальной проверки пользователем.
+
+- Task: В карточках `Тарифы` на `/lab-w26/v3` убрать слишком большой разрыв между текстом блока `программа` и линией перед `что получаешь`
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-31
+  Note: В `src/components/LabW26PageV3.tsx` уменьшен desktop `min-height` у верхнего feature-блока тарифа, чтобы divider поднимался ближе к контенту без перестройки всей карточки; ждёт визуальной проверки пользователем.
+
+- Task: В блоке `Labs Navigator` на `/lab-w26/v3` перевести весь интерфейс на русский и уменьшить карточки примерно на 20 процентов
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-31
+  Note: В `src/components/FooterLabsNavigatorBlock.tsx` переведены заголовок, табы, названия карточек, статусы и архивный экран; сами карточки уменьшены через `max-width`, padding и типографику, а после уточнения пользователя у внешнего контейнера дополнительно убраны обводка и тёплый фон; ждёт визуальной проверки пользователем.
+
+- Task: Восстановить дизайн блока "Cases", добавив 10 уникальных SVG-анимаций (со смещением левее, увеличением в 1.15х и 2 glow-версиями)
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-31
+  Note: Исходные SVG пересозданы (+15% масштаб, сдвиг влево на 15%, удалено 20% линий для плавности, для 2 кейсов применён tech-стиль с утолщением и opacity glow); старые файлы в public перезаписаны через loopback-мост; локальный vite config восстановлен; ждёт ревью пользователя.
+
+- Task: Поднять локально и дать отдельные URL для `LabW26PageV3`, `LabW26PageV3Alt`, `LabW26PageV3Switcher` и `LabW26PageV4`
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-31
+  Note: В `src/App.tsx` добавлены отдельные маршруты `/lab-w26/v3`, `/lab-w26/v3-alt`, `/lab-w26/v3-switcher` и `/lab-w26/v4`; локальный dev server поднят с LAN-доступом для desktop/mobile проверки; ждёт пользовательского подтверждения
+
+- Task: В живом git-backed `/v3` центрировать второй desktop-ряд `Спикеры`, если карточек там меньше, чем в первом ряду
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-30
+  Note: Выполнено в `src/components/LabW26PageV3.tsx` через split `4 + rest` и отдельный центрированный второй ряд для `lg+`; mobile-ветка не менялась, `npm run build` прошёл, `curl http://localhost:3001/v3` вернул `200 OK`; ждёт пользовательского подтверждения
+
+- Task: В живом git-backed `/v3` добавить прозрачную morph SVG-анимацию справа от секции `Спикеры`, чтобы заполнить пустоту на широком desktop
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-03-30
+  Note: SVG добавлен в `public/assets/speakers-morph-animation-8.svg` и подключён справа от desktop-layout в `LabW26PageV3.tsx`; `curl http://localhost:3001/assets/speakers-morph-animation-8.svg` вернул `200 OK`; ждёт пользовательского визуального подтверждения
+
+- Task: Зафиксировать, что правки `Спикеры` были сделаны в старой версии страницы, а актуальная страница для правок ещё не найдена
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-31
+  Note: Подтверждено пользователем: `aimwebsite0.5` (`/Users/viola/.../Vibe Coding/AI Mindset`, `LabW26PageV3.tsx`) содержит мои правки, но это не актуальная страница. Требуется определить текущий “канон” (GitHub Pages URL или repo/ветку) и перенести правки туда.
+
+- Task: В hero block уменьшить количество вокселей примерно в 2 раза, сделать их плотнее, сохранить правильную форму правой половины лица по референсу и убрать лаги анимации
+  Status: requested
+  Owner: user
+  Last Checked: 2026-03-29
+  Note: Предыдущий pass ушёл в неправильный dotted-hero и не совпал с реальным визуальным ориентиром пользователя; сначала нужно вернуть правильный grid-вариант страницы, затем уже уменьшать плотность и лаги на нём
+
 - Task: Сделать cleanup-only проход для GitHub Pages entry layer: новый `title`, меньше путаницы в роутинге и без изменения основной страницы `v3`
   Status: self-checked
   Owner: assistant
@@ -62,6 +122,12 @@
   Last Checked: 2026-03-27
   Note: Старый hero-canvas заменён на новый `InvertedVoxelLogoFace`: прозрачный фон, чёрная левая половина, правая половина собрана чёрными вокселями по форме оригинального PNG; локальный скриншот `:3023` просмотрен после правки
 
+- Task: Сместить белый gap глаза вправо и убрать чёрный пиксел-сосед: сдвинуть ошибочный пиксель на два столбца влево, чтобы форма глаза совпала с референсом
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-31
+  Note: Обновлён `isInsideEyeZone` в `InvertedVoxelLogoFace.tsx` так, чтобы вырез глаз расширялся влево, покрывая лишний чёрный пиксель; `npm run build` прошёл, готов к визуальной сверке
+
 - Task: Перенести блок `вопросы и ответы` с `ai-mindset-blocks` в живую страницу `/aimwebsite0.5/v3` и поставить его в самом конце перед футером
   Status: self-checked
   Owner: assistant
@@ -115,6 +181,12 @@
   Owner: assistant
   Last Checked: 2026-03-19
   Note: Для mobile анимация дополнительно опущена ниже примерно на 40px через `translate-y-10`, чтобы визуально сильнее сократить разрыв до большой цитаты
+
+- Task: Подтвердить, что обновлённый глаз в `InvertedVoxelLogoFace` продолжает собираться без ошибок после смещения зон в маске
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-31
+  Note: Запуск `npm run build` завершился без ошибок после увеличения области `isInsideEyeZone`, поэтому можно вручную проверить визуал на порту `:3023` перед окончательным обзором
 
 - Task: На мобильной уменьшить расстояние между философской цитатой/стрелками и началом секции `программа`
   Status: implemented
@@ -234,6 +306,24 @@
   Note: После пользовательского ревью задача снова открыта: expanded-grid местами выглядит сломанной, одна карточка стала слишком большой, стрелка не в нужном стиле; дополнительно пользователь попросил больше фото и подписи с местом работы
 
 ## Agent Self-Checks
+
+- Task: Подтвердить, что правки блока `Спикеры` внесены именно в GitHub-backed repo `eppelas/aimwebsite0.5`, а не в старый локальный клон
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-30
+  Note: Подтверждено, что `origin` у `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AI Mindset` указывает на `https://github.com/eppelas/aimwebsite0.5.git`, `/` и `/v3` в `src/App.tsx` ведут на `LabW26PageV3`, а старый каталог `/Users/viola/All/Yandex.Disk.localized/3 Process/5 Work/AI Mindset/main-aimwebsite0.5` удалён
+
+- Task: Проверить локальный preview и сборку после переноса правок `Спикеры` в GitHub-backed repo
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-30
+  Note: `npm run dev` поднялся на `http://localhost:3001/` и `http://192.168.1.180:3001/`, `curl` на `/v3` и `assets/speakers-morph-animation-8.svg` вернул `200 OK`, `npm run build` завершился успешно
+
+- Task: Перепроверить новый hero voxel face на живом `/v3` после снижения плотности и упрощения анимации
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-03-29
+  Note: `npm run build` прошёл, `curl` на `http://localhost:3001/v3` вернул `200 OK`, а desktop screenshot `http://localhost:3001/v3` снят через Playwright и просмотрен
 
 - Task: Заменить старый hero `VoxelLogoFace` в `LabW26PageV3.tsx` на новую инвертированную воксельную версию и проверить рендер на живом локальном `:3023`
   Status: self-checked

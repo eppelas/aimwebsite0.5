@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow-a" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-a" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5.2"/>
+    </filter>
+  </defs>
+
+  <g opacity="0.28">
+    <path d="M0 20 H100 M0 40 H100 M0 60 H100 M0 80 H100" stroke="#d9ff8b" stroke-width="0.24"/>
+    <path d="M10 0 V100 M30 0 V100 M50 0 V100 M70 0 V100 M90 0 V100" stroke="#d9ff8b" stroke-width="0.24"/>
+  </g>
+
+  <ellipse cx="24" cy="63" rx="18" ry="18" fill="#b7ff62" opacity="0.18" filter="url(#soft-a)">
+    <animate attributeName="opacity" values="0.1;0.2;0.1" dur="4.6s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="67" cy="34" rx="15" ry="13" fill="#d9ff8b" opacity="0.12" filter="url(#soft-a)">
+    <animate attributeName="opacity" values="0.08;0.16;0.08" dur="5.2s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <rect x="7" y="5" width="28" height="10" rx="5" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.16)" stroke-width="0.55"/>
+  <text x="12" y="11.8" fill="#f2f7e7" opacity="0.8" font-size="3.2" letter-spacing="1.25" font-family="IBM Plex Mono, monospace">НЕДЕЛЯ 1</text>
+
+  <rect x="47" y="21" width="42" height="14" rx="6.5" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.12)" stroke-width="0.45"/>
+  <text x="73.5" y="29.2" text-anchor="middle" fill="#dff9a1" opacity="0.94" font-size="4.2" letter-spacing="1.15" font-family="IBM Plex Mono, monospace">SHIFT NODE</text>
+
+  <g filter="url(#glow-a)" stroke="#d8ff90" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M11 46 H68 L83 58 H95" stroke-width="2.2">
+      <animate attributeName="d" dur="5.8s" repeatCount="indefinite"
+        values="M11 46 H68 L83 58 H95;M11 46 H67 L82 58 H95;M11 46 H68 L83 58 H95"/>
+    </path>
+    <path d="M19 67 H61" stroke-width="2">
+      <animate attributeName="opacity" values="0.75;1;0.75" dur="2.4s" repeatCount="indefinite"/>
+    </path>
+    <path d="M35 50 V76" stroke-width="2.2">
+      <animate attributeName="opacity" values="0.75;1;0.75" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M46 50 V76" stroke-width="2.2">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="3.1s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <g filter="url(#glow-a)">
+    <g fill="#e3ffaf">
+      <circle cx="12" cy="46" r="2.55">
+        <animate attributeName="r" values="2.15;2.75;2.15" dur="2.6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="31" cy="46" r="2.35">
+        <animate attributeName="r" values="2;2.6;2" dur="2.9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="50" cy="46" r="2.35">
+        <animate attributeName="r" values="2;2.7;2" dur="2.7s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="68" cy="46" r="2.6">
+        <animate attributeName="r" values="2.2;2.9;2.2" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="83" cy="58" r="2.8">
+        <animate attributeName="r" values="2.3;3.2;2.3" dur="2.3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="28" cy="79" r="1.9">
+        <animate attributeName="opacity" values="0.45;1;0.45" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="54" cy="72" r="2.1">
+        <animate attributeName="opacity" values="0.4;0.9;0.4" dur="3.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="89" cy="76" r="2.15">
+        <animate attributeName="opacity" values="0.5;1;0.5" dur="2.7s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="40" cy="64" r="1.8">
+        <animate attributeName="opacity" values="0.35;0.85;0.35" dur="2.8s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+  </g>
+
+  <path d="M19 57 H31" stroke="#dff9a1" stroke-width="0.65" opacity="0.36" stroke-dasharray="1.8 3.6">
+    <animate attributeName="stroke-dashoffset" from="0" to="-9" dur="2.6s" repeatCount="indefinite"/>
+  </path>
+  <path d="M72 63 H92" stroke="#dff9a1" stroke-width="0.65" opacity="0.3" stroke-dasharray="1.8 3.6">
+    <animate attributeName="stroke-dashoffset" from="0" to="-9" dur="2.9s" repeatCount="indefinite"/>
+  </path>
+
+  <path d="M20 83 C34 77 48 77 62 84 C74 90 85 88 94 76" stroke="rgba(255,255,255,0.14)" stroke-width="0.85" fill="none"/>
+  <path d="M16 73 C31 77 50 58 69 63 C79 66 87 71 95 79" stroke="rgba(255,255,255,0.1)" stroke-width="0.7" fill="none"/>
+</svg>

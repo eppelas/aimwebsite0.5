@@ -52,12 +52,77 @@ const reviews: Review[] = [
     role: "L&D | AVITO",
     quote: "Произошел shift. Я на 30% начала думать AI-first: где я могу ускориться за счет того, что AI начнет помогать. Это реально меняет продуктивность.",
     tg: "tg ->"
+  },
+  {
+    id: "07",
+    name: "Иван Смирнов",
+    role: "HEAD OF PRODUCT | OZONE",
+    quote: "Очень крутой подход к обучению. Без воды, сразу в дело. Поменял свой воркфлоу полностью за две недели. Рекомендую.",
+    tg: ""
+  },
+  {
+    id: "08",
+    name: "Екатерина Лебедева",
+    role: "DESIGN LEAD",
+    quote: "Сначала думала, что это очередной курс по промптам, но оказалась глубокая перестройка процессов. Теперь вместо того, чтобы рисовать интерфейсы с нуля, мы собираем логику с ИИ, а потом докручиваем. Экономит кучу времени.",
+    tg: "tg ->"
+  },
+  {
+    id: "09",
+    name: "Алексей Соколов",
+    role: "ОСНОВАТЕЛЬ СТАРТАПА",
+    quote: "Невероятно полезный курс. Окупился в первый же день. Мы автоматизировали часть саппорта и маркетинга, которую собирались отдавать на аутсорс. Ребята просто дали систему, как думать правильно.",
+    tg: "tg ->"
+  },
+  {
+    id: "10",
+    name: "Мария Волкова",
+    role: "MARKETING MANAGER",
+    quote: "Полезно, но сложно. Нужно быть готовым к интенсивной нагрузке. Если вы ищете легкий контент 'послушать на фоне' – это не сюда. Здесь придется работать головой.",
+    tg: ""
+  },
+  {
+    id: "11",
+    name: "Антон Медведев",
+    role: "FULLSTACK DEVELOPER",
+    quote: "Пришел за конкретикой по агентам, получил даже больше. Отличный фреймворк для быстрого прототипирования новых идей. AI Mindset действительно меняет фокус с написания кода на решение задачи бизнеса.",
+    tg: "tg ->"
+  },
+  {
+    id: "12",
+    name: "Юлия Морозова",
+    role: "CONTENT STRATEGIST",
+    quote: "Ребята, это просто пушка. Вся рутина по генерации текстов ушла. Теперь я занимаюсь только стратегией, а нейронки работают по моим шаблонам и Tone of Voice.",
+    tg: ""
   }
 ];
 
 export const ReviewsSection = () => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const sectionRef = React.useRef<HTMLElement>(null);
+
+  const toggleExpanded = () => {
+    if (isExpanded) {
+      if (sectionRef.current) {
+        const yOffset = sectionRef.current.getBoundingClientRect().top + window.scrollY - 100;
+        window.scrollTo({ top: yOffset, behavior: 'smooth' });
+      }
+      // Wait for smooth scroll to finish before removing elements from the flow
+      setTimeout(() => {
+        setIsExpanded(false);
+      }, 400);
+    } else {
+      setIsExpanded(true);
+      // Wait for React to render the extra elements before scrolling
+      setTimeout(() => {
+        if (sectionRef.current) {
+          const yOffset = sectionRef.current.getBoundingClientRect().top + window.scrollY - 50;
+          window.scrollTo({ top: yOffset, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
 
   React.useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
@@ -69,21 +134,8 @@ export const ReviewsSection = () => {
   const previewCount = isMobile ? 2 : 3;
   const visibleReviews = isExpanded ? reviews : reviews.slice(0, previewCount);
 
-  const expandedLayoutClass = (idx: number) => {
-    const variants = [
-      'md:col-span-2 lg:col-span-2 lg:row-span-2 min-h-[24rem]',
-      'md:col-span-2 lg:col-span-1 min-h-[19rem]',
-      'md:col-span-2 lg:col-span-2 min-h-[22rem]',
-      'md:col-span-2 lg:col-span-1 min-h-[18rem]',
-      'md:col-span-2 lg:col-span-1 min-h-[20rem]',
-      'md:col-span-4 lg:col-span-2 min-h-[18rem]',
-    ];
-
-    return variants[idx % variants.length];
-  };
-
   return (
-    <section id="reviews" className="py-20 px-6 md:px-24 bg-[#f9f9f7] overflow-hidden">
+    <section id="reviews" ref={sectionRef} className="py-20 px-6 md:px-24 bg-[#f9f9f7] overflow-hidden">
       <div className="max-w-7xl mx-auto">
         {/* REFINED HEADER - MOBILE CLEANUP */}
         <div className="mb-20 flex items-end gap-4 md:gap-10">
@@ -99,9 +151,11 @@ export const ReviewsSection = () => {
         </div>
 
         <div
-          className={`grid grid-cols-1 md:grid-cols-2 ${
-            isExpanded ? 'lg:grid-cols-4 auto-rows-[minmax(12rem,auto)] gap-3 md:gap-4' : 'lg:grid-cols-3 gap-0.5 md:gap-px'
-          } ${isExpanded ? '' : 'bg-black/5 border border-black/5'} h-auto overflow-hidden transition-all duration-500`}
+          className={`transition-all duration-500 w-full ${
+            isExpanded 
+              ? 'columns-1 md:columns-3 lg:columns-4 gap-4 md:gap-5' 
+              : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5'
+          }`}
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.div 
@@ -112,44 +166,31 @@ export const ReviewsSection = () => {
               transition={{ duration: 0.35, ease: "easeOut" }}
               className="contents"
             >
-              {visibleReviews.map((review, idx) => (
+              {visibleReviews.map((review) => (
                 <div
                   key={review.id}
-                  className={`group relative flex flex-col bg-[#f9f9f7] p-6 md:p-7 transition-all hover:bg-white border border-black/5 ${
-                    isExpanded
-                      ? expandedLayoutClass(idx)
-                      : isMobile
-                        ? 'min-h-[220px]'
-                        : 'min-h-[320px]'
+                  className={`group relative flex flex-col justify-between bg-white px-5 py-5 md:px-6 md:pt-6 md:pb-5 lg:px-8 lg:pt-8 lg:pb-6 transition-all border border-black/5 hover:border-black/10 hover:shadow-sm ${
+                    isExpanded ? 'break-inside-avoid mb-4 md:mb-5 h-auto' : 'h-full'
                   }`}
                 >
-                  <div className={`flex justify-between items-start gap-4 ${isExpanded ? 'mb-5' : isMobile ? 'mb-2' : 'mb-6'}`}>
+                  <div className={`flex justify-between items-start gap-4 ${isExpanded ? 'mb-3' : 'mb-2'}`}>
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black/68">
-                        {review.name
-                          .split(' ')
-                          .slice(0, 2)
-                          .map((part) => part[0])
-                          .join('')}
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/5 overflow-hidden relative">
+                        <img 
+                          src={`https://i.pravatar.cc/150?u=AIMindsetReview${review.id}`} 
+                          alt={review.name}
+                          className="w-full h-full object-cover grayscale mix-blend-multiply opacity-80 group-hover:opacity-100 transition-opacity" 
+                        />
                       </div>
-                      <span className="font-mono text-[9px] bg-black text-white px-1.5 py-0.5 tracking-tighter">
-                      ID::{review.id}
-                      </span>
+                      <div className="flex flex-col justify-center">
+                        <span className="font-mono text-[9px] bg-black text-white px-2 py-0.5 tracking-wider uppercase font-bold text-left inline-block">
+                          {review.name}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex gap-1.5">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="w-1 h-1 rounded-full bg-black/10 group-hover:bg-[#8DC63F]/40" />
-                      ))}
+                    <div className="font-mono text-[10px] sm:text-[11px] font-black tracking-widest text-black/15 group-hover:text-[#8DC63F] transition-colors select-none">
+                      ///
                     </div>
-                  </div>
-
-                  <div className={`flex flex-wrap gap-2 ${isExpanded ? 'mb-5' : 'mb-4'}`}>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-black/36">
-                      feedback log
-                    </span>
-                    <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8DC63F]">
-                      practice-first
-                    </span>
                   </div>
 
                   <div className="flex-grow">
@@ -159,19 +200,18 @@ export const ReviewsSection = () => {
                     </p>
                   </div>
                   
-                  <div className="mt-auto pt-6 border-t border-dashed border-black/10">
+                  <div className="mt-auto pt-4 border-t border-dashed border-black/10">
                     <div className="flex justify-between items-end gap-4 text-left">
-                      <div className="min-w-0">
-                        <h3 className="font-mono text-[11px] font-bold uppercase tracking-wider truncate mb-0.5">
-                          {review.name}
-                        </h3>
-                        <p className="font-mono text-[9px] opacity-40 uppercase tracking-tight truncate">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-mono text-[9px] md:text-[10px] opacity-40 uppercase tracking-tight leading-relaxed">
                           {`[ ${review.role} ]`}
                         </p>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter">
-                        {review.tg}
-                      </span>
+                      {review.tg && (
+                        <span className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter">
+                          {review.tg}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -183,17 +223,15 @@ export const ReviewsSection = () => {
         <div className="mt-10 flex items-center justify-center w-full">
           <button
             type="button"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            className="group flex flex-col items-center gap-3 text-black/42 hover:text-black transition-colors"
+            onClick={toggleExpanded}
+            className="group flex flex-row items-center justify-center gap-3 border border-black/10 bg-transparent px-8 py-3 transition-colors hover:border-black/60 hover:bg-transparent text-black/60 min-w-0"
             aria-expanded={isExpanded}
             aria-label={isExpanded ? 'Свернуть отзывы' : 'Открыть все отзывы'}
           >
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.24em]">
+            <span className="font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.24em] transition-colors">
               {isExpanded ? 'свернуть отзывы' : 'открыть все отзывы'}
             </span>
-            <span className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white group-hover:border-black/24 group-hover:bg-black group-hover:text-white transition-all">
-              <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-            </span>
+            <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>

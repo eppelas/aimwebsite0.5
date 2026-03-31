@@ -73,7 +73,7 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
     const repulsionRadius = 112;
     const edgeRadius = Math.max(1.6, cellSize * 0.2);
     const scrollAmplitude = 0;
-    const introSpeed = 0.011;
+    const introSpeed = 0.0036;
     const rightHalfYOffset = -3.5;
 
     canvas.width = internalSize;
@@ -94,6 +94,8 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
     let disposed = false;
     let introProgress = 0;
     let voxels: VoxelPoint[] = [];
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
 
     const setPointerFromEvent = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -447,6 +449,11 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
 
       const redVoxels: VoxelPoint[] = [];
 
+      const currentScrollY = scrollRef.current;
+      scrollVelocity += (Math.abs(currentScrollY - lastScrollY) - scrollVelocity) * 0.15;
+      lastScrollY = currentScrollY;
+      const currentScrollAmplitude = scrollAmplitude + scrollVelocity * 2.5;
+
       for (const voxel of voxels) {
         const anchorX = voxel.homeX + voxel.size * 0.5;
         const anchorY = voxel.homeY + voxel.size * 0.5;
@@ -460,9 +467,9 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
           voxel.vy += (dy / distance) * force;
         }
 
-        const scrollWave = scrollAmplitude
+        const scrollWave = currentScrollAmplitude
           ? Math.sin(scrollRef.current * 0.012 + voxel.phase + voxel.homeY * 0.016) *
-            scrollAmplitude *
+            currentScrollAmplitude *
             voxel.drift
           : 0;
         const targetX = voxel.homeX + scrollWave * 0.45;
