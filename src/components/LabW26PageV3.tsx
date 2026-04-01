@@ -69,13 +69,21 @@ const renderSpeakerDescription = (name: string, description: string): React.Reac
   );
 };
 
-const CASE_DARK_VARIANTS = new Set([0, 1]);
-
-const getCaseVisualSrc = (index: number) => {
-  if (index === 0) return `${BASE_URL}assets/cases/case-0-dark.svg`;
-  if (index === 1) return `${BASE_URL}assets/cases/case-1-dark.svg`;
-  return `${BASE_URL}assets/cases/case-${index}.svg`;
+const CASE_DARK_VARIANTS = new Set(Array.from({ length: 10 }, (_, index) => index));
+const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
+  0: 'case-0-dark.svg',
+  1: 'case-1-dark.svg',
+  2: 'case-2.svg',
+  3: 'case-3.svg',
+  4: 'case-0.svg',
+  5: 'case-1.svg',
+  6: 'case-2.svg',
+  7: 'case-3.svg',
+  8: 'case-0.svg',
+  9: 'case-1.svg',
 };
+
+const getCaseVisualSrc = (index: number) => `${BASE_URL}assets/cases/${CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`}`;
 
 const getCaseVisualFrameClassName = (index: number) => {
   if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
@@ -90,6 +98,31 @@ const getCaseVisualFrameClassName = (index: number) => {
   if (index === 9) return "inset-[2%] translate-y-[1%] scale-[2.1]";
   return "inset-[6%] scale-[1.4]";
 };
+
+const getCaseVisualToneClassName = (index: number) => {
+  if (index === 2) return "brightness-[1.18] contrast-[1.14] saturate-[1.24]";
+  if (index === 3) return "brightness-[1.12] contrast-[1.16] saturate-[1.18]";
+  if (index === 4) return "brightness-[1.12] contrast-[1.16] saturate-[1.24] hue-rotate-[18deg]";
+  if (index === 5) return "brightness-[1.18] contrast-[1.12] saturate-[1.18] hue-rotate-[-8deg]";
+  if (index === 6 || index === 7) return "brightness-[1.22] contrast-[1.18] saturate-[1.25]";
+  if (index === 8) return "brightness-[1.22] contrast-[1.18] saturate-[1.28] hue-rotate-[10deg]";
+  if (index === 9) return "brightness-[1.16] contrast-[1.14] saturate-[1.1] hue-rotate-[-12deg]";
+  if (CASE_DARK_VARIANTS.has(index)) return "brightness-[1.12] contrast-[1.1] saturate-[1.1]";
+  return "";
+};
+
+function CaseVisualGraphic({ index, className }: { index: number; className: string }) {
+  return (
+    <img
+      src={getCaseVisualSrc(index)}
+      alt=""
+      className={cn(
+        "h-full w-full origin-center object-contain transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert",
+        className,
+      )}
+    />
+  );
+}
 
 // --- CONSTANTS ---
 const SIDEBAR_NAV: NavItem[] = [
@@ -123,6 +156,7 @@ const PRIMARY_MENU_LINKS = [
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
 const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
+const philosophyAnimation = (filename: string) => `${BASE_URL}assets/${filename}`;
 
 const CASE_FILTERS = [
   { id: 'all', label: 'все' },
@@ -672,6 +706,31 @@ const PhilosophySynergyArt = () => <AsciiShuffler frames={philosophySynergyFrame
 const PhilosophyTrajectoryArt = () => <AsciiShuffler frames={philosophyTrajectoryFrames} interval={900} />;
 
 const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy' | 'trajectory' }) => {
+  const src =
+    art === 'synergy'
+      ? philosophyAnimation('philosophy-community-morph-0-3.svg')
+      : art === 'action'
+        ? philosophyAnimation('philosophy-practice-morph-7-2.svg')
+        : art === 'trajectory'
+          ? philosophyAnimation('philosophy-personalization-morph-0-2.svg')
+          : null;
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={cn(
+          "block h-full w-full object-contain",
+          art === 'synergy' && "-translate-y-[4%]",
+          art === 'action' && "translate-y-[8%]",
+          art === 'trajectory' && "translate-y-[8%]",
+        )}
+      />
+    );
+  }
+
   if (art === 'foundation') return <PhilosophyFoundationArt />;
   if (art === 'action') return <PhilosophyActionArt />;
   if (art === 'synergy') return <PhilosophySynergyArt />;
@@ -2725,13 +2784,13 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mx-auto grid max-w-[70rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {visibleCases.map(({ card, index }) => (
               <button
                 key={`${card.title}-${index}`}
                 type="button"
                 onClick={() => setActiveCaseIndex(index)}
-                className="group relative flex min-h-[224px] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
+                className="group relative mx-auto flex min-h-[224px] w-full max-w-[22rem] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
               >
                 <div
                   className={cn(
@@ -2766,13 +2825,9 @@ export default function LabW26PageV3() {
                         : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
                     )}
                   >
-                    <img
-                      src={getCaseVisualSrc(index)}
-                      alt=""
-                      className={cn(
-                        "h-full w-full origin-center object-contain transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert",
-                        CASE_DARK_VARIANTS.has(index) ? "brightness-[1.08] contrast-[1.08] saturate-[1.08]" : "",
-                      )}
+                    <CaseVisualGraphic
+                      index={index}
+                      className={getCaseVisualToneClassName(index)}
                     />
                   </div>
 
@@ -2965,7 +3020,7 @@ export default function LabW26PageV3() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
             {PHILOSOPHY_PILLARS.map((item) => (
               <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
+                <div className="flex h-[152px] w-full max-w-[10rem] flex-none items-center justify-center py-6 md:h-[112px] md:max-w-[9rem] md:py-0">
                   <PhilosophyPillarArt art={item.art} />
                 </div>
                 <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
@@ -3390,58 +3445,74 @@ export default function LabW26PageV3() {
                 </div>
 
                 <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="mx-auto grid max-w-[70rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {filteredCases.map(({ card, index }) => (
                       <button
                         key={`overlay-card-${card.title}-${index}`}
                         type="button"
                         onClick={() => setActiveCaseIndex(index)}
-                        className="group relative overflow-hidden rounded-[18px] border border-black/10 bg-white/88 p-4 text-left shadow-[0_12px_40px_rgba(0,0,0,0.03)] transition-colors hover:border-black/16"
+                        className="group relative mx-auto w-full max-w-[22rem] overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
                       >
                         <div className="mb-4 flex items-start justify-between gap-3">
                           <div>
-                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-black/34">
+                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-black/34 transition-colors duration-300 group-hover:text-white/60">
                               {String(index + 1).padStart(2, '0')} case
                             </div>
-                            <h4 className="mt-2 text-[18px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black">
+                            <h4 className="mt-2 text-[18px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white">
                               {card.title}
                             </h4>
                           </div>
-                          <span className="text-black/58 transition-colors group-hover:text-black">
+                          <span className="text-black/58 transition-colors duration-300 group-hover:text-white">
                             <ChevronDown className="h-5 w-5 -rotate-90" />
                           </span>
                         </div>
 
                         <div
                           className={cn(
-                            "relative mb-4 h-[182px] overflow-hidden",
+                            "relative mb-4 h-[182px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent",
                             CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
                           )}
                         >
                           <div
                             className={cn(
-                              "absolute inset-0",
+                              "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
                               CASE_DARK_VARIANTS.has(index)
                                 ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
                                 : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
                             )}
                           />
+
+                          {CASE_DARK_VARIANTS.has(index) ? (
+                            <>
+                              <div className="absolute inset-x-3 top-3 h-8 rounded-[18px] border border-white/10 bg-white/6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
+                              <div className="absolute inset-x-4 top-[3.15rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
+                              <div className="absolute bottom-2 left-4 h-16 w-28 rounded-full bg-[#b7ff6a]/18 blur-[36px] transition-opacity duration-300 group-hover:opacity-0" />
+                              <div className="absolute right-3 top-6 h-14 w-16 rounded-full bg-[#d7ff9a]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
+                            </>
+                          ) : null}
+
                           <div
                             className={cn(
-                              "absolute",
+                              "absolute transition-transform duration-500",
                               getCaseVisualFrameClassName(index),
                               CASE_DARK_VARIANTS.has(index) ? "opacity-100 mix-blend-screen" : "opacity-82 mix-blend-multiply",
                             )}
                           >
-                            <img
-                              src={getCaseVisualSrc(index)}
-                              alt=""
-                              className="h-full w-full origin-center object-contain"
+                            <CaseVisualGraphic
+                              index={index}
+                              className={getCaseVisualToneClassName(index)}
                             />
                           </div>
+
+                          {CASE_DARK_VARIANTS.has(index) ? (
+                            <>
+                              <div className="absolute left-[14%] top-[48%] h-16 w-32 -translate-y-1/2 rounded-full bg-[#d8ff90]/10 blur-[34px] transition-opacity duration-300 group-hover:opacity-0" />
+                              <div className="absolute right-[12%] top-[28%] h-12 w-20 rounded-full bg-[#d8ff90]/8 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
+                            </>
+                          ) : null}
                         </div>
 
-                        <p className="text-[13px] font-semibold leading-[1.5] text-black/80">
+                        <p className="text-[13px] font-semibold leading-[1.5] text-black/80 transition-colors duration-300 group-hover:text-white">
                           {card.details}
                         </p>
 
@@ -3450,7 +3521,7 @@ export default function LabW26PageV3() {
                             {card.filters.map((filterId) => (
                               <span
                                 key={`overlay-filter-${card.title}-${filterId}`}
-                                className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54"
+                                className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54 transition-colors duration-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white/76"
                               >
                                 {CASE_FILTER_LABELS[filterId]}
                               </span>
@@ -3459,12 +3530,12 @@ export default function LabW26PageV3() {
                         ) : null}
 
                         <div className="mt-4 flex flex-col gap-2">
-                          <div className="font-mono text-[10px] tracking-[0.08em] text-black/44">
+                          <div className="font-mono text-[10px] tracking-[0.08em] text-black/44 transition-colors duration-300 group-hover:text-white/72">
                             {card.author}, {card.role.toLowerCase()}
                           </div>
                           <div className="flex flex-wrap gap-x-2 gap-y-1.5">
                             {card.tools.split(' · ').map((tool, toolIndex) => (
-                              <span key={`overlay-tool-${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/56">
+                              <span key={`overlay-tool-${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/56 transition-colors duration-300 group-hover:text-white/66">
                                 {toolIndex > 0 ? '· ' : ''}
                                 {tool}
                               </span>
@@ -3544,13 +3615,9 @@ export default function LabW26PageV3() {
                         CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "mix-blend-screen opacity-100" : "mix-blend-multiply opacity-82",
                       )}
                     >
-                      <img
-                        src={getCaseVisualSrc(activeCaseVisualIndex)}
-                        alt=""
-                        className={cn(
-                          "h-full w-full origin-center object-contain",
-                          CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "brightness-[1.08] contrast-[1.08] saturate-[1.08]" : "",
-                        )}
+                      <CaseVisualGraphic
+                        index={activeCaseVisualIndex}
+                        className={getCaseVisualToneClassName(activeCaseVisualIndex)}
                       />
                     </div>
                   </div>
