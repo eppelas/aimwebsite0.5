@@ -84,6 +84,8 @@ const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
 };
 
 const getCaseVisualSrc = (index: number) => `${BASE_URL}assets/cases/${CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`}`;
+const CASE_STATIC_SVG_CACHE = new Map<string, string>();
+const CASE_STATIC_SVG_REQUESTS = new Map<string, Promise<string>>();
 
 const getCaseVisualFrameClassName = (index: number) => {
   if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
@@ -111,7 +113,75 @@ const getCaseVisualToneClassName = (index: number) => {
   return "";
 };
 
-function CaseVisualGraphic({ index, className }: { index: number; className: string }) {
+const sanitizeCaseSvgMarkup = (svgMarkup: string) =>
+  svgMarkup
+    .replace(/<\?xml[\s\S]*?\?>\s*/g, '')
+    .replace(/<animate(?:Transform|Motion)?[\s\S]*?\/>/g, '')
+    .replace(/<animate(?:Transform|Motion)?[\s\S]*?<\/animate(?:Transform|Motion)?>/g, '')
+    .replace(/<set[\s\S]*?\/>/g, '')
+    .replace(
+      /<svg\b([^>]*)>/,
+      '<svg$1 class="h-full w-full overflow-visible" preserveAspectRatio="xMidYMid meet">',
+    );
+
+const loadStaticCaseSvgMarkup = async (assetName: string) => {
+  const cachedMarkup = CASE_STATIC_SVG_CACHE.get(assetName);
+  if (cachedMarkup) return cachedMarkup;
+
+  const pendingRequest = CASE_STATIC_SVG_REQUESTS.get(assetName);
+  if (pendingRequest) return pendingRequest;
+
+  const request = fetch(`${BASE_URL}assets/cases/${assetName}`)
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${assetName}`);
+      }
+
+      const sanitizedMarkup = sanitizeCaseSvgMarkup(await response.text());
+      CASE_STATIC_SVG_CACHE.set(assetName, sanitizedMarkup);
+      return sanitizedMarkup;
+    })
+    .finally(() => {
+      CASE_STATIC_SVG_REQUESTS.delete(assetName);
+    });
+
+  CASE_STATIC_SVG_REQUESTS.set(assetName, request);
+  return request;
+};
+
+function CaseVisualGraphic({ index, className, animate = false }: { index: number; className: string; animate?: boolean }) {
+  const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
+  const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
+
+  useEffect(() => {
+    let disposed = false;
+
+    loadStaticCaseSvgMarkup(assetName)
+      .then((markup) => {
+        if (!disposed) setStaticMarkup(markup);
+      })
+      .catch(() => {
+        if (!disposed) setStaticMarkup(null);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [assetName]);
+
+  if (!animate) {
+    return (
+      <div
+        aria-hidden
+        className={cn(
+          "flex h-full w-full origin-center items-center justify-center transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert [&_svg]:h-full [&_svg]:w-full",
+          className,
+        )}
+        dangerouslySetInnerHTML={staticMarkup ? { __html: staticMarkup } : undefined}
+      />
+    );
+  }
+
   return (
     <img
       src={getCaseVisualSrc(index)}
@@ -2349,6 +2419,8 @@ export default function LabW26PageV3() {
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
   const [isCasesOverlayOpen, setIsCasesOverlayOpen] = useState(false);
   const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
+  const [hoveredCaseIndex, setHoveredCaseIndex] = useState<number | null>(null);
+  const [hoveredOverlayCaseIndex, setHoveredOverlayCaseIndex] = useState<number | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
@@ -2790,6 +2862,10 @@ export default function LabW26PageV3() {
                 key={`${card.title}-${index}`}
                 type="button"
                 onClick={() => setActiveCaseIndex(index)}
+                onPointerEnter={() => setHoveredCaseIndex(index)}
+                onPointerLeave={() => setHoveredCaseIndex((current) => (current === index ? null : current))}
+                onFocus={() => setHoveredCaseIndex(index)}
+                onBlur={() => setHoveredCaseIndex((current) => (current === index ? null : current))}
                 className="group relative mx-auto flex min-h-[224px] w-full max-w-[22rem] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
               >
                 <div
@@ -2828,6 +2904,7 @@ export default function LabW26PageV3() {
                     <CaseVisualGraphic
                       index={index}
                       className={getCaseVisualToneClassName(index)}
+                      animate={hoveredCaseIndex === index}
                     />
                   </div>
 
@@ -3451,6 +3528,10 @@ export default function LabW26PageV3() {
                         key={`overlay-card-${card.title}-${index}`}
                         type="button"
                         onClick={() => setActiveCaseIndex(index)}
+                        onPointerEnter={() => setHoveredOverlayCaseIndex(index)}
+                        onPointerLeave={() => setHoveredOverlayCaseIndex((current) => (current === index ? null : current))}
+                        onFocus={() => setHoveredOverlayCaseIndex(index)}
+                        onBlur={() => setHoveredOverlayCaseIndex((current) => (current === index ? null : current))}
                         className="group relative mx-auto w-full max-w-[22rem] overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
                       >
                         <div className="mb-4 flex items-start justify-between gap-3">
@@ -3501,6 +3582,7 @@ export default function LabW26PageV3() {
                             <CaseVisualGraphic
                               index={index}
                               className={getCaseVisualToneClassName(index)}
+                              animate={hoveredOverlayCaseIndex === index}
                             />
                           </div>
 
@@ -3618,6 +3700,7 @@ export default function LabW26PageV3() {
                       <CaseVisualGraphic
                         index={activeCaseVisualIndex}
                         className={getCaseVisualToneClassName(activeCaseVisualIndex)}
+                        animate={false}
                       />
                     </div>
                   </div>
