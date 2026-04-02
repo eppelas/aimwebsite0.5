@@ -69,6 +69,15 @@ const renderSpeakerDescription = (name: string, description: string): React.Reac
   );
 };
 
+const SpeakerCornerFrame = () => (
+  <>
+    <div className="pointer-events-none absolute left-0 top-0 h-4 w-4 border-l border-t border-black/40" />
+    <div className="pointer-events-none absolute right-0 top-0 h-4 w-4 border-r border-t border-black/40" />
+    <div className="pointer-events-none absolute bottom-0 left-0 h-4 w-4 border-b border-l border-black/40" />
+    <div className="pointer-events-none absolute bottom-0 right-0 h-4 w-4 border-b border-r border-black/40" />
+  </>
+);
+
 const CASE_DARK_VARIANTS = new Set(Array.from({ length: 10 }, (_, index) => index));
 const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
   0: 'case-0-dark.svg',
@@ -2452,6 +2461,20 @@ export default function LabW26PageV3() {
     };
   }, []);
 
+  useEffect(() => {
+    const scrollToHashTarget = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      window.requestAnimationFrame(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
+      });
+    };
+
+    scrollToHashTarget();
+    window.addEventListener('hashchange', scrollToHashTarget);
+    return () => window.removeEventListener('hashchange', scrollToHashTarget);
+  }, []);
+
   // Theme colors
   const colors = {
     winter: {
@@ -2483,7 +2506,10 @@ export default function LabW26PageV3() {
 
   const scrollTo = (id: string) => {
     const el = document.querySelector(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) {
+      window.history.replaceState(null, '', `${window.location.pathname}${id}`);
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
     setIsMenuOpen(false);
   };
 
@@ -2976,6 +3002,7 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="team" className="py-20 md:py-32">
         <Container>
+          <div id="speakers" className="relative -top-24" aria-hidden="true" />
           <EditorialSectionHeader eyebrow="команда лаборатории" title="Спикеры" className="mb-16" />
           <div className="mb-16 max-w-3xl">
             <p className="text-sm md:text-base opacity-70 leading-relaxed">
@@ -3045,47 +3072,40 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="relative hidden md:flex flex-wrap justify-center gap-x-4 gap-y-8">
+          <div className="hidden md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-4">
             {TEAM_MEMBERS.map((member) => (
-              <article key={member.name} className="group flex flex-col gap-3 w-[calc(33.333%-10.66px)] lg:w-[calc(25%-12px)] xl:w-[calc(20%-12.8px)] relative z-10">
-                <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                    referrerPolicy="no-referrer"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/8 transition-colors duration-300 group-hover:bg-black/14" />
+              <article key={member.name} className="group relative flex h-full flex-col p-3">
+                <SpeakerCornerFrame />
+
+                <div className="mx-auto mb-6 w-full">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-black/6">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(0,0,0,0.08)_100%)]" />
+                  </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <div>
-                    <h3 className="text-[15px] font-bold uppercase tracking-tight leading-tight text-black/92">
-                      {member.name}
+                <div className="flex flex-1 flex-col">
+                  <div className="mb-1 min-h-[3rem]">
+                    <h3 className="mb-1 text-[16px] font-bold uppercase tracking-tight leading-tight text-black/92">
+                      {member.name.toUpperCase()}
                     </h3>
-                    <p className="mt-1 text-[9px] opacity-40 uppercase tracking-widest">
-                      {member.role}
+                    <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-black/38">
+                      {member.role.toUpperCase()}
                     </p>
                   </div>
 
-                  <p className="text-[12px] leading-[1.58] text-black/68">
+                  <p className="text-[13px] leading-[1.58] text-black/68">
                     {renderSpeakerDescription(member.name, member.description)}
                   </p>
                 </div>
               </article>
             ))}
-            
-            {/* Morph Animation replacing remaining whitespace */}
-            <div 
-              className="absolute pointer-events-none z-0 w-1/3 overflow-visible right-[-2%] lg:right-[-2%] bottom-[12%]"
-            >
-              <img 
-                src={`${BASE_URL}assets/speakers-morph-animation-8.svg`} 
-                alt="AI Mindset Animation" 
-                className="w-full ml-auto max-w-[200px] lg:max-w-[260px] xl:max-w-[380px] h-auto object-contain mix-blend-multiply opacity-90 transition-all hover:opacity-100 scale-125 -rotate-[18deg] origin-center"
-              />
-            </div>
           </div>
         </Container>
       </section>
@@ -3320,9 +3340,11 @@ export default function LabW26PageV3() {
       </section>
 
       <SlashDivider />
-      <ReviewsSection />
+      <section id="reviews">
+        <ReviewsSection />
+      </section>
 
-      <section className="py-24 md:py-32 overflow-hidden">
+      <section id="manifesto" className="py-24 md:py-32 overflow-hidden">
         <Container>
           <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
             <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
@@ -3343,14 +3365,16 @@ export default function LabW26PageV3() {
       </section>
 
       <SlashDivider />
-      <section className="bg-[#f3f3f5] py-10 md:py-14">
+      <section id="faq" className="bg-[#f3f3f5] py-10 md:py-14">
         <Container>
           <div className="space-y-10 md:space-y-14">
             <FooterFaqBlock title="вопросы и ответы" versionLabel={null} />
             <div className="py-1 md:py-2">
               <SlashDivider />
             </div>
-            <FooterLabsNavigatorBlock />
+            <div id="labs">
+              <FooterLabsNavigatorBlock />
+            </div>
           </div>
         </Container>
       </section>
