@@ -250,6 +250,8 @@ const CASE_FILTER_LABELS = CASE_FILTERS.reduce<Record<string, string>>((acc, fil
   return acc;
 }, {});
 
+const PAGE_SECTION_HASH_IDS = ['hero', 'program', 'cases', 'speakers', 'philosophy', 'pricing', 'reviews', 'faq', 'labs'] as const;
+
 const CASE_ARTS = {
   coaching: [
     "[ SYS ]\n   /|\\\n  / | \\\n /  O  \\\n -----"
@@ -394,7 +396,76 @@ const CASE_CARDS: CaseCard[] = [
     artFrames: CASE_ARTS.analytics,
     filters: ['developer']
   },
+  {
+    title: 'AI CRM',
+    author: 'Наталья Р.',
+    role: 'Sales Ops',
+    desc: 'AI-ассистент для CRM',
+    details: 'Квалификация лидов, резюме звонков и автообновление карточек без ручного копипаста.',
+    tools: 'HubSpot · Claude · n8n',
+    metric: '−45% ручной работы в CRM',
+    artFrames: CASE_ARTS.automation,
+    filters: ['manager']
+  },
+  {
+    title: 'AI SUPPORT',
+    author: 'Кирилл Б.',
+    role: 'Support Lead',
+    desc: 'Поддержка клиентов',
+    details: 'Черновики ответов, маршрутизация обращений и выявление повторяющихся проблем в поддержке.',
+    tools: 'Intercom · GPT-4 · Notion',
+    metric: '+32% скорость ответа',
+    artFrames: CASE_ARTS.summary,
+    filters: ['manager']
+  },
+  {
+    title: 'AI SCRIPTING',
+    author: 'Полина А.',
+    role: 'Продюсер',
+    desc: 'Сценарный AI-помощник',
+    details: 'Быстрые сценарные драфты, структурирование интервью и адаптация сюжетов под форматы.',
+    tools: 'Claude · ChatGPT · Notion',
+    metric: '3x быстрее препродакшн',
+    artFrames: CASE_ARTS.content,
+    filters: ['creative']
+  },
+  {
+    title: 'AI CURATOR',
+    author: 'Лев Г.',
+    role: 'Методист',
+    desc: 'Куратор учебного потока',
+    details: 'Разбор домашних заданий, персональные подсказки и сбор слабых мест по всей группе.',
+    tools: 'GPT-4 · Airtable · ElevenLabs',
+    metric: '+50% качество обратной связи',
+    artFrames: CASE_ARTS.learning,
+    filters: ['educator']
+  },
+  {
+    title: 'AI DASHBOARD',
+    author: 'Тимур З.',
+    role: 'BI Analyst',
+    desc: 'AI-панель метрик',
+    details: 'Живые пояснения к дашбордам, поиск аномалий и авто-сводки для команды раз в неделю.',
+    tools: 'Looker · GPT · Sheets',
+    metric: '−70% времени на расшифровку метрик',
+    artFrames: CASE_ARTS.analytics,
+    filters: ['developer']
+  },
+  {
+    title: 'AI REPO',
+    author: 'Соня К.',
+    role: 'Product Designer',
+    desc: 'Навигатор по проекту',
+    details: 'Поиск по документации, встречам и задачам в одном контексте вместо ручного ресерча по папкам.',
+    tools: 'Obsidian · Claude · MCP',
+    metric: '5x быстрее вход в контекст',
+    artFrames: CASE_ARTS.knowledge,
+    filters: ['creative']
+  },
 ];
+
+const getCaseTools = (card: CaseCard) => card.tools.split(' · ').map((tool) => tool.trim()).filter(Boolean);
+const CASE_TOOL_FILTERS = ['all', ...Array.from(new Set(CASE_CARDS.flatMap((card) => getCaseTools(card))))];
 
 export const PROGRAM_TRACKS = [
   {
@@ -2426,6 +2497,7 @@ export default function LabW26PageV3() {
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
+  const [activeCaseToolFilter, setActiveCaseToolFilter] = useState('all');
   const [isCasesOverlayOpen, setIsCasesOverlayOpen] = useState(false);
   const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
   const [hoveredCaseIndex, setHoveredCaseIndex] = useState<number | null>(null);
@@ -2433,6 +2505,8 @@ export default function LabW26PageV3() {
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
+  const sectionHashSyncLockRef = useRef<number | null>(null);
+  const lastSyncedHashRef = useRef<string>('');
 
   useEffect(() => {
     if (isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null) {
@@ -2458,21 +2532,92 @@ export default function LabW26PageV3() {
       if (labsCloseTimeoutRef.current !== null) {
         window.clearTimeout(labsCloseTimeoutRef.current);
       }
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
     };
   }, []);
 
   useEffect(() => {
-    const scrollToHashTarget = () => {
+    const lockSectionHashSync = (duration = 900) => {
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
+      sectionHashSyncLockRef.current = window.setTimeout(() => {
+        sectionHashSyncLockRef.current = null;
+      }, duration);
+    };
+
+    const scrollToHashTarget = (behavior: ScrollBehavior) => {
       const hash = window.location.hash;
       if (!hash) return;
+      lastSyncedHashRef.current = hash;
       window.requestAnimationFrame(() => {
-        document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' });
+        document.querySelector(hash)?.scrollIntoView({ behavior, block: 'start' });
       });
     };
 
-    scrollToHashTarget();
-    window.addEventListener('hashchange', scrollToHashTarget);
-    return () => window.removeEventListener('hashchange', scrollToHashTarget);
+    const handleHashChange = () => {
+      lockSectionHashSync();
+      scrollToHashTarget('smooth');
+    };
+
+    scrollToHashTarget('auto');
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    let ticking = false;
+
+    const syncHashToVisibleSection = () => {
+      ticking = false;
+      if (sectionHashSyncLockRef.current !== null) return;
+
+      const threshold = Math.min(220, window.innerHeight * 0.28);
+      let activeSectionId: string | null = null;
+      let nearestSectionId: string | null = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      for (const id of PAGE_SECTION_HASH_IDS) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const rect = element.getBoundingClientRect();
+        const distance = Math.abs(rect.top - threshold);
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestSectionId = id;
+        }
+
+        if (rect.top <= threshold && rect.bottom > threshold) {
+          activeSectionId = id;
+        }
+      }
+
+      const nextSectionId = activeSectionId ?? nearestSectionId;
+      if (!nextSectionId) return;
+
+      const nextHash = `#${nextSectionId}`;
+      if (lastSyncedHashRef.current === nextHash && window.location.hash === nextHash) return;
+
+      lastSyncedHashRef.current = nextHash;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
+    };
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(syncHashToVisibleSection);
+    };
+
+    syncHashToVisibleSection();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   // Theme colors
@@ -2495,10 +2640,107 @@ export default function LabW26PageV3() {
 
   const filteredCases = CASE_CARDS
     .map((card, index) => ({ card, index }))
-    .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter));
-  const visibleCases = filteredCases.slice(0, 4);
+    .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter))
+    .filter(({ card }) => activeCaseToolFilter === 'all' || getCaseTools(card).includes(activeCaseToolFilter));
+  const visibleCases = filteredCases.slice(0, 8);
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
   const activeCaseVisualIndex = activeCaseIndex ?? 0;
+
+  const renderCaseCard = (
+    card: CaseCard,
+    index: number,
+    hovered: boolean,
+    setHovered: (value: number | null | ((current: number | null) => number | null)) => void,
+    keyPrefix: string,
+    options?: { showTools?: boolean; descriptionLines?: 2 | 3 },
+  ) => (
+    <button
+      key={`${keyPrefix}-${card.title}-${index}`}
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        setActiveCaseIndex(index);
+      }}
+      onPointerEnter={() => setHovered(index)}
+      onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
+      onFocus={() => setHovered(index)}
+      onBlur={() => setHovered((current) => (current === index ? null : current))}
+      className="group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[4px] border border-black/10 bg-white px-3 pb-3 pt-2 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
+    >
+      <div
+        className={cn(
+          "relative mb-2.5 h-[92px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent md:h-[100px]",
+          CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
+        )}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
+            CASE_DARK_VARIANTS.has(index)
+              ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+              : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+          )}
+        />
+
+        {CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className="absolute inset-x-2 top-1.5 h-5 border border-white/10 bg-white/6 shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-300 group-hover:opacity-0" />
+          </>
+        ) : null}
+
+        <div
+          className={cn(
+            "absolute transition-transform duration-500",
+            getCaseVisualFrameClassName(index),
+            CASE_DARK_VARIANTS.has(index)
+              ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
+              : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
+          )}
+        >
+          <CaseVisualGraphic
+            index={index}
+            className={getCaseVisualToneClassName(index)}
+            animate={hovered}
+          />
+        </div>
+
+        {CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className="absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-300 group-hover:opacity-0" />
+          </>
+        ) : null}
+      </div>
+
+      <h4 className="mb-1.5 max-w-[10.6rem] text-[14px] font-black uppercase leading-[0.94] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white md:text-[15px]">
+        {card.title}
+      </h4>
+
+      <p className={cn(
+        "mb-2 text-[12px] font-normal leading-[1.34] text-black/78 transition-colors duration-300 group-hover:text-white/90",
+        options?.descriptionLines === 3 ? "line-clamp-3" : "line-clamp-2",
+      )}>
+        {card.details}
+      </p>
+
+      <div className="mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] text-black/46 transition-colors duration-300 group-hover:text-white/72 md:text-[10px]">
+        {card.author}, {card.role.toLowerCase()}
+      </div>
+
+      {options?.showTools ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {getCaseTools(card).map((tool) => (
+            <span key={`${keyPrefix}-tool-${card.title}-${tool}`} className="rounded-[2px] border border-black/10 bg-black/[0.03] px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] text-black/56 transition-colors duration-300 group-hover:border-black/15 group-hover:bg-white/55 group-hover:font-bold group-hover:text-black md:text-[9px]">
+              {tool}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </button>
+  );
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2507,7 +2749,14 @@ export default function LabW26PageV3() {
   const scrollTo = (id: string) => {
     const el = document.querySelector(id);
     if (el) {
-      window.history.replaceState(null, '', `${window.location.pathname}${id}`);
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
+      sectionHashSyncLockRef.current = window.setTimeout(() => {
+        sectionHashSyncLockRef.current = null;
+      }, 900);
+      lastSyncedHashRef.current = id;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${id}`);
       el.scrollIntoView({ behavior: 'smooth' });
     }
     setIsMenuOpen(false);
@@ -2882,101 +3131,13 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="mx-auto grid max-w-[70rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {visibleCases.map(({ card, index }) => (
-              <button
-                key={`${card.title}-${index}`}
-                type="button"
-                onClick={() => setActiveCaseIndex(index)}
-                onPointerEnter={() => setHoveredCaseIndex(index)}
-                onPointerLeave={() => setHoveredCaseIndex((current) => (current === index ? null : current))}
-                onFocus={() => setHoveredCaseIndex(index)}
-                onBlur={() => setHoveredCaseIndex((current) => (current === index ? null : current))}
-                className="group relative mx-auto flex min-h-[224px] w-full max-w-[22rem] flex-col overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
-              >
-                <div
-                  className={cn(
-                    "relative mb-4 h-[116px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent md:h-[136px]",
-                    CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
-                      CASE_DARK_VARIANTS.has(index)
-                        ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
-                        : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
-                    )}
-                  />
-
-                  {CASE_DARK_VARIANTS.has(index) ? (
-                    <>
-                      <div className="absolute inset-x-3 top-3 h-8 rounded-[18px] border border-white/10 bg-white/6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
-                      <div className="absolute inset-x-4 top-[3.15rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
-                      <div className="absolute bottom-2 left-4 h-16 w-28 rounded-full bg-[#b7ff6a]/18 blur-[36px] transition-opacity duration-300 group-hover:opacity-0" />
-                      <div className="absolute right-3 top-6 h-14 w-16 rounded-full bg-[#d7ff9a]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
-                    </>
-                  ) : null}
-
-                  <div
-                    className={cn(
-                      "absolute transition-transform duration-500",
-                      getCaseVisualFrameClassName(index),
-                      CASE_DARK_VARIANTS.has(index)
-                        ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
-                        : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
-                    )}
-                  >
-                    <CaseVisualGraphic
-                      index={index}
-                      className={getCaseVisualToneClassName(index)}
-                      animate={hoveredCaseIndex === index}
-                    />
-                  </div>
-
-                  {CASE_DARK_VARIANTS.has(index) ? (
-                    <>
-                      <div className="absolute left-[14%] top-[48%] h-16 w-32 -translate-y-1/2 rounded-full bg-[#d8ff90]/10 blur-[34px] transition-opacity duration-300 group-hover:opacity-0" />
-                      <div className="absolute right-[12%] top-[28%] h-12 w-20 rounded-full bg-[#d8ff90]/8 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
-                    </>
-                  ) : null}
-
-                  <div className={cn("absolute left-3 top-3 font-mono text-[8px] uppercase tracking-[0.18em] transition-colors duration-300 group-hover:text-white/82", CASE_DARK_VARIANTS.has(index) ? "text-white/78" : "text-black/42")}>
-                    {String(index + 1).padStart(2, '0')}
-                  </div>
-                  <div className={cn("absolute right-3 top-3 font-mono text-[8px] uppercase tracking-[0.16em] transition-colors duration-300 group-hover:text-white/52", CASE_DARK_VARIANTS.has(index) ? "text-white/48" : "text-black/30")}>
-                    case
-                  </div>
-                </div>
-
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <h4 className="max-w-[11rem] text-[16px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white">
-                    {card.title}
-                  </h4>
-                  <div className="shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-black/34 transition-colors group-hover:text-white/60">
-                    case
-                  </div>
-                </div>
-
-                <p className="text-[12px] font-semibold leading-[1.45] text-black/78 transition-colors group-hover:text-white/88">
-                  {card.details}
-                </p>
-
-                <div className="mt-auto flex flex-col gap-3 pt-4">
-                  <div className="font-mono text-[11px] tracking-[0.08em] text-black/46 transition-colors group-hover:text-white/74 md:text-[13px]">
-                    {card.author}, {card.role.toLowerCase()}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-                    {card.tools.split(' · ').map((tool, toolIndex) => (
-                      <span key={`${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/52 transition-colors group-hover:text-white/74">
-                        {toolIndex > 0 ? '· ' : ''}
-                        {tool}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </button>
-            ))}
+          <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {visibleCases.map(({ card, index }) =>
+              renderCaseCard(card, index, hoveredCaseIndex === index, setHoveredCaseIndex, 'main', {
+                showTools: true,
+                descriptionLines: 3,
+              })
+            )}
           </div>
 
           {filteredCases.length > 0 ? (
@@ -3072,9 +3233,9 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="hidden md:grid md:grid-cols-2 md:gap-6 xl:grid-cols-4">
+          <div className="hidden md:grid md:grid-cols-2 md:justify-items-center md:gap-x-6 md:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
             {TEAM_MEMBERS.map((member) => (
-              <article key={member.name} className="group relative flex h-full flex-col p-3">
+              <article key={member.name} className="group relative flex h-full w-full max-w-[286px] flex-col p-3">
                 <SpeakerCornerFrame />
 
                 <div className="mx-auto mb-6 w-full">
@@ -3497,22 +3658,21 @@ export default function LabW26PageV3() {
               exit={{ opacity: 0, y: 18 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="relative flex h-[calc(100vh-1.5rem)] w-full max-w-[92rem] flex-col overflow-hidden rounded-lg border border-black/10 bg-[#f8f8f5] text-black shadow-2xl md:h-[min(50rem,calc(100vh-3rem))]"
-              onClick={(event) => event.stopPropagation()}
+              onClick={() => setIsCasesOverlayOpen(false)}
             >
               <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:22px_22px] opacity-70" />
               <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85),transparent_70%)]" />
               <div className="relative z-10 flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
                 <div className="min-w-0">
-                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-black/36">case atlas</div>
                   <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">Все кейсы</h3>
-                  <p className="mt-2 max-w-3xl text-sm leading-relaxed text-black/62 md:text-[15px]">
-                    большой каталог с тегами, инструментами и быстрым входом в подробный поп-ап по каждому кейсу.
-                  </p>
                 </div>
                 <button
                   type="button"
                   className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
-                  onClick={() => setIsCasesOverlayOpen(false)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsCasesOverlayOpen(false);
+                  }}
                 >
                   <X size={20} />
                 </button>
@@ -3520,139 +3680,72 @@ export default function LabW26PageV3() {
 
               <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
                 <div className="border-b border-black/8 px-5 py-4 md:px-7">
-                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                    <div className="mr-2 text-[10px] md:text-[11px] font-black tracking-[0.12em] text-black/42">
-                      Кем сделано:
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                      <div className="mr-2 text-[10px] md:text-[11px] font-black tracking-[0.12em] text-black/42">
+                        Кем сделано:
+                      </div>
+                      {CASE_FILTERS.map((filter) => {
+                        const isActive = activeCaseFilter === filter.id;
+                        return (
+                          <button
+                            key={`overlay-${filter.id}`}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveCaseFilter(filter.id);
+                            }}
+                            className={cn(
+                              "rounded-sm px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
+                              isActive
+                                ? "bg-black text-white"
+                                : "border border-black/10 bg-white/72 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                            )}
+                          >
+                            {filter.label}
+                          </button>
+                        );
+                      })}
                     </div>
-                    {CASE_FILTERS.map((filter) => {
-                      const isActive = activeCaseFilter === filter.id;
-                      return (
-                        <button
-                          key={`overlay-${filter.id}`}
-                          type="button"
-                          onClick={() => setActiveCaseFilter(filter.id)}
-                          className={cn(
-                            "rounded-sm px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
-                            isActive
-                              ? "bg-black text-white"
-                              : "border border-black/10 bg-white/72 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
-                          )}
-                        >
-                          {filter.label}
-                        </button>
-                      );
-                    })}
+
+                    <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                      <div className="mr-2 text-[10px] md:text-[11px] font-black tracking-[0.12em] text-black/42">
+                        Инструменты:
+                      </div>
+                      {CASE_TOOL_FILTERS.map((tool) => {
+                        const isActive = activeCaseToolFilter === tool;
+                        const label = tool === 'all' ? 'все' : tool;
+                        return (
+                          <button
+                            key={`overlay-tool-${tool}`}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveCaseToolFilter(tool);
+                            }}
+                            className={cn(
+                              "rounded-sm border px-2.5 py-1.5 text-left font-mono text-[8px] uppercase leading-[1.15] tracking-[0.14em] transition-colors md:text-[9px]",
+                              isActive
+                                ? "border-black bg-black text-white"
+                                : "border-black/10 bg-white/72 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
 
                 <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
-                  <div className="mx-auto grid max-w-[70rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {filteredCases.map(({ card, index }) => (
-                      <button
-                        key={`overlay-card-${card.title}-${index}`}
-                        type="button"
-                        onClick={() => setActiveCaseIndex(index)}
-                        onPointerEnter={() => setHoveredOverlayCaseIndex(index)}
-                        onPointerLeave={() => setHoveredOverlayCaseIndex((current) => (current === index ? null : current))}
-                        onFocus={() => setHoveredOverlayCaseIndex(index)}
-                        onBlur={() => setHoveredOverlayCaseIndex((current) => (current === index ? null : current))}
-                        className="group relative mx-auto w-full max-w-[22rem] overflow-hidden rounded-[6px] border border-black/10 bg-white p-5 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F] lg:max-w-none"
-                      >
-                        <div className="mb-4 flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-black/34 transition-colors duration-300 group-hover:text-white/60">
-                              {String(index + 1).padStart(2, '0')} case
-                            </div>
-                            <h4 className="mt-2 text-[18px] font-black uppercase leading-[0.95] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white">
-                              {card.title}
-                            </h4>
-                          </div>
-                          <span className="text-black/58 transition-colors duration-300 group-hover:text-white">
-                            <ChevronDown className="h-5 w-5 -rotate-90" />
-                          </span>
-                        </div>
-
-                        <div
-                          className={cn(
-                            "relative mb-4 h-[182px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent",
-                            CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
-                              CASE_DARK_VARIANTS.has(index)
-                                ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
-                                : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
-                            )}
-                          />
-
-                          {CASE_DARK_VARIANTS.has(index) ? (
-                            <>
-                              <div className="absolute inset-x-3 top-3 h-8 rounded-[18px] border border-white/10 bg-white/6 shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
-                              <div className="absolute inset-x-4 top-[3.15rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
-                              <div className="absolute bottom-2 left-4 h-16 w-28 rounded-full bg-[#b7ff6a]/18 blur-[36px] transition-opacity duration-300 group-hover:opacity-0" />
-                              <div className="absolute right-3 top-6 h-14 w-16 rounded-full bg-[#d7ff9a]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
-                            </>
-                          ) : null}
-
-                          <div
-                            className={cn(
-                              "absolute transition-transform duration-500",
-                              getCaseVisualFrameClassName(index),
-                              CASE_DARK_VARIANTS.has(index) ? "opacity-100 mix-blend-screen" : "opacity-82 mix-blend-multiply",
-                            )}
-                          >
-                            <CaseVisualGraphic
-                              index={index}
-                              className={getCaseVisualToneClassName(index)}
-                              animate={hoveredOverlayCaseIndex === index}
-                            />
-                          </div>
-
-                          {CASE_DARK_VARIANTS.has(index) ? (
-                            <>
-                              <div className="absolute left-[14%] top-[48%] h-16 w-32 -translate-y-1/2 rounded-full bg-[#d8ff90]/10 blur-[34px] transition-opacity duration-300 group-hover:opacity-0" />
-                              <div className="absolute right-[12%] top-[28%] h-12 w-20 rounded-full bg-[#d8ff90]/8 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
-                            </>
-                          ) : null}
-                        </div>
-
-                        <p className="text-[13px] font-semibold leading-[1.5] text-black/80 transition-colors duration-300 group-hover:text-white">
-                          {card.details}
-                        </p>
-
-                        {card.filters.length ? (
-                          <div className="mt-4 flex flex-wrap gap-1.5">
-                            {card.filters.map((filterId) => (
-                              <span
-                                key={`overlay-filter-${card.title}-${filterId}`}
-                                className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54 transition-colors duration-300 group-hover:border-white/20 group-hover:bg-white/10 group-hover:text-white/76"
-                              >
-                                {CASE_FILTER_LABELS[filterId]}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
-
-                        <div className="mt-4 flex flex-col gap-2">
-                          <div className="font-mono text-[10px] tracking-[0.08em] text-black/44 transition-colors duration-300 group-hover:text-white/72">
-                            {card.author}, {card.role.toLowerCase()}
-                          </div>
-                          <div className="flex flex-wrap gap-x-2 gap-y-1.5">
-                            {card.tools.split(' · ').map((tool, toolIndex) => (
-                              <span key={`overlay-tool-${card.title}-${tool}`} className="font-mono text-[8px] uppercase tracking-[0.16em] text-black/56 transition-colors duration-300 group-hover:text-white/66">
-                                {toolIndex > 0 ? '· ' : ''}
-                                {tool}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#56771f]">
-                            {card.metric}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                  <div className="mx-auto grid max-w-[88rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                    {filteredCases.map(({ card, index }) =>
+                      renderCaseCard(card, index, hoveredOverlayCaseIndex === index, setHoveredOverlayCaseIndex, 'overlay', {
+                        showTools: true,
+                        descriptionLines: 2,
+                      })
+                    )}
                   </div>
                 </div>
               </div>
@@ -3682,7 +3775,6 @@ export default function LabW26PageV3() {
                 <div className="min-w-0">
                   <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">кейс</div>
                   <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
-                  <p className="mt-2 max-w-2xl text-sm opacity-70 md:text-base">{activeCase.desc}</p>
                   <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
                     <span>{activeCase.author}</span>
                     <span>{activeCase.role}</span>
@@ -3743,13 +3835,6 @@ export default function LabW26PageV3() {
                 </div>
                 <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
                   <div className="space-y-5 pb-8">
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">задача</div>
-                      <p className="text-[14px] leading-[1.65] text-black/72 md:text-[15px]">
-                        {activeCase.desc}
-                      </p>
-                    </section>
-
                     <section>
                       <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
                       <p className="text-[14px] leading-[1.7] text-black/78 md:text-[15px]">

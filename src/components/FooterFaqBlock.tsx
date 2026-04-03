@@ -10,33 +10,50 @@ const FAQ_DATA = [
   {
     category: 'ОРГАНИЗАЦИЯ И ПРОЦЕССЫ',
     items: [
-      { q: 'Наш подход к обучению', a: 'Практика прежде всего: реальные кейсы, практические задания и чеклисты в каждом модуле. Гибкость: программа подстраивается под динамику и интересы группы. Актуальность: следим за последними трендами в AI и обновляем контент. Философское осмысление: размышляем об этике и влиянии AI на будущее. Коллаборация: поощряем обмен идеями и опытом между участниками.' },
-      { q: 'Будет ли возможность пообщаться с авторами курса лично?', a: 'Да, в рамках лаборатории предусмотрены коворкинги и Office Hours специально для разбора ваших вопросов авторами курса и кураторами. На воркшопах тоже предусмотрена возможность задавать вопросы.' },
-      { q: 'Как будет организовано общение и взаимодействие участников?', a: 'Мы создадим закрытый Telegram-чат для участников. Этот чат и сами занятия — эффективные площадки для обсуждений, взаимной поддержки и обмена опытом.' },
+      { q: 'Наш подход к обучению', a: 'Практика прежде всего: реальные кейсы, практические задания и чеклисты в каждом модуле. Гибкость: программа подстраивается под динамику и интересы группы. Актуальность: следим за последними трендами в AI и обновляем контент. Философское осмысление: размышляем об этике и влиянии AI на будущее. Коллаборация: поощряем обмен идеями и опытом между участниками.', highlights: ['Практика прежде всего', 'реальные кейсы', 'Гибкость', 'Актуальность', 'Коллаборация'] },
+      { q: 'Будет ли возможность пообщаться с авторами курса лично?', a: 'Да, в рамках лаборатории предусмотрены коворкинги и Office Hours специально для разбора ваших вопросов авторами курса и кураторами. На воркшопах тоже предусмотрена возможность задавать вопросы.', highlights: ['коворкинги', 'Office Hours', 'разбора ваших вопросов', 'задавать вопросы'] },
+      { q: 'Как будет организовано общение и взаимодействие участников?', a: 'Мы создадим закрытый Telegram-чат для участников. Этот чат и сами занятия — эффективные площадки для обсуждений, взаимной поддержки и обмена опытом.', highlights: ['закрытый Telegram-чат', 'эффективные площадки', 'взаимной поддержки', 'обмена опытом'] },
     ],
   },
   {
     category: 'ОЖИДАНИЯ И РЕЗУЛЬТАТ',
     items: [
-      { q: 'Кому лаборатория подходит, а кому нет?', a: 'Подходит: предприниматели, менеджеры, аналитики, преподаватели, криэйторы, исследователи и философы и все, кто интересуется будущим и своей эффективностью. Технический уровень: от начального до продвинутого. Вы готовы разбираться в новом, инвестировать время и силы. НЕ для вас, если: вы не готовы самостоятельно решать технические сложности, не готовы оплатить необходимые инструменты (AI-модели), ждёте готовые решения и не хотите думать самостоятельно.' },
-      { q: 'Инструменты, которые мы освоим', a: 'Текстовые LLM: ChatGPT, Custom GPTs, GPT Canvas, Claude, Claude Artefacts, Google Gemini, Groq, OpenRouter. Софт с интеграцией AI: Claude Code, WindSurf, Cursor, Taskade, Tactiq, Krisp, Ollama, LMStudio, MSTY, Obsidian. Автоматизация и ресерч: Perplexity, Consensus, DeepResearches, Elicit, Elevenlabs, SuperWhisper, WisprFlow, n8n, make, Vapi, AutoGPT, AIDER. Графические и видео инструменты: Midjourney, Runway ML, Dream Machine, Heygen, Stable Diffusion, Pika.' },
-      { q: 'Нужен ли технический бэкграунд для участия в лаборатории?', a: 'Нет, мы будем использовать готовые плагины и инструменты, доступные даже для новичков. Главное — ваше желание учиться и экспериментировать.' },
-      { q: 'Ваши обязательства для максимального результата', a: 'Присутствие на live-сессиях с включенной камерой и активное участие. Самостоятельная оплата необходимых AI-инструментов. Выполнение практических заданий (минимум 2-3 часа в неделю). Готовность экспериментировать.' },
-      { q: 'Что вы получите?', a: 'Системное понимание AI как партнера для мышления. Практические навыки: промпт-инжиниринг, контекст-инжиниринг, агенты и автоматизации. Собственные AI-ассистенты, настроенные на ваш контекст. AI-ритуалы для повышения продуктивности и креативности. Сообщество практиков.' },
+      { q: 'Кому лаборатория подходит, а кому нет?', a: 'Подходит: предприниматели, менеджеры, аналитики, преподаватели, криэйторы, исследователи и философы и все, кто интересуется будущим и своей эффективностью. Технический уровень: от начального до продвинутого. Вы готовы разбираться в новом, инвестировать время и силы. НЕ для вас, если: вы не готовы самостоятельно решать технические сложности, не готовы оплатить необходимые инструменты (AI-модели), ждёте готовые решения и не хотите думать самостоятельно.', highlights: ['Подходит', 'Технический уровень: от начального до продвинутого', 'НЕ для вас', 'AI-модели', 'готовые решения'] },
+      { q: 'Инструменты, которые мы освоим', a: 'Текстовые LLM: ChatGPT, Custom GPTs, GPT Canvas, Claude, Claude Artefacts, Google Gemini, Groq, OpenRouter. Софт с интеграцией AI: Claude Code, WindSurf, Cursor, Taskade, Tactiq, Krisp, Ollama, LMStudio, MSTY, Obsidian. Автоматизация и ресерч: Perplexity, Consensus, DeepResearches, Elicit, Elevenlabs, SuperWhisper, WisprFlow, n8n, make, Vapi, AutoGPT, AIDER. Графические и видео инструменты: Midjourney, Runway ML, Dream Machine, Heygen, Stable Diffusion, Pika.', highlights: ['Текстовые LLM', 'Софт с интеграцией AI', 'Автоматизация и ресерч', 'Графические и видео инструменты'] },
+      { q: 'Нужен ли технический бэкграунд для участия в лаборатории?', a: 'Нет, мы будем использовать готовые плагины и инструменты, доступные даже для новичков. Главное — ваше желание учиться и экспериментировать.', highlights: ['Нет', 'готовые плагины и инструменты', 'доступные даже для новичков', 'ваше желание учиться и экспериментировать'] },
+      { q: 'Ваши обязательства для максимального результата', a: 'Присутствие на live-сессиях с включенной камерой и активное участие. Самостоятельная оплата необходимых AI-инструментов. Выполнение практических заданий (минимум 2-3 часа в неделю). Готовность экспериментировать.', highlights: ['Присутствие на live-сессиях', 'активное участие', 'Самостоятельная оплата', 'минимум 2-3 часа в неделю', 'Готовность экспериментировать'] },
+      { q: 'Что вы получите?', a: 'Системное понимание AI как партнера для мышления. Практические навыки: промпт-инжиниринг, контекст-инжиниринг, агенты и автоматизации. Собственные AI-ассистенты, настроенные на ваш контекст. AI-ритуалы для повышения продуктивности и креативности. Сообщество практиков.', highlights: ['Системное понимание AI', 'Практические навыки', 'Собственные AI-ассистенты', 'AI-ритуалы', 'Сообщество практиков'] },
     ],
   },
   {
     category: 'ОПЛАТА И УСЛОВИЯ',
     items: [
-      { q: 'Какие варианты оплаты?', a: 'Принимаем рубли, криптовалюты, евро и доллары по SWIFT, Paypal и другим сервисам.' },
-      { q: 'Можете ли выставить счёт?', a: 'Да, можем выставить счёт на консультационные услуги от юрлица в Армении.' },
-      { q: 'Почему компании стоит купить этот курс для сотрудника?', a: 'Специальный тариф FOR TEAMS, экономия времени сотрудника, стоимость ниже найма нового специалиста, передача навыков коллегам, удобное совмещение с работой, автоматизация процессов.' },
-      { q: 'Есть ли скидки для команд или возможность персонального консалтинга?', a: 'Да, есть тариф FOR TEAMS и расширенный пакет VISIONARY (индивидуальный трекинг, консультации, прямой доступ к авторам).' },
-      { q: 'Возможен ли возврат, если мне не подойдет формат лаборатории?', a: 'Да, возврат после первой недели без вопросов (за вычетом комиссий платежных систем).' },
-      { q: 'А как мне податься как Non-profit?', a: 'Мы предлагаем 3 бесплатных места на основе конкурса мотивационных писем для представителей некоммерческих и творческих организаций. Напишите нам для подачи заявки.' },
+      { q: 'Какие варианты оплаты?', a: 'Принимаем рубли, криптовалюты, евро и доллары по SWIFT, Paypal и другим сервисам.', highlights: ['рубли', 'криптовалюты', 'евро и доллары', 'SWIFT', 'Paypal'] },
+      { q: 'Можете ли выставить счёт?', a: 'Да, можем выставить счёт на консультационные услуги от юрлица в Армении.', highlights: ['Да', 'счёт', 'консультационные услуги', 'юрлица в Армении'] },
+      { q: 'Почему компании стоит купить этот курс для сотрудника?', a: 'Специальный тариф FOR TEAMS, экономия времени сотрудника, стоимость ниже найма нового специалиста, передача навыков коллегам, удобное совмещение с работой, автоматизация процессов.', highlights: ['FOR TEAMS', 'экономия времени', 'стоимость ниже найма', 'передача навыков коллегам', 'автоматизация процессов'] },
+      { q: 'Есть ли скидки для команд или возможность персонального консалтинга?', a: 'Да, есть тариф FOR TEAMS и расширенный пакет VISIONARY (индивидуальный трекинг, консультации, прямой доступ к авторам).', highlights: ['FOR TEAMS', 'VISIONARY', 'индивидуальный трекинг', 'консультации', 'прямой доступ к авторам'] },
+      { q: 'Возможен ли возврат, если мне не подойдет формат лаборатории?', a: 'Да, возврат после первой недели без вопросов (за вычетом комиссий платежных систем).', highlights: ['Да', 'возврат после первой недели', 'без вопросов'] },
+      { q: 'А как мне податься как Non-profit?', a: 'Мы предлагаем 3 бесплатных места на основе конкурса мотивационных писем для представителей некоммерческих и творческих организаций. Напишите нам для подачи заявки.', highlights: ['3 бесплатных места', 'конкурса мотивационных писем', 'некоммерческих и творческих организаций', 'Напишите нам'] },
     ],
   },
 ];
+
+const renderHighlightedAnswer = (text: string, highlights: string[]) => {
+  if (!highlights.length) return text;
+
+  const escaped = highlights
+    .slice()
+    .sort((left, right) => right.length - left.length)
+    .map((item) => item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const matcher = new RegExp(`(${escaped.join('|')})`, 'g');
+  const parts = text.split(matcher);
+
+  return parts.map((part, index) =>
+    highlights.includes(part) ? <strong key={`${part}-${index}`} className="font-semibold text-black/88">{part}</strong> : part,
+  );
+};
+
+const EXPANDED_QUESTION_CLASS_NAME = 'inline-flex w-fit items-start rounded-none border border-black/16 bg-transparent px-2.5 py-1';
 
 export function FooterFaqBlock({
   title = 'вопросы и ответы',
@@ -54,7 +71,7 @@ export function FooterFaqBlock({
             {versionLabel ? <span className="hidden sm:inline"> {`// ${versionLabel}`}</span> : <span className="hidden sm:inline"> // 2026</span>}
           </div>
           <div className="h-px flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
-          <h2 className="font-black uppercase tracking-[0.08em] text-2xl md:text-5xl/none text-right text-black">
+          <h2 className="font-black uppercase tracking-[0.06em] text-2xl md:text-5xl/[0.92] text-right text-black whitespace-nowrap">
             {title}
           </h2>
         </div>
@@ -64,19 +81,19 @@ export function FooterFaqBlock({
           [f.a.q. module]
         </div>
 
-        <div className="flex flex-col border border-black/10 bg-white">
+        <div className="flex flex-col">
           {FAQ_DATA.map((category, idx) => {
             const isOpen = openIdx === idx;
 
             return (
-              <div key={category.category} className="border-b border-black/10 last:border-b-0">
+              <div key={category.category} className="overflow-hidden border-b border-black/8 transition-colors last:border-b-0">
                 <button
                   type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className={`w-full flex items-center justify-between px-5 py-4 text-left font-mono text-[14px] md:text-[15px] lowercase font-bold tracking-[0.04em] transition-colors ${isOpen ? 'bg-black text-white' : 'hover:bg-black/[0.035] text-black'}`}
+                  className="w-full flex items-center justify-start gap-3 px-1 py-3 text-left font-mono text-[13px] md:px-2 md:py-3.5 md:text-[14px] font-semibold lowercase tracking-[0.02em] text-black/74 transition-colors"
                 >
-                  <span>{category.category.toLowerCase()}</span>
-                  <span className={`${isOpen ? 'text-white' : 'text-black/35'} text-[18px] leading-none`}>
+                  <span className={isOpen ? 'text-black' : undefined}>{category.category.toLowerCase()}</span>
+                  <span className={`text-[18px] leading-none shrink-0 ${isOpen ? 'text-black' : 'text-black/22'}`}>
                     {isOpen ? '—' : '+'}
                   </span>
                 </button>
@@ -88,17 +105,19 @@ export function FooterFaqBlock({
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25, ease: 'circOut' }}
-                      className="overflow-hidden bg-white"
+                      className="overflow-hidden bg-transparent"
                     >
-                      <div className="px-6 py-6 flex flex-col gap-6 border-t border-black/10 md:px-7">
+                      <div className="px-1 pb-5 pt-1 md:px-2 md:pb-6 flex flex-col gap-5">
                         {category.items.map((item) => (
-                          <div key={item.q} className="flex flex-col gap-1.5 max-w-[95%]">
-                            <div className="text-[14px] md:text-[15px] text-black font-mono font-bold lowercase tracking-tight flex items-start gap-2">
-                              <span className="text-[#8DC63F] font-mono select-none">q:</span>
-                              <span>{item.q.toLowerCase()}</span>
+                          <div key={item.q} className="flex flex-col gap-1.5 max-w-full lg:max-w-[74%] xl:max-w-[70%] 2xl:max-w-[66%]">
+                            <div className="inline-flex w-fit items-baseline gap-2">
+                              <span className="font-mono select-none text-[#8DC63F] text-[14px] md:text-[15px] font-bold lowercase tracking-tight leading-none">q:</span>
+                              <span className={`${EXPANDED_QUESTION_CLASS_NAME} text-[14px] md:text-[15px] text-black font-mono font-bold lowercase tracking-tight leading-none`}>
+                                {item.q.toLowerCase()}
+                              </span>
                             </div>
-                            <div className="text-[14px] md:text-[15px] text-black/72 leading-[1.55] font-sans pl-[20px] md:pl-[22px]">
-                              {item.a}
+                            <div className="text-[14px] md:text-[15px] text-black/72 leading-[1.6] font-sans pl-[20px] md:pl-[22px] text-left xl:[text-align:justify] xl:[text-align-last:left] xl:[hyphens:auto] xl:[word-spacing:-0.045em] 2xl:[word-spacing:-0.06em]">
+                              {renderHighlightedAnswer(item.a, item.highlights)}
                             </div>
                           </div>
                         ))}
