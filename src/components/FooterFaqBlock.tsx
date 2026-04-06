@@ -124,14 +124,14 @@ export function FooterFaqBlock({
                         className={`${isLiveMode ? 'pt-6 px-0 pb-7 md:pt-7 md:pb-9' : 'pt-2 px-1 pb-5 md:px-2 md:pb-6'} flex cursor-pointer flex-col ${isLiveMode ? 'gap-10 md:gap-12' : 'gap-5'}`}
                       >
                         {category.items.map((item) => (
-                          <div key={item.q} className={`flex flex-col max-w-full lg:max-w-[74%] xl:max-w-[70%] 2xl:max-w-[66%] ${isLiveMode ? 'gap-2' : 'gap-1.5'}`}>
+                          <div key={item.q} className={`mx-auto flex w-full max-w-full flex-col lg:mx-0 lg:max-w-[74%] xl:max-w-[70%] 2xl:max-w-[66%] ${isLiveMode ? 'gap-2' : 'gap-1.5'}`}>
                             <div className="inline-flex w-fit items-baseline gap-[0.18rem]">
                               <span className={`font-mono select-none text-[#8DC63F] font-bold lowercase leading-none ${isLiveMode ? 'text-[12px] md:text-[13px] tracking-[0.04em]' : 'text-[14px] md:text-[15px] tracking-tight'}`}>q:</span>
                               <span className={`${EXPANDED_QUESTION_CLASS_NAME} ${isLiveMode ? 'px-0 py-0 border-0 border-b border-black/6 text-[13px] md:text-[14px] text-black/84 font-semibold tracking-[0.015em]' : 'text-[14px] md:text-[15px] text-black font-bold tracking-tight'} font-mono lowercase leading-none`}>
                                 {item.q.toLowerCase()}
                               </span>
                             </div>
-                            <div lang="ru" className={`${isLiveMode ? 'text-[13px] md:text-[14px] text-black/62 leading-[2] tracking-[0.01em] pl-[15px] md:pl-[16px]' : 'text-[14px] md:text-[15px] text-black/72 leading-[1.6] pl-[20px] md:pl-[22px]'} font-sans text-justify [hyphens:auto] [overflow-wrap:normal] [word-break:normal]`}>
+                            <div lang="ru" className={`${isLiveMode ? 'mx-auto w-full text-[13px] leading-[2] tracking-[0.01em] text-black/62 md:mx-0 md:text-[14px] md:pl-[16px]' : 'text-[14px] md:text-[15px] text-black/72 leading-[1.6] pl-[20px] md:pl-[22px]'} font-sans text-left md:text-justify [hyphens:auto] [overflow-wrap:anywhere] [word-break:normal]`}>
                               {renderHighlightedAnswer(item.a, item.highlights)}
                             </div>
                           </div>

@@ -18,7 +18,7 @@
   Status: implemented
   Owner: assistant
   Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` mobile case-card расширены до `min(80vw, 20rem)` вместо прежнего `max-w-[16.1rem]`, увеличена минимальная высота карточки и поднята высота media-shell (`92 -> 118` на mobile), чтобы SVG снова читались как полноценные desktop-style visual, а не как узкие превью. Desktop `max-w-[16.1rem]` сохранён через `md:*`.
+  Note: В `LabW26PageV3` mobile case-card расширены до `min(80vw, 20rem)` вместо прежнего `max-w-[16.1rem]`, увеличена минимальная высота карточки и поднята высота media-shell (`92 -> 118` на mobile). После нового фидбэка исправлена и логика visual-state: активная mobile-карточка теперь сохраняет тёмный media-shell и grid/glow background, а `CaseVisualGraphic` получает явный `activated`-режим с `brightness-0 invert`, чтобы SVG снова были видны как белый animated visual, ближе к desktop hover.
 
 - Task: В mobile footer сделать полупрозрачную надпись `AI MINDSET` заметно прозрачнее и опустить/увеличить её так, чтобы она сильнее жила внизу и немного заходила на зону `ОФЕРТА / ПОЛИТИКА`
   Status: implemented
@@ -27,10 +27,10 @@
   Note: В `LabW26PageV3` фоновая footer-надпись переведена на mobile-only lower placement: контейнер теперь выравнивается к низу, opacity снижена с `0.09` до `0.07`, а сама надпись увеличена на mobile и сдвинута вниз через `translate-y-[1.2rem]`, чтобы она мягче перекрывала нижнюю инфо-зону. Desktop-вид оставлен прежним через `md:*`.
 
 - Task: На mobile в `Недельном ритме` выровнять подписи мероприятий, чтобы текст не прыгал, не вылезал и не обрезался, и сделать `ЧТ` и `ВС` примерно вдвое уже остальных дней
-  Status: implemented
+  Status: self-checked
   Owner: assistant
   Last Checked: 2026-04-06
-  Note: В `ProgramIntegratedTimeline` mobile ритм больше не опирается на бесполезные `flex-[0.7]` внутри grid. Сетка переведена на явные 7 колонок с половинной шириной у `ЧТ` и `ВС`, а day-card собраны как стабильные трёхрядные блоки: отдельная фиксированная строка под time, увеличенная зона под label и более мягкий перенос текста через `overflow-wrap:anywhere`. Desktop-ветка `DesktopTechUiV5` не тронута.
+  Note: После пользовательского фидбэка откатан ошибочный mobile one-line layout. В `ProgramIntegratedTimeline` mobile `Недельный ритм` снова собран в две строки: верхний ряд `ПН/ВТ/СР/ЧТ`, нижний `ПТ/СБ/ВС`. Сужение сохранено только у `ЧТ` и `ВС`, остальные дни не менялись по концепции. Внутренние подписи оставлены в стабильной трёхрядной структуре с мягким переносом, чтобы текст не прыгал и не вылезал. Desktop-сетка не менялась.
 
 - Task: Убрать оставшийся mobile горизонтальный скролл с бежевой полосой справа и в блоке `Философия` сильно приблизить анимации к тексту
   Status: implemented
@@ -39,10 +39,10 @@
   Note: В `LabW26PageV3` root страницы переведён в `overflow-x-hidden`, а мобильный oversized art-wrapper у `MindsetDynamicArt` дополнительно зажат через локальный `overflow-hidden`, потому что именно масштабируемые арт-блоки были главным кандидатом на правый вылет за viewport. В `Философии` mobile-gap между art и текстом резко уменьшен: art-shell стал ниже (`198 -> 168`), его внутренний `py` снижен (`6 -> 2`), а верхний отступ текстового блока уменьшен с `mt-5` до `mt-1.5`. Нужна проверка на телефоне, что полоса исчезла и art действительно подошёл к заголовку примерно в 3 раза ближе.
 
 - Task: На mobile в блоке `Cases` активная карточка должна вести себя почти как desktop hover: выделяться зелёным, переводить SVG в белое animated-состояние и переключаться по карточке, которая ближе всего к середине экрана
-  Status: implemented
+  Status: self-checked
   Owner: assistant
   Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` добавлен mobile-only viewport activation для первых четырёх case-card: через `mobileCaseCardRefs` и scroll/resize pass выбирается карточка, ближайшая к вертикальному центру экрана. Для неё включаются те же visual states, что у desktop hover: зелёная карточка, белый animated SVG, белая типографика и активные tool-tags. Desktop hover не менялся.
+  Note: В `LabW26PageV3` mobile activation доведён в два слоя. Сначала для первых четырёх case-card добавлен viewport-selection по ближайшей карточке к центру экрана. После нового отрицательного фидбэка найден и исправлен сам trigger-path: refs переведены с внешнего wrapper на реальную кнопку-карточку, mobile check переведён на `matchMedia('(min-width: 768px)')`, зона видимости сужена до центральной части экрана, и добавлен fallback на первую видимую карточку, чтобы на mobile никогда не было состояния без активного кейса. Параллельно activated SVG принудительно тинтуется в `currentColor`/white с glow, а media-shell сохраняет тёмный фон. Desktop hover не менялся.
 
 - Task: На mobile убрать зазор между верхним header и бегущей строкой, уменьшить высоту header примерно на 15 процентов и устранить горизонтальный скролл с бежевым фоном
   Status: implemented
@@ -54,13 +54,13 @@
   Status: implemented
   Owner: assistant
   Last Checked: 2026-04-06
-  Note: После пользовательского фидбэка single-element fixed-схема признана нестабильной: на возврате к hero CTA мельтешил. Текущий проход перевёл mobile CTA в устойчивый docked-режим: после первого попадания в зону просмотра активируется fixed-кнопка того же дизайна, а hero-версия на mobile скрывается и оставляет только placeholder высоты, чтобы убрать мигание. Fixed CTA дополнительно поднят выше края экрана через `bottom: calc(env(safe-area-inset-bottom) + 32px)`, чтобы не упираться в скругления iPhone.
+  Note: После нового фидбэка hero CTA возвращён в mobile hero и больше не скрывается. Docked-версия оставлена отдельной fixed-кнопкой того же дизайна, но выровнена по высоте под hero CTA (`py-5`) и сужена по ширине до `min(calc(100vw - 3rem), 18rem)`, чтобы не растягиваться на весь экран. Подъём от нижнего края через `bottom: calc(env(safe-area-inset-bottom) + 32px)` сохранён.
 
 - Task: Довести desktop-блок `программа` на живой странице до реально видимого состояния: правый full-height black panel с glow-art и двумя glass-карточками, плюс заметно более узкие `ЧТ` и `ВС`
-  Status: implemented
+  Status: self-checked
   Owner: assistant
   Last Checked: 2026-04-06
-  Note: Найдена причина расхождения: live `/` использовал desktop `ProgramIntegratedTimeline` со stacked-карточками, хотя в коде рядом уже существовал более старый detailed V5-layout. Текущий проход вернул в `LabW26PageV3` desktop-рендер через `DesktopTechUiV5` с левой вертикальной шкалой недель, `DEMO DAY`, большой main-track canvas и правой full-height black advanced-panel; mobile программа не менялась. Ждёт визуального подтверждения пользователя.
+  Note: Найдена причина расхождения: live `/` использовал desktop `ProgramIntegratedTimeline` со stacked-карточками, хотя в коде рядом уже существовал более старый detailed V5-layout. Текущий проход вернул в `LabW26PageV3` desktop-рендер через `DesktopTechUiV5` с левой вертикальной шкалой недель, `DEMO DAY`, большой main-track canvas и правой full-height black advanced-panel. После нового фидбэка отдельно откатан regression в desktop scroll-shell: из `DesktopTechUiV5` убран принудительный `forcedOpen` sync, который менял active week через state без реального перемещения sticky-scroll. Mobile программа не менялась.
 
 - Task: В live FAQ убрать двойную линию под вопросом и увеличить расстояние между верхним label блока, названием раздела и первым `q:`
   Status: self-checked

@@ -111,23 +111,29 @@ export const ReviewsSection = ({ mode = 'default' }: ReviewsSectionProps) => {
 
   const toggleExpanded = () => {
     if (isExpanded) {
-      if (sectionRef.current) {
+      if (!isMobile && sectionRef.current) {
         const yOffset = sectionRef.current.getBoundingClientRect().top + window.scrollY - 100;
         window.scrollTo({ top: yOffset, behavior: 'smooth' });
       }
-      // Wait for smooth scroll to finish before removing elements from the flow
-      setTimeout(() => {
+      if (isMobile) {
         setIsExpanded(false);
-      }, 400);
+      } else {
+        // Wait for smooth scroll to finish before removing elements from the flow
+        setTimeout(() => {
+          setIsExpanded(false);
+        }, 400);
+      }
     } else {
       setIsExpanded(true);
-      // Wait for React to render the extra elements before scrolling
-      setTimeout(() => {
-        if (sectionRef.current) {
-          const yOffset = sectionRef.current.getBoundingClientRect().top + window.scrollY - 50;
-          window.scrollTo({ top: yOffset, behavior: 'smooth' });
-        }
-      }, 100);
+      if (!isMobile) {
+        // Wait for React to render the extra elements before scrolling
+        setTimeout(() => {
+          if (sectionRef.current) {
+            const yOffset = sectionRef.current.getBoundingClientRect().top + window.scrollY - 50;
+            window.scrollTo({ top: yOffset, behavior: 'smooth' });
+          }
+        }, 100);
+      }
     }
   };
 

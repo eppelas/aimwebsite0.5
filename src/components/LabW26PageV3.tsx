@@ -181,6 +181,12 @@ const normalizeCaseSvgMarkup = (svgMarkup: string) =>
       '<svg$1 class="h-full w-full overflow-visible" preserveAspectRatio="xMidYMid meet">',
     );
 
+const tintCaseSvgMarkupForActivatedState = (svgMarkup: string) =>
+  svgMarkup
+    .replace(/\sstroke="(?!none)[^"]*"/gi, ' stroke="currentColor"')
+    .replace(/\sfill="(?!none)[^"]*"/gi, ' fill="currentColor"')
+    .replace(/<svg\b([^>]*)class="([^"]*)"/i, '<svg$1class="$2 text-white"');
+
 const stripCaseSvgAnimation = (svgMarkup: string) =>
   svgMarkup
     .replace(/<animate(?:Transform|Motion)?\b[\s\S]*?\/>/gi, '')
@@ -244,11 +250,13 @@ function CaseVisualGraphic({
   index,
   className,
   animate = false,
+  activated = false,
   animateNonce = 0,
 }: {
   index: number;
   className: string;
   animate?: boolean;
+  activated?: boolean;
   animateNonce?: number;
 }) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
@@ -279,14 +287,21 @@ function CaseVisualGraphic({
     };
   }, [assetName]);
 
-  const renderedMarkup = animate ? animatedMarkup ?? staticMarkup : staticMarkup;
+  const renderedMarkup = useMemo(() => {
+    const baseMarkup = animate ? animatedMarkup ?? staticMarkup : staticMarkup;
+    if (!baseMarkup) return null;
+    return activated ? tintCaseSvgMarkupForActivatedState(baseMarkup) : baseMarkup;
+  }, [activated, animate, animatedMarkup, staticMarkup]);
 
   return (
     <div
       key={animate ? `case-animated-${index}-${animateNonce}` : `case-static-${index}`}
       aria-hidden
       className={cn(
-        "flex h-full w-full origin-center items-center justify-center group-hover:brightness-0 group-hover:invert [&_svg]:h-full [&_svg]:w-full",
+        "flex h-full w-full origin-center items-center justify-center text-[#65d7ff] [&_svg]:h-full [&_svg]:w-full",
+        activated
+          ? "text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
+          : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)] group-hover:text-white group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.2)]",
         className,
       )}
       dangerouslySetInnerHTML={renderedMarkup ? { __html: renderedMarkup } : undefined}
@@ -980,7 +995,7 @@ const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy'
         src={src}
         alt=""
         aria-hidden="true"
-        className="block h-full w-full object-contain object-bottom"
+        className="block h-full w-full object-contain object-center"
       />
     );
   }
@@ -1641,12 +1656,94 @@ const ProgramIntegratedTimeline = ({
 
                             <div className="mt-3.5 relative">
                               <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1 md:gap-1.5">
+                              <div className="grid gap-1 md:hidden">
+                                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1">
+                                  {PROGRAM_WEEKLY_RHYTHM.slice(0, 4).map((day) => (
+                                    <div
+                                      key={`${track.id}-${day.day}-mobile-top`}
+                                      className={cn(
+                                        "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em]",
+                                        day.type === 'advanced'
+                                          ? 'bg-black border-black text-white'
+                                          : day.type === 'off'
+                                            ? 'bg-black/[0.05] border-black/10 text-black/36'
+                                            : day.type === 'workshop'
+                                              ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
+                                              : day.type === 'qna'
+                                                ? 'bg-[#eff3ea] border-black/12 text-black/70'
+                                                : 'bg-white border-black/12 text-black/72'
+                                      )}
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
+                                        {day.type === 'advanced' ? (
+                                          <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
+                                        ) : null}
+                                      </div>
+                                      <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
+                                        {'time' in day && day.time ? day.time : ' '}
+                                      </div>
+                                      <div className="mt-auto flex min-h-[1.7rem] items-end">
+                                        <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
+                                          day.type === 'advanced' || day.type === 'workshop'
+                                            ? 'text-white'
+                                            : day.type === 'off'
+                                              ? 'text-transparent'
+                                              : 'text-black/70'
+                                        }`}>
+                                          {day.label || ' '}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1">
+                                  {PROGRAM_WEEKLY_RHYTHM.slice(4).map((day) => (
+                                    <div
+                                      key={`${track.id}-${day.day}-mobile-bottom`}
+                                      className={cn(
+                                        "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em]",
+                                        day.type === 'advanced'
+                                          ? 'bg-black border-black text-white'
+                                          : day.type === 'off'
+                                            ? 'bg-black/[0.05] border-black/10 text-black/36'
+                                            : day.type === 'workshop'
+                                              ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
+                                              : day.type === 'qna'
+                                                ? 'bg-[#eff3ea] border-black/12 text-black/70'
+                                                : 'bg-white border-black/12 text-black/72'
+                                      )}
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
+                                        {day.type === 'advanced' ? (
+                                          <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
+                                        ) : null}
+                                      </div>
+                                      <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
+                                        {'time' in day && day.time ? day.time : ' '}
+                                      </div>
+                                      <div className="mt-auto flex min-h-[1.7rem] items-end">
+                                        <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
+                                          day.type === 'advanced' || day.type === 'workshop'
+                                            ? 'text-white'
+                                            : day.type === 'off'
+                                              ? 'text-transparent'
+                                              : 'text-black/70'
+                                        }`}>
+                                          {day.label || ' '}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] md:gap-1.5">
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
-                                    key={`${track.id}-${day.day}`}
+                                    key={`${track.id}-${day.day}-desktop`}
                                     className={cn(
-                                      "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em] md:h-[46px] md:px-2 md:pt-2 md:pb-2 md:text-[8.5px]",
+                                      "relative grid md:h-[46px] grid-rows-[auto_auto_1fr] border md:px-2 md:pt-2 md:pb-2 md:text-[8.5px] uppercase tracking-[0.04em]",
                                       day.type === 'advanced'
                                         ? 'bg-black border-black text-white'
                                         : day.type === 'off'
@@ -1660,14 +1757,14 @@ const ProgramIntegratedTimeline = ({
                                   >
                                     <div className="flex justify-between items-start">
                                       <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
-                                      {day.type === 'advanced' && (
+                                      {day.type === 'advanced' ? (
                                         <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
-                                      )}
+                                      ) : null}
                                     </div>
-                                    <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] md:text-[6.5px] md:tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
+                                    <div className={`mt-[2px] min-h-[0.65rem] font-mono md:text-[6.5px] font-bold tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
                                       {'time' in day && day.time ? day.time : ' '}
                                     </div>
-                                    <div className="mt-auto flex min-h-[1.7rem] items-end md:min-h-[1.5rem]">
+                                    <div className="mt-auto flex md:min-h-[1.5rem] items-end">
                                       <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
                                         day.type === 'advanced' || day.type === 'workshop'
                                           ? 'text-white'
@@ -2053,13 +2150,7 @@ const ProgramReferenceTechUi = () => {
   );
 };
 
-const DesktopTechUiV5 = ({
-  forcedOpenIndex,
-  forcedOpenNonce,
-}: {
-  forcedOpenIndex?: number;
-  forcedOpenNonce?: number;
-}) => {
+const DesktopTechUiV5 = () => {
   const [activeWeek, setActiveWeek] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -2071,11 +2162,6 @@ const DesktopTechUiV5 = ({
   const smoothProgress = useSpring(scrollYProgress, { damping: 40, stiffness: 80, restDelta: 0.001 });
   const svgRotate = useTransform(smoothProgress, [0, 1], [-5, 15]);
   const svgY = useTransform(smoothProgress, [0, 1], [-10, 10]);
-
-  useEffect(() => {
-    if (forcedOpenNonce === undefined || forcedOpenIndex === undefined) return;
-    setActiveWeek(forcedOpenIndex);
-  }, [forcedOpenIndex, forcedOpenNonce]);
 
   useMotionValueEvent(smoothProgress, "change", (latest) => {
     let newWeek = Math.min(Math.floor((latest / 0.8) * PROGRAM_TRACKS.length), PROGRAM_TRACKS.length - 1);
@@ -2613,6 +2699,7 @@ export default function LabW26PageV3() {
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hasActivatedHeroMobileCta, setHasActivatedHeroMobileCta] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [activeMobileCaseIndex, setActiveMobileCaseIndex] = useState<number | null>(null);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
@@ -2629,7 +2716,8 @@ export default function LabW26PageV3() {
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
   const heroMobileCtaSentinelRef = useRef<HTMLDivElement | null>(null);
-  const mobileCaseCardRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const footerRef = useRef<HTMLElement | null>(null);
+  const mobileCaseCardRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const labsCloseTimeoutRef = useRef<number | null>(null);
   const sectionHashSyncLockRef = useRef<number | null>(null);
   const lastSyncedHashRef = useRef<string>('');
@@ -2697,6 +2785,21 @@ export default function LabW26PageV3() {
       {
         threshold: 0.2,
       },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const target = footerRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsFooterVisible(entry.isIntersecting);
+      },
+      { threshold: 0.12 },
     );
 
     observer.observe(target);
@@ -2819,13 +2922,13 @@ export default function LabW26PageV3() {
     const updateActiveMobileCase = () => {
       ticking = false;
 
-      if (window.innerWidth >= 768) {
+      if (window.matchMedia('(min-width: 768px)').matches) {
         setActiveMobileCaseIndex(null);
         return;
       }
 
       const viewportCenter = window.innerHeight / 2;
-      let closestIndex: number | null = null;
+      let closestIndex: number | null = visibleCases[0]?.index ?? null;
       let closestDistance = Number.POSITIVE_INFINITY;
 
       visibleCases.slice(0, 4).forEach(({ index }) => {
@@ -2833,7 +2936,7 @@ export default function LabW26PageV3() {
         if (!element) return;
 
         const rect = element.getBoundingClientRect();
-        const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+        const isVisible = rect.bottom > window.innerHeight * 0.08 && rect.top < window.innerHeight * 0.92;
         if (!isVisible) return;
 
         const center = rect.top + rect.height / 2;
@@ -2874,9 +2977,14 @@ export default function LabW26PageV3() {
         | ((current: { index: number; nonce: number } | null) => { index: number; nonce: number } | null)
     ) => void,
     keyPrefix: string,
-    options?: { showTools?: boolean; descriptionLines?: 2 | 3 },
+    options?: { showTools?: boolean; descriptionLines?: 2 | 3; cardRef?: (node: HTMLButtonElement | null) => void },
   ) => {
-    const isActivated = hovered || activeMobileCaseIndex === index;
+    const mobileFallbackActiveIndex = visibleCases[0]?.index ?? null;
+    const resolvedMobileCaseIndex = activeMobileCaseIndex ?? mobileFallbackActiveIndex;
+    const isMobileViewport =
+      typeof window !== 'undefined' ? !window.matchMedia('(min-width: 768px)').matches : false;
+    const isMobileScrollActivated = isMobileViewport && resolvedMobileCaseIndex === index;
+    const isActivated = hovered || isMobileScrollActivated;
 
     return (
     <button
@@ -2890,6 +2998,7 @@ export default function LabW26PageV3() {
       onPointerLeave={() => setHovered((current) => (current?.index === index ? null : current))}
       onFocus={() => setHovered((current) => ({ index, nonce: current?.index === index ? current.nonce + 1 : 0 }))}
       onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
+      ref={options?.cardRef}
       className={cn(
         "group relative mx-auto flex min-h-[248px] w-[min(80vw,20rem)] max-w-none flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left md:min-h-[226px] md:w-full md:max-w-[16.1rem]",
         isActivated ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/10 bg-white hover:border-[#8DC63F] hover:bg-[#8DC63F]",
@@ -2898,22 +3007,22 @@ export default function LabW26PageV3() {
       <div
         className={cn(
           "relative mb-3 h-[118px] overflow-hidden rounded-[2px] md:mb-2.5 md:h-[100px]",
-          isActivated ? "bg-[#8DC63F]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
+          isMobileScrollActivated ? "bg-[#111411]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
         )}
       >
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-150",
-            isActivated ? "opacity-0" : "group-hover:opacity-0",
+            isMobileScrollActivated ? "opacity-100" : "opacity-100 group-hover:opacity-0",
             CASE_MEDIA_BASE_BACKGROUND_CLASS,
           )}
         />
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
           </>
         ) : null}
 
@@ -2922,7 +3031,7 @@ export default function LabW26PageV3() {
             "absolute transition-[transform,filter,opacity] duration-150 group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
             isActivated
-              ? "opacity-100 mix-blend-screen"
+              ? "opacity-100 mix-blend-normal scale-[1.03]"
               : "opacity-100 mix-blend-screen",
           )}
         >
@@ -2930,14 +3039,15 @@ export default function LabW26PageV3() {
             index={index}
             className={getCaseVisualToneClassName(index)}
             animate={isActivated}
+            activated={isActivated}
             animateNonce={hoverNonce}
           />
         </div>
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
           </>
         ) : null}
       </div>
@@ -3051,7 +3161,7 @@ export default function LabW26PageV3() {
     setActiveMobileSpeakerRowIndex(rowIndex);
   };
 
-  const showDockedMobileCta = hasActivatedHeroMobileCta;
+  const showDockedMobileCta = hasActivatedHeroMobileCta && !isFooterVisible;
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
@@ -3282,18 +3392,14 @@ export default function LabW26PageV3() {
                   </p>
                   <div
                     ref={heroMobileCtaSentinelRef}
-                    className={cn(
-                      "flex flex-col sm:flex-row justify-center lg:justify-start gap-6",
-                      showDockedMobileCta ? "min-h-[3.75rem] md:min-h-0" : "",
-                    )}
+                    className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6"
                   >
                      <a
                        href="#pricing"
                        onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
                        className={cn(
                          DARK_CTA_BUTTON_CLASS,
-                          "min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6",
-                         showDockedMobileCta ? "invisible pointer-events-none md:visible md:pointer-events-auto" : "",
+                         "min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6",
                        )}
                      >
                        /хочу на лабу
@@ -3383,10 +3489,7 @@ export default function LabW26PageV3() {
                 </div>
 
                 <div className="hidden md:block">
-                  <DesktopTechUiV5
-                    forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
-                    forcedOpenNonce={programFocusNonce}
-                  />
+                  <DesktopTechUiV5 />
                 </div>
 
 
@@ -3442,14 +3545,14 @@ export default function LabW26PageV3() {
             {visibleCases.map(({ card, index }, visibleIndex) => (
               <div
                 key={`main-case-slot-${index}`}
-                ref={(node) => {
-                  mobileCaseCardRefs.current[index] = node;
-                }}
                 className={visibleIndex >= 4 ? "hidden md:block" : ""}
               >
                 {renderCaseCard(card, index, hoveredCaseState?.index === index, hoveredCaseState?.index === index ? hoveredCaseState.nonce : 0, setHoveredCaseState, 'main', {
                   showTools: true,
                   descriptionLines: 3,
+                  cardRef: (node) => {
+                    mobileCaseCardRefs.current[index] = node;
+                  },
                 })}
               </div>
             ))}
@@ -3591,10 +3694,10 @@ export default function LabW26PageV3() {
       <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
         <Container>
           <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
-          <div className="mt-10 grid grid-cols-1 gap-6 md:mt-[100px] md:grid-cols-3 md:gap-3">
+          <div className="mt-10 grid grid-cols-1 gap-6 md:mt-[64px] md:grid-cols-3 md:gap-3">
             {PHILOSOPHY_PILLARS.map((item) => (
               <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                <div className="flex h-[168px] w-full max-w-[13rem] flex-none items-end justify-center py-2 md:h-[146px] md:max-w-[11.7rem] md:py-0">
+                <div className="flex h-[168px] w-full max-w-[13rem] flex-none items-end justify-center py-2 md:h-[176px] md:max-w-[14rem] md:items-center md:py-0">
                   <PhilosophyPillarArt art={item.art} />
                 </div>
                 <div className="mt-1.5 md:mt-7 flex w-full flex-col items-center gap-1 md:gap-2">
@@ -3611,23 +3714,23 @@ export default function LabW26PageV3() {
         </Container>
       </section>
 
-      <div className="py-2 md:py-4">
+      <div className="py-2 md:py-2">
         <Container>
           <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
         </Container>
       </div>
 
-      <section id="mindset" className="pt-0 pb-10 md:pt-0 md:pb-32">
+      <section id="mindset" className="pt-0 pb-10 md:pt-0 md:pb-24">
         <Container>
           <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
-            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0 overflow-hidden">
-              <div className="relative flex h-[16rem] w-[16rem] items-center justify-center overflow-hidden md:h-[18rem] md:w-[18rem] lg:h-[20rem] lg:w-[20rem]">
-                <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
+            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-[3.5rem] lg:translate-y-[5rem] overflow-hidden">
+              <div className="relative flex h-[16rem] w-[16rem] items-center justify-center overflow-hidden md:h-[20rem] md:w-[20rem] lg:h-[24rem] lg:w-[24rem]">
+                <MindsetDynamicArt className="scale-[1.45] md:scale-[1.12] lg:scale-[1.2]" />
               </div>
             </div>
-            <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
+            <div className="w-full h-[24rem] md:h-[28rem] lg:h-[32rem] order-2 lg:order-1">
               <div className="relative flex flex-col justify-end h-full py-0">
-                <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
+                <div className="flex-1 flex items-end pb-[8rem] md:pb-24 lg:pb-20">
                   <motion.h2
                     key={activeMindsetQuote}
                     initial={{ opacity: 0, y: 10 }}
@@ -3885,9 +3988,9 @@ export default function LabW26PageV3() {
       )}
 
       {/* Footer */}
-      <footer className="py-24 relative overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none flex items-end justify-center overflow-hidden opacity-[0.07] md:items-center md:opacity-[0.09]">
-          <div className="translate-y-[1.2rem] whitespace-nowrap text-[clamp(118px,31vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white md:translate-y-0 md:text-[clamp(88px,16vw,240px)]">
+      <footer ref={footerRef} className="py-24 relative overflow-hidden bg-black text-white">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.035] md:items-center md:opacity-[0.045]">
+          <div className="translate-y-[0.15rem] whitespace-nowrap text-[clamp(118px,31vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white md:translate-y-0 md:text-[clamp(88px,16vw,240px)]">
             AI MINDSET
           </div>
         </div>
@@ -3926,7 +4029,7 @@ export default function LabW26PageV3() {
         <a
           href="#pricing"
           onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
-          className={`${DARK_CTA_BUTTON_CLASS} fixed left-4 right-4 z-[390] text-center md:hidden`}
+          className={`${DARK_CTA_BUTTON_CLASS} fixed left-1/2 z-[390] w-[min(calc(100vw-3rem),18rem)] -translate-x-1/2 px-10 py-5 text-center md:hidden`}
           style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
         >
           /хочу на лабу
