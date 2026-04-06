@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="coaching-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="coaching-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5.8"/>
+    </filter>
+  </defs>
+
+  <g opacity="0.22">
+    <path d="M0 18 H100 M0 38 H100 M0 58 H100 M0 78 H100" stroke="#d8ff90" stroke-width="0.24"/>
+    <path d="M12 0 V100 M32 0 V100 M52 0 V100 M72 0 V100 M92 0 V100" stroke="#d8ff90" stroke-width="0.24"/>
+  </g>
+
+  <ellipse cx="28" cy="64" rx="17" ry="15" fill="#bdfb68" opacity="0.16" filter="url(#coaching-soft)">
+    <animate attributeName="opacity" values="0.16;0.08;0.16;0.16" keyTimes="0;0.54;0.76;1" dur="3.6s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="74" cy="32" rx="15" ry="13" fill="#dfffaa" opacity="0.11" filter="url(#coaching-soft)">
+    <animate attributeName="opacity" values="0.1;0.18;0.1;0.1" keyTimes="0;0.56;0.78;1" dur="4s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <rect x="9" y="7" width="31" height="10" rx="5" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" stroke-width="0.55"/>
+  <text x="14" y="13" fill="#f1f6e8" opacity="0.78" font-size="3.2" letter-spacing="1.2" font-family="IBM Plex Mono, monospace">COACH LOOP</text>
+
+  <g filter="url(#coaching-glow)" fill="none" stroke="#deff9d" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 59 C30 43 52 39 67 49 C79 57 82 72 74 82" stroke-width="1.95">
+      <animate attributeName="d" values="M20 59 C30 43 52 39 67 49 C79 57 82 72 74 82;M18 61 C31 42 54 37 69 47 C81 55 84 71 76 84;M20 59 C30 43 52 39 67 49 C79 57 82 72 74 82;M20 59 C30 43 52 39 67 49 C79 57 82 72 74 82" keyTimes="0;0.52;0.74;1" dur="3.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M28 69 C38 56 57 55 67 64" stroke-width="1.55" opacity="0.92">
+      <animate attributeName="d" values="M28 69 C38 56 57 55 67 64;M26 71 C39 54 59 53 70 63;M28 69 C38 56 57 55 67 64;M28 69 C38 56 57 55 67 64" keyTimes="0;0.5;0.74;1" dur="3.2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M58 23 V37" stroke-width="1.55" opacity="0.84">
+      <animate attributeName="opacity" values="0.84;1;0.84;0.84" keyTimes="0;0.46;0.7;1" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M51 30 H65" stroke-width="1.55" opacity="0.84">
+      <animate attributeName="opacity" values="0.84;1;0.84;0.84" keyTimes="0;0.48;0.72;1" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+    <path d="M72 49 L82 40" stroke-width="1.3" opacity="0.82">
+      <animate attributeName="d" values="M72 49 L82 40;M73 47 L85 39;M72 49 L82 40;M72 49 L82 40" keyTimes="0;0.56;0.8;1" dur="3.4s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <g filter="url(#coaching-glow)" fill="#e5ffb2">
+    <circle cx="22" cy="58" r="2.25">
+      <animate attributeName="cx" values="22;16;22;22" keyTimes="0;0.54;0.76;1" dur="3.2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="58;66;58;58" keyTimes="0;0.54;0.76;1" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="35" cy="47" r="2.1">
+      <animate attributeName="cx" values="35;30;35;35" keyTimes="0;0.5;0.76;1" dur="3.4s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="47;40;47;47" keyTimes="0;0.5;0.76;1" dur="3.4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="52" cy="44" r="2.35">
+      <animate attributeName="cx" values="52;52;52;52" keyTimes="0;0.52;0.76;1" dur="3.1s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="44;35;44;44" keyTimes="0;0.52;0.76;1" dur="3.1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="69" cy="50" r="2.3">
+      <animate attributeName="cx" values="69;78;69;69" keyTimes="0;0.56;0.8;1" dur="3.3s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="50;45;50;50" keyTimes="0;0.56;0.8;1" dur="3.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="72" cy="79" r="2.15">
+      <animate attributeName="cx" values="72;83;72;72" keyTimes="0;0.55;0.8;1" dur="3.6s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="79;84;79;79" keyTimes="0;0.55;0.8;1" dur="3.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <path d="M21 80 C35 84 52 83 65 78" stroke="rgba(255,255,255,0.14)" stroke-width="0.75" fill="none"/>
+  <text x="54" y="87.5" fill="rgba(255,255,255,0.42)" font-size="3.5" letter-spacing="1.05" font-family="IBM Plex Mono, monospace">REFLECTIVE SUPPORT</text>
+</svg>

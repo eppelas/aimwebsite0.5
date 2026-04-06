@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="vision-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.45" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="vision-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5.6"/>
+    </filter>
+  </defs>
+
+  <g opacity="0.22">
+    <path d="M0 18 H100 M0 38 H100 M0 58 H100 M0 78 H100" stroke="#d8ff90" stroke-width="0.24"/>
+    <path d="M12 0 V100 M32 0 V100 M52 0 V100 M72 0 V100 M92 0 V100" stroke="#d8ff90" stroke-width="0.24"/>
+  </g>
+
+  <ellipse cx="66" cy="56" rx="20" ry="17" fill="#cfff84" opacity="0.14" filter="url(#vision-soft)">
+    <animate attributeName="opacity" values="0.14;0.08;0.14;0.14" keyTimes="0;0.52;0.76;1" dur="3.7s" repeatCount="indefinite"/>
+  </ellipse>
+  <ellipse cx="26" cy="28" rx="14" ry="11" fill="#dfffaa" opacity="0.1" filter="url(#vision-soft)">
+    <animate attributeName="opacity" values="0.1;0.17;0.1;0.1" keyTimes="0;0.54;0.78;1" dur="4.1s" repeatCount="indefinite"/>
+  </ellipse>
+
+  <rect x="9" y="7" width="30" height="10" rx="5" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.14)" stroke-width="0.55"/>
+  <text x="14" y="13" fill="#f1f6e8" opacity="0.78" font-size="3.2" letter-spacing="1.2" font-family="IBM Plex Mono, monospace">VISION MAP</text>
+
+  <g filter="url(#vision-glow)" fill="none" stroke="#e5ffad" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M36 26 H78 V54 L64 68 H36 Z" stroke-width="2.05">
+      <animate attributeName="d" values="M36 26 H78 V54 L64 68 H36 Z;M33 24 H80 V56 L62 72 H33 Z;M36 26 H78 V54 L64 68 H36 Z;M36 26 H78 V54 L64 68 H36 Z" keyTimes="0;0.52;0.76;1" dur="3.6s" repeatCount="indefinite"/>
+    </path>
+    <path d="M44 33 H69" stroke-width="1.8"/>
+    <path d="M44 40 H64" stroke-width="1.55" opacity="0.95"/>
+    <path d="M44 47 H58" stroke-width="1.55" opacity="0.84"/>
+    <path d="M68 54 L78 44" stroke-width="1.7">
+      <animate attributeName="d" values="M68 54 L78 44;M64 60 L82 42;M68 54 L78 44;M68 54 L78 44" keyTimes="0;0.52;0.78;1" dur="3.2s" repeatCount="indefinite"/>
+    </path>
+    <path d="M18 70 H36" stroke-width="1.35" opacity="0.72" stroke-dasharray="2.2 3.2">
+      <animate attributeName="stroke-dashoffset" values="0;-10;-10;0" keyTimes="0;0.48;0.82;1" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <g filter="url(#vision-glow)" fill="#f1ffc7">
+    <circle cx="44" cy="26" r="2">
+      <animate attributeName="cy" values="26;16;26;26" keyTimes="0;0.5;0.76;1" dur="3.1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="56" cy="26" r="2">
+      <animate attributeName="cy" values="26;14;26;26" keyTimes="0;0.48;0.74;1" dur="3.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="68" cy="26" r="2">
+      <animate attributeName="cy" values="26;16;26;26" keyTimes="0;0.52;0.78;1" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="78" cy="44" r="2.25">
+      <animate attributeName="cx" values="78;88;78;78" keyTimes="0;0.56;0.8;1" dur="3.2s" repeatCount="indefinite"/>
+      <animate attributeName="cy" values="44;50;44;44" keyTimes="0;0.56;0.8;1" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <text x="18" y="56" fill="#dfff9f" opacity="0.92" font-size="7.1" letter-spacing="0.75" font-family="IBM Plex Mono, monospace">SCAN</text>
+  <text x="18" y="83.5" fill="rgba(255,255,255,0.42)" font-size="3.6" letter-spacing="1.08" font-family="IBM Plex Mono, monospace">VISUAL ARCHIVE INDEX</text>
+</svg>

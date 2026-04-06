@@ -14,6 +14,7 @@ interface VoxelPoint {
   size: number;
   phase: number;
   drift: number;
+  color?: string;
 }
 
 type InvertedVoxelLogoFaceProps = {

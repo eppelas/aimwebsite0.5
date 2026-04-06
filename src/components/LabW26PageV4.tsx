@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
 import {
   Menu,
   ChevronRight,
@@ -8,7 +8,13 @@ import {
   X,
   ExternalLink
 } from 'lucide-react';
+import { MorphSvg } from './MorphSvg';
+import PricingPaymentPopupNeon from './PricingPaymentPopupNeon';
+import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS } from './ctaButtonStyles';
 import ReviewsSection from './ReviewsSection';
+import { FooterFaqBlock } from './FooterFaqBlock';
+import { FooterLabsNavigatorBlock } from './FooterLabsNavigatorBlock';
+import { InvertedVoxelLogoFace } from './InvertedVoxelLogoFace';
 
 
 
@@ -30,18 +36,187 @@ interface CaseCard {
   filters: string[];
 }
 
+const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
+
+const chunkArray = <T,>(items: T[], size: number) =>
+  Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+    items.slice(index * size, index * size + size),
+  );
+
+const SPEAKER_HIGHLIGHTS: Record<string, string[]> = {
+  'Александр Поваляев': ['Основатель проекта AI Mindset', 'стратег', 'эксперт по AI-интеграциям', '15+ лет'],
+  'Сергей Хабаров': ['Системный архитектор', '6+ лет в образовании', '500+ обученных специалистов', 'контекст-инжиниринг'],
+  'Степан Гершуни': ['Фаундер', 'Инвестор', 'cybOS', 'advanced-треке'],
+  'Алексей Иванов': ['Экзекьютив-коуч', 'фаундеров и IT-лидеров', '15 лет в UX и продуктах', 'AI-coaching'],
+  'Серёжа Рис': ['AI-евангелист', 'экс-Yandex', 'фаундер', 'vibe-coding'],
+  'Анна Ставенски': ['Продуктовый архитектор', '10+ лет в управлении', 'визуальный сторителлер', 'life engineering'],
+  'Анна Лозицкая': ['12+ лет', 'Фаундер embraceme.app', 'mind engineering', 'рефлексии и трекинга целей'],
+};
+
+const renderSpeakerDescription = (name: string, description: string): React.ReactNode => {
+  const highlights = SPEAKER_HIGHLIGHTS[name];
+  if (!highlights?.length) return description;
+
+  const escaped = highlights
+    .slice()
+    .sort((left, right) => right.length - left.length)
+    .map((item) => item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const matcher = new RegExp(`(${escaped.join('|')})`, 'g');
+  const parts = description.split(matcher);
+
+  return parts.map((part, index) =>
+    highlights.includes(part) ? <strong key={`${name}-${index}`} className="font-bold text-black/80">{part}</strong> : part,
+  );
+};
+
+const SpeakerCornerFrame = () => (
+  <>
+    <div className="pointer-events-none absolute left-0 top-0 h-4 w-4 border-l border-t border-black/40" />
+    <div className="pointer-events-none absolute right-0 top-0 h-4 w-4 border-r border-t border-black/40" />
+    <div className="pointer-events-none absolute bottom-0 left-0 h-4 w-4 border-b border-l border-black/40" />
+    <div className="pointer-events-none absolute bottom-0 right-0 h-4 w-4 border-b border-r border-black/40" />
+  </>
+);
+
+const CASE_DARK_VARIANTS = new Set(Array.from({ length: 10 }, (_, index) => index));
+const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
+  0: 'case-0-dark.svg',
+  1: 'case-1-dark.svg',
+  2: 'case-2.svg',
+  3: 'case-3.svg',
+  4: 'case-0.svg',
+  5: 'case-1.svg',
+  6: 'case-2.svg',
+  7: 'case-3.svg',
+  8: 'case-0.svg',
+  9: 'case-1.svg',
+};
+
+const getCaseVisualSrc = (index: number) => `${BASE_URL}assets/cases/${CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`}`;
+const CASE_STATIC_SVG_CACHE = new Map<string, string>();
+const CASE_STATIC_SVG_REQUESTS = new Map<string, Promise<string>>();
+
+const getCaseVisualFrameClassName = (index: number) => {
+  if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
+  if (index === 1) return "inset-[-2%] translate-x-[4%] translate-y-[4%] scale-[2.1]";
+  if (index === 2) return "inset-[2%] translate-y-[12%] scale-[1.95]";
+  if (index === 3) return "inset-[3%] translate-y-[7%] scale-[1.9]";
+  if (index === 4) return "inset-[4%] -translate-x-[1%] translate-y-[4%] scale-[2.35]";
+  if (index === 5) return "inset-[4%] translate-y-[2%] scale-[2.2]";
+  if (index === 6) return "inset-[4%] translate-y-[4%] scale-[2.3]";
+  if (index === 7) return "inset-[1%] translate-y-[2%] scale-[1.95]";
+  if (index === 8) return "inset-[4%] translate-y-[4%] scale-[2.2]";
+  if (index === 9) return "inset-[2%] translate-y-[1%] scale-[2.1]";
+  return "inset-[6%] scale-[1.4]";
+};
+
+const getCaseVisualToneClassName = (index: number) => {
+  if (index === 2) return "brightness-[1.18] contrast-[1.14] saturate-[1.24]";
+  if (index === 3) return "brightness-[1.12] contrast-[1.16] saturate-[1.18]";
+  if (index === 4) return "brightness-[1.12] contrast-[1.16] saturate-[1.24] hue-rotate-[18deg]";
+  if (index === 5) return "brightness-[1.18] contrast-[1.12] saturate-[1.18] hue-rotate-[-8deg]";
+  if (index === 6 || index === 7) return "brightness-[1.22] contrast-[1.18] saturate-[1.25]";
+  if (index === 8) return "brightness-[1.22] contrast-[1.18] saturate-[1.28] hue-rotate-[10deg]";
+  if (index === 9) return "brightness-[1.16] contrast-[1.14] saturate-[1.1] hue-rotate-[-12deg]";
+  if (CASE_DARK_VARIANTS.has(index)) return "brightness-[1.12] contrast-[1.1] saturate-[1.1]";
+  return "";
+};
+
+const sanitizeCaseSvgMarkup = (svgMarkup: string) =>
+  svgMarkup
+    .replace(/<\?xml[\s\S]*?\?>\s*/g, '')
+    .replace(/<animate(?:Transform|Motion)?[\s\S]*?\/>/g, '')
+    .replace(/<animate(?:Transform|Motion)?[\s\S]*?<\/animate(?:Transform|Motion)?>/g, '')
+    .replace(/<set[\s\S]*?\/>/g, '')
+    .replace(
+      /<svg\b([^>]*)>/,
+      '<svg$1 class="h-full w-full overflow-visible" preserveAspectRatio="xMidYMid meet">',
+    );
+
+const loadStaticCaseSvgMarkup = async (assetName: string) => {
+  const cachedMarkup = CASE_STATIC_SVG_CACHE.get(assetName);
+  if (cachedMarkup) return cachedMarkup;
+
+  const pendingRequest = CASE_STATIC_SVG_REQUESTS.get(assetName);
+  if (pendingRequest) return pendingRequest;
+
+  const request = fetch(`${BASE_URL}assets/cases/${assetName}`)
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${assetName}`);
+      }
+
+      const sanitizedMarkup = sanitizeCaseSvgMarkup(await response.text());
+      CASE_STATIC_SVG_CACHE.set(assetName, sanitizedMarkup);
+      return sanitizedMarkup;
+    })
+    .finally(() => {
+      CASE_STATIC_SVG_REQUESTS.delete(assetName);
+    });
+
+  CASE_STATIC_SVG_REQUESTS.set(assetName, request);
+  return request;
+};
+
+function CaseVisualGraphic({ index, className, animate = false }: { index: number; className: string; animate?: boolean }) {
+  const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
+  const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
+
+  useEffect(() => {
+    let disposed = false;
+
+    loadStaticCaseSvgMarkup(assetName)
+      .then((markup) => {
+        if (!disposed) setStaticMarkup(markup);
+      })
+      .catch(() => {
+        if (!disposed) setStaticMarkup(null);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [assetName]);
+
+  if (!animate) {
+    return (
+      <div
+        aria-hidden
+        className={cn(
+          "flex h-full w-full origin-center items-center justify-center transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert [&_svg]:h-full [&_svg]:w-full",
+          className,
+        )}
+        dangerouslySetInnerHTML={staticMarkup ? { __html: staticMarkup } : undefined}
+      />
+    );
+  }
+
+  return (
+    <img
+      src={getCaseVisualSrc(index)}
+      alt=""
+      className={cn(
+        "h-full w-full origin-center object-contain transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert",
+        className,
+      )}
+    />
+  );
+}
+
 // --- CONSTANTS ---
 const SIDEBAR_NAV: NavItem[] = [
   { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
   { label: 'ПРОГРАММА', href: '#program' },
   { label: 'КЕЙСЫ', href: '#cases' },
   { label: 'ТАРИФЫ', href: '#pricing' },
+  { label: 'ОТЗЫВЫ', href: '#reviews' },
 ];
 
 const EXTERNAL_LINKS = [
-  { label: 'community {space}', href: 'https://aimindset.org/ai-mindset-community' },
-  { label: '{for-teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
-  { label: 'non-profit', href: 'https://aimindset.org/' },
+  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
+  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
+  { label: '{for-teams}', href: '/ai-mindset-consulting' },
+  { label: 'non-profit', href: '/non-profit' },
 ];
 
 const LAB_MENU_LINKS = [
@@ -51,26 +226,31 @@ const LAB_MENU_LINKS = [
 ];
 
 const PRIMARY_MENU_LINKS = [
-  { label: 'Community {Space}', href: 'https://aimindset.org/ai-mindset-community' },
-  { label: 'Special Projects', href: 'https://aimindset.org/special-projects' },
-  { label: 'Blog', href: 'https://aimindset.org/blog' },
-  { label: '{For Teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
-  { label: '{For Non-profit}', href: 'https://aimindset.org/' },
+  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
+  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
+  { label: '{For Teams}', href: '/ai-mindset-consulting' },
+  { label: '{For Non-Profit}', href: '/non-profit' },
 ];
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
-const LOGO_LEFT_SRC = `${BASE_URL}AIMLeft-02.png`;
 const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
+const philosophyAnimation = (filename: string) => `${BASE_URL}assets/${filename}`;
 
 const CASE_FILTERS = [
   { id: 'all', label: 'все' },
-  { id: 'non-tech', label: 'нетехнический' },
   { id: 'manager', label: 'менеджер' },
   { id: 'creative', label: 'креатор' },
   { id: 'educator', label: 'преподаватель' },
   { id: 'developer', label: 'разработчик' },
 ];
+
+const CASE_FILTER_LABELS = CASE_FILTERS.reduce<Record<string, string>>((acc, filter) => {
+  acc[filter.id] = filter.label;
+  return acc;
+}, {});
+
+const PAGE_SECTION_HASH_IDS = ['hero', 'program', 'cases', 'speakers', 'philosophy', 'pricing', 'reviews', 'faq', 'labs'] as const;
 
 const CASE_ARTS = {
   coaching: [
@@ -115,7 +295,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Claude · Obsidian · Notion',
     metric: '−35% хаоса в задачах',
     artFrames: CASE_ARTS.coaching,
-    filters: ['non-tech']
+    filters: []
   },
   {
     title: 'AI VISION',
@@ -126,7 +306,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'GPT Vision · Claude',
     metric: '3x быстрее сортировка',
     artFrames: CASE_ARTS.vision,
-    filters: ['creative', 'non-tech']
+    filters: ['creative']
   },
   {
     title: 'AI LEARNING',
@@ -137,7 +317,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'GPT-4 · ElevenLabs',
     metric: '+40% регулярность практики',
     artFrames: CASE_ARTS.learning,
-    filters: ['educator', 'non-tech']
+    filters: ['educator']
   },
   {
     title: 'AI SUMMARY',
@@ -170,7 +350,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Linear · Notion · n8n',
     metric: '+25% предсказуемость сроков',
     artFrames: CASE_ARTS.project,
-    filters: ['manager', 'non-tech']
+    filters: ['manager']
   },
   {
     title: 'AI AUTOMATION',
@@ -203,7 +383,7 @@ const CASE_CARDS: CaseCard[] = [
     tools: 'Claude · ChatGPT · Midjourney',
     metric: '3x скорость публикаций',
     artFrames: CASE_ARTS.content,
-    filters: ['creative', 'non-tech']
+    filters: ['creative']
   },
   {
     title: 'AI ANALYTICS',
@@ -216,9 +396,78 @@ const CASE_CARDS: CaseCard[] = [
     artFrames: CASE_ARTS.analytics,
     filters: ['developer']
   },
+  {
+    title: 'AI CRM',
+    author: 'Наталья Р.',
+    role: 'Sales Ops',
+    desc: 'AI-ассистент для CRM',
+    details: 'Квалификация лидов, резюме звонков и автообновление карточек без ручного копипаста.',
+    tools: 'HubSpot · Claude · n8n',
+    metric: '−45% ручной работы в CRM',
+    artFrames: CASE_ARTS.automation,
+    filters: ['manager']
+  },
+  {
+    title: 'AI SUPPORT',
+    author: 'Кирилл Б.',
+    role: 'Support Lead',
+    desc: 'Поддержка клиентов',
+    details: 'Черновики ответов, маршрутизация обращений и выявление повторяющихся проблем в поддержке.',
+    tools: 'Intercom · GPT-4 · Notion',
+    metric: '+32% скорость ответа',
+    artFrames: CASE_ARTS.summary,
+    filters: ['manager']
+  },
+  {
+    title: 'AI SCRIPTING',
+    author: 'Полина А.',
+    role: 'Продюсер',
+    desc: 'Сценарный AI-помощник',
+    details: 'Быстрые сценарные драфты, структурирование интервью и адаптация сюжетов под форматы.',
+    tools: 'Claude · ChatGPT · Notion',
+    metric: '3x быстрее препродакшн',
+    artFrames: CASE_ARTS.content,
+    filters: ['creative']
+  },
+  {
+    title: 'AI CURATOR',
+    author: 'Лев Г.',
+    role: 'Методист',
+    desc: 'Куратор учебного потока',
+    details: 'Разбор домашних заданий, персональные подсказки и сбор слабых мест по всей группе.',
+    tools: 'GPT-4 · Airtable · ElevenLabs',
+    metric: '+50% качество обратной связи',
+    artFrames: CASE_ARTS.learning,
+    filters: ['educator']
+  },
+  {
+    title: 'AI DASHBOARD',
+    author: 'Тимур З.',
+    role: 'BI Analyst',
+    desc: 'AI-панель метрик',
+    details: 'Живые пояснения к дашбордам, поиск аномалий и авто-сводки для команды раз в неделю.',
+    tools: 'Looker · GPT · Sheets',
+    metric: '−70% времени на расшифровку метрик',
+    artFrames: CASE_ARTS.analytics,
+    filters: ['developer']
+  },
+  {
+    title: 'AI REPO',
+    author: 'Соня К.',
+    role: 'Product Designer',
+    desc: 'Навигатор по проекту',
+    details: 'Поиск по документации, встречам и задачам в одном контексте вместо ручного ресерча по папкам.',
+    tools: 'Obsidian · Claude · MCP',
+    metric: '5x быстрее вход в контекст',
+    artFrames: CASE_ARTS.knowledge,
+    filters: ['creative']
+  },
 ];
 
-const PROGRAM_TRACKS = [
+const getCaseTools = (card: CaseCard) => card.tools.split(' · ').map((tool) => tool.trim()).filter(Boolean);
+const CASE_TOOL_FILTERS = ['all', ...Array.from(new Set(CASE_CARDS.flatMap((card) => getCaseTools(card))))];
+
+export const PROGRAM_TRACKS = [
   {
     id: '01',
     week: 'WEEK 1',
@@ -284,7 +533,7 @@ const PROGRAM_TRACK_VARIANTS = {
   },
 } as const;
 
-const ADVANCED_TRACKS = [
+export const ADVANCED_TRACKS = [
   {
     id: 'T1',
     week: 'WEEK 1',
@@ -366,37 +615,37 @@ const TEAM_MEMBERS = [
   {
     name: 'Сергей Хабаров',
     role: 'Системный архитектор',
-    description: 'Системный архитектор на стыке AI, образования и бизнес-процессов. 6+ лет в образовании, 500+ обученных специалистов. Бывший CTO и директор по развитию. Ведёт Context Engineering: как структурировать знания, чтобы AI работал с ними, а не терялся в хаосе файлов и заметок.',
+    description: 'Системный архитектор на стыке AI, образования и бизнес-процессов. 6+ лет в образовании, 500+ обученных специалистов. Бывший CTO и директор по развитию. Ведёт контекст-инжиниринг: как структурировать знания, чтобы AI работал с ними, а не терялся в хаосе файлов и заметок.',
     image: speakerImage('sergey-khabarov.jpg'),
   },
   {
     name: 'Степан Гершуни',
     role: 'Технологический стратег',
-    description: 'Founder, построил Credentia, Deep Skills и Codex Town. Инвестор в венчурном фонде Cyber Fund, крипто- и ИИ-энтузиаст. Автор cybOS, о которой и расскажет на лаборатории на Advanced-треке.',
+    description: 'Фаундер, построил Credentia, Deep Skills и Codex Town. Инвестор в венчурном фонде Cyber Fund, крипто- и ИИ-энтузиаст. Автор cybOS, о которой и расскажет на лаборатории на advanced-треке.',
     image: speakerImage('stepan-gershuni.jpg'),
   },
   {
     name: 'Алексей Иванов',
-    role: 'Executive-коуч',
-    description: 'Executive-коуч для фаундеров и IT-лидеров. ICF PCC, ex-дизайн лид. После 15 лет в UX и продуктах делает то, что действительно даёт энергию и драйв. Ведёт advanced-трек AI-coaching.',
+    role: 'Экзекьютив-коуч',
+    description: 'Экзекьютив-коуч для фаундеров и IT-лидеров. ICF PCC, экс-дизайн лид. После 15 лет в UX и продуктах делает то, что действительно даёт энергию и драйв. Ведёт advanced-трек AI-coaching.',
     image: speakerImage('alexey-ivanov.jpg'),
   },
   {
     name: 'Серёжа Рис',
-    role: 'AI-евангелист, ex Yandex',
-    description: 'AI-евангелист, ex Yandex. Билдер и фаундер в комьюнити вайбкодеров @vibecod3rs. Клод-код стример на YouTube. Ведёт advanced-трек vibe-coding.',
+    role: 'AI-евангелист, экс-Yandex',
+    description: 'AI-евангелист, экс-Yandex. Билдер и фаундер в комьюнити вайбкодеров @vibecod3rs. Клод-код стример на YouTube. Ведёт advanced-трек vibe-coding.',
     image: speakerImage('serezha-ris.jpg'),
   },
   {
     name: 'Анна Ставенски',
     role: 'Продуктовый архитектор',
-    description: 'Продуктовый архитектор. 10+ лет в управлении, технологических и креативных индустриях: продукт, визуал, роботы, тренажёры. PO в стартапах и визуальный сторителлер в жизни. Ведёт Life Engineering и помогает собрать изученные инструменты в единую систему.',
+    description: 'Продуктовый архитектор. 10+ лет в управлении, технологических и креативных индустриях: продукт, визуал, роботы, тренажёры. PO в стартапах и визуальный сторителлер в жизни. Ведёт life engineering и помогает собрать изученные инструменты в единую систему.',
     image: speakerImage('anka-stavenski.jpg'),
   },
   {
     name: 'Анна Лозицкая',
     role: 'Фаундер embraceme.app',
-    description: '12+ лет помогала стартапам расти с нуля до больших раундов. Фаундер embraceme.app. Исследует, как технологии помогают основателям. Ведёт Mind Engineering: как использовать AI для персональных ритуалов, рефлексии и трекинга целей.',
+    description: '12+ лет помогала стартапам расти с нуля до больших раундов. Фаундер embraceme.app. Исследует, как технологии помогают основателям. Ведёт mind engineering: как использовать AI для персональных ритуалов, рефлексии и трекинга целей.',
     image: speakerImage('anna-lozitskaya.jpg'),
   },
 ];
@@ -467,24 +716,24 @@ const LargeDiamondArt = ({ className = "" }: { className?: string }) => (
 );
 
 const EditorialSectionHeader = ({ eyebrow, title, className = "" }: { eyebrow: string; title: string; className?: string }) => (
-  <div className={`flex items-end gap-6 md:gap-10 ${className}`}>
-    <div className="text-[11px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
-    <div className="h-px flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
-    <div className="font-black uppercase tracking-widest text-2xl md:text-5xl/none text-right">{title}</div>
+  <div className={`flex items-end gap-4 md:gap-10 ${className}`}>
+    <div className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
+    <div className="h-px min-w-[20px] flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
+    <div className="font-black uppercase tracking-widest text-xl md:text-5xl/none text-right shrink-0">{title}</div>
   </div>
 );
 
 const AsciiCardBorder = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <div className={`relative h-full ${className}`}>
-    <div className="pointer-events-none absolute left-2 right-2 top-0 overflow-hidden whitespace-nowrap font-mono text-[9px] leading-none opacity-30 select-none">
+    <div className="pointer-events-none absolute left-2 right-2 top-0 overflow-hidden whitespace-nowrap font-mono text-[10px] leading-none opacity-30 select-none">
       {"+ - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - +"}
     </div>
-    <div className="pointer-events-none absolute bottom-0 left-2 right-2 overflow-hidden whitespace-nowrap font-mono text-[9px] leading-none opacity-30 select-none">
+    <div className="pointer-events-none absolute bottom-0 left-2 right-2 overflow-hidden whitespace-nowrap font-mono text-[10px] leading-none opacity-30 select-none">
       {"+ - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - + - - - +"}
     </div>
-    <div className="pointer-events-none absolute left-0 top-3 bottom-3 whitespace-pre font-mono text-[9px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
-    <div className="pointer-events-none absolute right-0 top-3 bottom-3 whitespace-pre font-mono text-[9px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
-    <div className="relative h-full bg-white/35 px-6 py-6 md:px-7 md:py-7">
+    <div className="pointer-events-none absolute left-0 top-3 bottom-3 whitespace-pre font-mono text-[10px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
+    <div className="pointer-events-none absolute right-0 top-3 bottom-3 whitespace-pre font-mono text-[10px] leading-[0.78] opacity-30 select-none">|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|{"\n"}|</div>
+    <div className="relative h-full bg-white/40 px-6 py-6 md:px-8 md:py-8">
       {children}
     </div>
   </div>
@@ -502,7 +751,7 @@ const AsciiShuffler = ({ frames, interval = 150 }: { frames: string[]; interval?
   }, [frames.length, interval]);
 
   return (
-    <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre flex w-full items-center justify-center opacity-70 transition-opacity">
+    <div className="font-mono text-[10px] md:text-[10px] leading-[1.1] whitespace-pre flex w-full items-center justify-center opacity-70 transition-opacity">
       {frames[frameIdx]}
     </div>
   );
@@ -607,6 +856,31 @@ const PhilosophySynergyArt = () => <AsciiShuffler frames={philosophySynergyFrame
 const PhilosophyTrajectoryArt = () => <AsciiShuffler frames={philosophyTrajectoryFrames} interval={900} />;
 
 const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy' | 'trajectory' }) => {
+  const src =
+    art === 'synergy'
+      ? philosophyAnimation('philosophy-community-morph-0-3.svg')
+      : art === 'action'
+        ? philosophyAnimation('philosophy-practice-morph-7-2.svg')
+        : art === 'trajectory'
+          ? philosophyAnimation('philosophy-personalization-morph-0-2.svg')
+          : null;
+
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className={cn(
+          "block h-full w-full object-contain",
+          art === 'synergy' && "-translate-y-[4%]",
+          art === 'action' && "translate-y-[8%]",
+          art === 'trajectory' && "translate-y-[8%]",
+        )}
+      />
+    );
+  }
+
   if (art === 'foundation') return <PhilosophyFoundationArt />;
   if (art === 'action') return <PhilosophyActionArt />;
   if (art === 'synergy') return <PhilosophySynergyArt />;
@@ -805,7 +1079,7 @@ const ProgramPromptArt = () => {
   ];
 
   return (
-    <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center">
+    <div className="font-mono text-[10px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center">
       <motion.div
         animate={{ opacity: [0.45, 0.9, 0.45], y: [0, -3, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
@@ -842,7 +1116,7 @@ const ProgramPromptArt = () => {
 };
 
 const ProgramContextArt = () => (
-  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center relative overflow-hidden">
+  <div className="font-mono text-[10px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col justify-center items-center relative overflow-hidden">
     <motion.div
       animate={{ rotate: 360 }}
       transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
@@ -852,12 +1126,12 @@ const ProgramContextArt = () => (
       .               .
     .                   .
    .                     .
-  .                       .
-  .                       .
-   .                     .
-    .                   .
-      .               .
-        .  .  .  .  .`}
+   .                       .
+   .                       .
+    .                     .
+     .                   .
+       .               .
+         .  .  .  .  .`}
     </motion.div>
 
     <div className="relative z-10 flex gap-4">
@@ -887,7 +1161,7 @@ const ProgramContextArt = () => (
 );
 
 const ProgramMindArt = () => (
-  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex items-center justify-center">
+  <div className="font-mono text-[10px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex items-center justify-center">
     <div className="relative">
       <motion.div
         animate={{ scale: [1, 1.03, 1], opacity: [0.55, 0.95, 0.55] }}
@@ -925,7 +1199,7 @@ const ProgramMindArt = () => (
 );
 
 const ProgramLifeArt = () => (
-  <div className="font-mono text-[8px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col items-center justify-center">
+  <div className="font-mono text-[10px] md:text-[10px] leading-[1.1] whitespace-pre opacity-80 h-full w-full flex flex-col items-center justify-center">
     <div className="flex w-full px-8 justify-between">
       {[
         { label: 'VIBE', heights: ['28px', '88px', '56px', '96px', '62px'], delay: 0 },
@@ -940,7 +1214,7 @@ const ProgramLifeArt = () => (
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: bar.delay }}
           className="w-4 border-x border-t border-black bg-black/10 flex items-end justify-center overflow-hidden"
         >
-          <span className="text-[6px] rotate-90 pb-2">{bar.label}</span>
+          <span className="text-[10px] rotate-90 pb-2">{bar.label}</span>
         </motion.div>
       ))}
     </div>
@@ -963,15 +1237,16 @@ const ProgramTrackArt = ({ art }: { art: 'prompt' | 'context' | 'mind' | 'life' 
 };
 
 const PROGRAM_WEEKLY_RHYTHM = [
-  { day: 'ПН', label: 'Воркшоп', type: 'workshop' as const },
-  { day: 'ВТ', label: 'Коворкинг', type: 'coworking' as const },
-  { day: 'СР', label: 'Advanced Track', type: 'advanced' as const },
+  { day: 'ПН', label: 'MAIN ВОРКШОП', type: 'workshop' as const, time: '18:00 CET' },
+  { day: 'ВТ', label: 'КОВОРКИНГ', type: 'coworking' as const, time: '' },
+  { day: 'СР', label: 'ADVANCED TRACK', type: 'advanced' as const, time: '18:00 CET' },
   { day: 'ЧТ', label: '', type: 'off' as const },
-  { day: 'ПТ', label: 'Лекция', type: 'lecture' as const },
-  { day: 'СБ', label: 'Q&A session', type: 'qna' as const },
+  { day: 'ПТ', label: 'ЛЕКЦИЯ', type: 'lecture' as const, time: '' },
+  { day: 'СБ', label: 'Q&A СЕССИЯ', type: 'qna' as const, time: '18:00 CET' },
+  { day: 'ВС', label: '', type: 'off' as const },
 ];
 
-const PROGRAM_WEEK_COPY: Record<
+export const PROGRAM_WEEK_COPY: Record<
   string,
   {
     dateRange: string;
@@ -1074,7 +1349,7 @@ const ProgramIntegratedTimeline = ({
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const advancedCardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const metaTagClass = 'font-mono text-[8px] md:text-[9px] tracking-[0.12em] font-bold text-black/46';
+  const metaTagClass = 'font-mono text-[10px] md:text-[10px] tracking-[0.14em] font-bold text-black/60';
   const metaTrackClass = `${metaTagClass} inline-flex items-center gap-1.5`;
 
   const toggleCard = (idx: number) => {
@@ -1110,7 +1385,7 @@ const ProgramIntegratedTimeline = ({
 
   return (
     <div className="relative w-full max-w-none">
-      <div className="absolute left-[14px] md:left-7 top-[30px] bottom-[54px] w-px bg-black/14 z-0" />
+      <div className="absolute left-[14px] md:left-7 top-[30px] bottom-[54px] w-px bg-black/20 z-0" />
       {PROGRAM_TRACKS.map((track, idx) => {
         const weekCopy = PROGRAM_WEEK_COPY[track.id];
         const advanced = ADVANCED_TRACKS[idx];
@@ -1120,45 +1395,45 @@ const ProgramIntegratedTimeline = ({
         const triggerNode =
           triggerVariant === 'button' ? (
             <div
-              className={`inline-flex items-center justify-between gap-3 min-w-[184px] rounded-full border px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+              className={`inline-flex items-center justify-between gap-4 min-w-[184px] rounded-full border px-4 py-4 text-[10px] font-bold uppercase tracking-widest transition-colors ${
                 isExpanded
                   ? 'bg-black text-white border-black'
-                  : 'bg-white text-black/65 border-black/14 group-hover:border-black/30 group-hover:text-black'
+                  : 'bg-white text-black/80 border-black/14 group-hover:border-black/30 group-hover:text-black'
               }`}
             >
               <span>{isExpanded ? 'Скрыть детали' : 'Смотреть детали'}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           ) : (
-            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-black/58">
+            <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-black/60">
               <span>{isExpanded ? 'Скрыть детали' : 'Смотреть детали'}</span>
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           );
 
         return (
-          <div key={track.id} className="mb-5">
+          <div key={track.id} className="mb-6">
             <article
               ref={(el) => {
                 cardRefs.current[idx] = el;
               }}
-              className="relative z-10 flex gap-3 md:gap-3 group items-stretch"
+              className="relative z-10 flex gap-4 md:gap-4 group items-stretch"
             >
               <div className="w-7 md:w-14 pt-0 shrink-0 flex justify-center z-20 relative">
                 <div
                   className={`mt-6 w-[18px] h-[18px] rounded-full border transition-all duration-300 flex items-center justify-center relative z-20 ${
-                    isExpanded ? 'border-black/40 bg-[#faf8f3]' : 'border-black/18 bg-[#faf8f3] group-hover:border-black/30'
+                    isExpanded ? 'border-black/40 bg-[#f9f9f7]' : 'border-black/18 bg-[#f9f9f7] group-hover:border-black/30'
                   }`}
                 >
-                  <div className={`w-[7px] h-[7px] rounded-full transition-colors ${isExpanded ? 'bg-black/45' : 'bg-transparent'}`} />
+                  <div className={`w-[7px] h-[7px] rounded-full transition-colors ${isExpanded ? 'bg-black/60' : 'bg-transparent'}`} />
                 </div>
               </div>
 
               <div
                 className={`relative flex-1 border rounded-[24px] overflow-hidden transition-all duration-400 ${
                   isExpanded
-                    ? `${colorWash ? 'bg-gradient-to-br from-[#fbfaf6] via-[#fffefb] to-[#f4f1e8]' : 'bg-[#fffdfa]'} border-black/10 shadow-[0_8px_24px_rgba(0,0,0,0.04)]`
-                    : `${colorWash ? 'bg-gradient-to-br from-[#fbfaf6] via-[#fffefc] to-[#f5f2ea]' : 'bg-[#fffdfa]'} border-black/8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:border-black/14`
+                    ? `${colorWash ? 'bg-gradient-to-br from-[#fbfaf6] via-[#fffefb] to-[#f4f1e8]' : 'bg-[#f9f9f7]'} border-black/10 shadow-[0_8px_24px_rgba(0,0,0,0.04)]`
+                    : `${colorWash ? 'bg-gradient-to-br from-[#fbfaf6] via-[#fffefc] to-[#f5f2ea]' : 'bg-[#f9f9f7]'} border-black/8 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:border-black/14`
                 }`}
               >
                 {showGridOverlay && (
@@ -1174,17 +1449,17 @@ const ProgramIntegratedTimeline = ({
                 <button
                   type="button"
                   onClick={() => toggleCard(idx)}
-                  className="relative z-30 w-full px-5 py-4 md:p-7 text-left cursor-pointer select-none"
+                  className="relative z-30 w-full px-6 py-4 md:p-8 text-left cursor-pointer select-none"
                 >
                   <div className="mb-4 flex items-center justify-between gap-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-black/24">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.16em] font-bold text-black/40">
                       {weekBadgeStyle === 'plain' ? weekLabel : ''}
                     </div>
                     <div className={metaTagClass}>{weekCopy.dateRange}</div>
                   </div>
 
                   <div
-                    className={`flex gap-5 md:gap-8 ${
+                    className={`flex gap-6 md:gap-8 ${
                       inlineTrigger ? 'flex-col md:flex-row md:justify-between md:items-end' : 'flex-col'
                     }`}
                   >
@@ -1195,13 +1470,13 @@ const ProgramIntegratedTimeline = ({
                             compactWeekBadge ? 'w-[64px] h-[64px] md:w-[72px] md:h-[72px]' : 'w-[82px] h-[82px] md:w-[96px] md:h-[96px]'
                           }`}
                         >
-                          <span className={`${compactWeekBadge ? 'text-[7px]' : 'text-[8px]'} uppercase tracking-[0.14em] leading-none opacity-90`}>неделя</span>
+                          <span className={`${compactWeekBadge ? 'text-[10px]' : 'text-[10px]'} uppercase tracking-[0.14em] leading-none opacity-90`}>неделя</span>
                           <span className={`${compactWeekBadge ? 'text-2xl md:text-3xl' : 'text-3xl md:text-4xl'} leading-none mt-0.5`}>{idx + 1}</span>
                         </div>
                       )}
                       <h3
-                        className={`uppercase tracking-tight leading-[1.04] text-black/86 ${
-                          largeHeading ? 'text-[24px] md:text-[34px] font-extrabold' : 'text-[14px] md:text-[24px] font-black'
+                        className={`uppercase tracking-[-0.04em] leading-[0.96] text-black/90 text-left ${
+                          largeHeading ? 'text-3xl md:text-4xl font-black' : 'text-xl md:text-3xl font-black'
                         }`}
                         style={{ textWrap: 'balance' }}
                       >
@@ -1210,7 +1485,7 @@ const ProgramIntegratedTimeline = ({
                       {showSecondaryTitle && secondaryInHeader && (
                         <div
                           className={`mt-1.5 uppercase tracking-[0.04em] ${
-                            subtitleStrong ? 'text-[14px] md:text-[16px] font-bold opacity-74' : 'text-[12px] md:text-[14px] font-semibold opacity-62'
+                            subtitleStrong ? 'text-sm md:text-base font-bold opacity-74' : 'text-xs md:text-sm font-semibold opacity-62'
                           }`}
                         >
                           {weekCopy.framedDescription}
@@ -1230,76 +1505,83 @@ const ProgramIntegratedTimeline = ({
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.38, ease: 'easeInOut' }}
                     >
-                      <div className="relative z-30 px-5 md:px-7 pb-5 pt-0.5">
-                        <div className="relative grid gap-5 lg:gap-7">
+                      <div className="relative z-30 px-6 md:px-8 pb-6 pt-0.5">
+                        <div className="relative grid gap-6 lg:gap-8">
                           <div className="min-w-0">
                             {showMainTrackTag && (
-                              <div className={`mb-2 flex items-center justify-end ${metaTrackClass}`}>
-                                <span className="w-1.5 h-1.5 rounded-full bg-black/28" />
+                              <div className={`mb-2 flex flex-row items-center justify-end gap-1.5 ${metaTagClass}`}>
+                                <span className="w-1.5 h-1.5 rounded-full bg-black/40" />
                                 <span>Main Track</span>
                               </div>
                             )}
                             {showSecondaryTitle && !secondaryInHeader && (
                               <div
-                                className={`mb-2 uppercase tracking-[0.05em] ${
+                                className={`mb-2 uppercase tracking-[0.06em] ${
                                   secondaryTitleAccent
-                                    ? 'text-[11px] md:text-[14px] font-medium text-[#a6da49]'
+                                    ? 'text-xs md:text-sm font-semibold text-[#8DC63F]'
                                     : subtitleStrong
-                                      ? 'text-[14px] md:text-[16px] font-bold opacity-74'
-                                      : 'text-[12px] md:text-[14px] font-normal text-black/76'
+                                      ? 'text-sm md:text-lg font-bold opacity-74'
+                                      : 'text-xs md:text-sm font-medium text-black/80'
                                 }`}
                               >
                                 {weekCopy.framedDescription}
                               </div>
                             )}
                             <p
-                              className={`leading-[1.45] font-normal text-left ${
-                                strongerBody ? 'text-[15px] md:text-[17px] text-black/78' : 'text-[12px] md:text-[15px] text-black/52'
+                              className={`leading-[1.5] text-left ${
+                                strongerBody ? 'text-base md:text-lg font-medium text-black/80' : 'text-sm md:text-base font-normal text-black/80'
                               }`}
                             >
                               {weekCopy.bodyDescription}
                             </p>
 
-                            <div className="mt-3.5 relative">
-                              <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <div className="mt-4.5 relative">
+                              <div className="text-[10px] uppercase font-bold tracking-[0.16em] text-black/40 mb-2">Недельный ритм</div>
+                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 md:gap-1.5">
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
-                                    className={`relative rounded-[10px] border px-2 py-1.5 text-[8px] uppercase tracking-[0.05em] min-h-[46px] ${
+                                    className={`relative border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[10px] md:text-[8.5px] uppercase tracking-[0.04em] h-[54px] md:h-[46px] flex flex-col ${
                                       day.type === 'advanced'
-                                        ? 'bg-[#ececec] border-black/15 text-black/46'
+                                        ? 'bg-black border-black text-white'
                                         : day.type === 'off'
-                                          ? 'bg-transparent border-black/8 text-black/16'
-                                          : 'bg-[#fffdfa] border-black/10 text-black/54'
+                                          ? 'bg-black/[0.05] border-black/10 text-black/40'
+                                          : day.type === 'workshop'
+                                            ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
+                                            : day.type === 'qna'
+                                              ? 'bg-[#f9f9f7] border-black/12 text-black/80'
+                                              : 'bg-white border-black/12 text-black/80'
                                     }`}
                                   >
-                                    {day.type === 'advanced' && (
-                                      <span className="absolute right-1 top-0.5 text-[10px] leading-none font-bold opacity-45">*</span>
-                                    )}
-                                    <div className="font-black opacity-45">{day.day}</div>
-                                    <div className="font-semibold mt-0.5 min-h-[1rem] leading-tight">{day.label || ' '}</div>
-                                    {day.type === 'advanced' && (
-                                      <>
-                                        <div className="lg:hidden absolute left-full top-[48%] w-[44px] h-[92px] pointer-events-none">
-                                          <div className="absolute left-0 top-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute right-0 top-0 w-px h-full bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute left-0 bottom-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.22)_0,rgba(0,0,0,0.22)_5px,transparent_5px,transparent_10px)]" />
-                                        </div>
-                                        <div className="hidden lg:block absolute left-full top-[44%] w-[112px] h-[156px] pointer-events-none">
-                                          <div className="absolute left-0 top-0 w-[28px] h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute right-0 top-0 w-px h-full bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                          <div className="absolute left-0 bottom-0 w-full h-px bg-[repeating-linear-gradient(to_right,rgba(0,0,0,0.44)_0,rgba(0,0,0,0.44)_5px,transparent_5px,transparent_10px)]" />
-                                        </div>
-                                      </>
-                                    )}
+                                    <div className="flex justify-between items-start">
+                                      <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
+                                      {day.type === 'advanced' && (
+                                        <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
+                                      )}
+                                    </div>
+                                    {'time' in day && day.time ? (
+                                      <div className={`mt-[2px] font-mono text-[6.5px] font-bold tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/80' : 'text-[#8DC63F]'}`}>
+                                        {day.time}
+                                      </div>
+                                    ) : null}
+                                    <div className="mt-auto flex min-h-[1.55rem] md:min-h-[1.5rem] items-end">
+                                      <div className={`font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal] ${
+                                        day.type === 'advanced' || day.type === 'workshop'
+                                          ? 'text-white'
+                                          : day.type === 'off'
+                                            ? 'text-transparent'
+                                            : 'text-black/80'
+                                      }`}>
+                                        {day.label || ' '}
+                                      </div>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           </div>
                           <div
-                            className={`w-full lg:w-[280px] lg:justify-self-end lg:pl-4 border-t border-black/8 pt-3 lg:pt-0 lg:border-t-0 text-right ${
+                            className={`w-full lg:w-[280px] lg:justify-self-end lg:pl-4 border-t border-black/8 pt-4 lg:pt-0 lg:border-t-0 text-right ${
                               desktopHideMainAdvancedDivider ? '' : 'lg:border-l lg:border-black/10'
                             }`}
                             ref={(el) => {
@@ -1307,29 +1589,25 @@ const ProgramIntegratedTimeline = ({
                             }}
                           >
                             <div
-                              className={`relative rounded-[16px] p-4 opacity-80 ${
+                              className={`relative rounded-[16px] p-4 ${
                                 advancedColorway === 'violet'
-                                  ? 'bg-[#eeebf5]'
+                                  ? 'bg-[#181616] text-white'
                                   : lighterAdvancedBackground
-                                    ? 'bg-[#f5f6f6]'
-                                    : 'bg-[#f1f2f2]'
+                                    ? 'bg-[#181616] text-white'
+                                    : 'bg-[#181616] text-white'
                               }`}
                             >
-                              <div className={`mb-1.5 ${metaTrackClass}`}>
-                                <span className="text-[10px] leading-none">*</span>
+                              <div className="mb-1.5 flex justify-end items-center gap-1.5 font-mono text-[10px] md:text-[10px] tracking-[0.14em] font-bold text-white/60">
+                                <span className="text-[10px] leading-none text-[#8DC63F] font-bold">*</span>
                                 <span>{combinedAdvancedLabel ? 'Advanced Track Pro' : 'Advanced Track'}</span>
                               </div>
-                              <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-26 mb-0.5">Тема</div>
-                              <div className={`font-semibold ${mutedAdvanced ? 'text-[11px] text-black/60' : 'text-[18px] leading-[1.05] text-black/68'}`}>
+                              <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40 mb-0.5">Тема</div>
+                              <div className={`font-semibold ${mutedAdvanced ? 'text-xs text-white/80' : 'text-xl md:text-xl leading-[1.02] text-white'}`}>
                                 {weekCopy.advancedTopic}
                               </div>
-                              <p className={`leading-[1.35] mt-1 ${mutedAdvanced ? 'text-[10px] text-black/48' : 'text-[11px] opacity-48'}`}>
+                              <p className={`leading-[1.42] mt-1 ${mutedAdvanced ? 'text-[10px] text-white/60' : 'text-xs md:text-xs text-white/80'}`}>
                                 {weekCopy.advancedDescription}
                               </p>
-                              <div className="mt-2">
-                                <div className="text-[8px] font-bold uppercase tracking-[0.16em] opacity-30">Спикер</div>
-                                <div className="text-[12px] font-semibold mt-0.5 text-black/66">{advanced.speaker}</div>
-                              </div>
                             </div>
                           </div>
                         </div>
@@ -1343,20 +1621,20 @@ const ProgramIntegratedTimeline = ({
         );
       })}
 
-      <div className="relative mt-6 z-10 flex gap-1 md:gap-3">
+      <div className="relative mt-6 z-10 flex gap-1 md:gap-4">
         <div className="w-7 md:w-14 pt-0 shrink-0 flex justify-center z-20 relative">
-          <div className="absolute left-1/2 -translate-x-1/2 top-0 h-8 w-px bg-black/14" />
-          <div className="mt-6 w-[18px] h-[18px] rounded-full border border-black/30 bg-[#faf8f3] flex items-center justify-center relative z-20">
-            <div className="w-[7px] h-[7px] rounded-full bg-black/78" />
+          <div className="absolute left-1/2 -translate-x-1/2 top-0 h-8 w-px bg-black/20" />
+          <div className="mt-6 w-[18px] h-[18px] rounded-full border border-black/30 bg-[#f9f9f7] flex items-center justify-center relative z-20">
+            <div className="w-[7px] h-[7px] rounded-full bg-black/80" />
           </div>
         </div>
-        <div className="flex-1 bg-[#eff1eb] text-black/80 rounded-[16px] p-4 md:p-5">
+        <div className="flex-1 bg-[#f9f9f7] text-black/80 rounded-[16px] p-4 md:p-6">
           <div className="mb-1.5 flex items-center justify-between gap-4">
-            <div className="text-[9px] uppercase tracking-widest font-bold text-black/45">финал</div>
-            <div className="text-[9px] uppercase tracking-widest font-bold text-black/45">23 мая</div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-black/60">финал</div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-black/60">23 мая</div>
           </div>
-          <h4 className="text-base md:text-lg font-black uppercase tracking-tight mb-1 text-black/82">Demo Day</h4>
-          <p className="text-[13px] md:text-sm opacity-70 leading-relaxed">
+          <h4 className="text-base md:text-lg font-black uppercase tracking-tight mb-1 text-black/80">Demo Day</h4>
+          <p className="text-xs md:text-sm opacity-70 leading-relaxed">
             презентация результатов участников по завершению 4 недель.
           </p>
         </div>
@@ -1366,12 +1644,12 @@ const ProgramIntegratedTimeline = ({
 };
 
 const TRACK_TAG_BASE =
-  'inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-mono font-bold text-black/46';
+  'inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-mono font-bold text-black/60';
 
 const PROGRAM_TRACKS_CAPTION =
   'основная программа даёт фундамент. треки — это углубление в конкретный домен за дополнительную плату.';
 
-const BLOCK_SUBTITLE_CLASS = 'text-[15px] md:text-4xl !font-black tracking-[-0.035em] leading-[0.94] text-black mb-2 md:mb-4 [font-variation-settings:"wght"_900]';
+const BLOCK_SUBTITLE_CLASS = 'text-sm md:text-4xl !font-black tracking-[-0.035em] leading-[0.94] text-black mb-2 md:mb-4 [font-variation-settings:"wght"_900]';
 
 const PROGRAM_GRID_OVERLAY_STYLE = {
   backgroundImage:
@@ -1398,7 +1676,7 @@ const ProgramReferenceSwipeCard = ({
   const activeTrack = PROGRAM_TRACKS[activeWeek];
   const activeWeekCopy = PROGRAM_WEEK_COPY[activeTrack.id];
   const activeAdvanced = ADVANCED_TRACKS[activeWeek];
-  const tagClass = 'inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-mono font-bold text-black/46';
+  const tagClass = 'inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-mono font-bold text-black/60';
 
   useEffect(() => {
     if (forcedWeekNonce === undefined || forcedWeekIndex === undefined) return;
@@ -1412,27 +1690,27 @@ const ProgramReferenceSwipeCard = ({
   const renderAdvancedCard = (weekCopy: (typeof PROGRAM_WEEK_COPY)[string], speaker: string) => (
     <div
       ref={advancedCardRef}
-      className="mt-4 ml-auto w-full md:w-[74%] rounded-[24px] border border-black/7 bg-[#f3f4f4] p-4 md:p-5 text-right min-h-[154px] flex flex-col justify-start"
+      className="mt-4 ml-auto w-full md:w-[74%] rounded-[24px] border border-black/7 bg-[#f9f9f7] p-4 md:p-6 text-right min-h-[154px] flex flex-col justify-start"
     >
       <div className={`justify-end ${tagClass}`}>
         <span className="text-[10px] leading-none">*</span>
         <span>Advanced Track</span>
       </div>
-      <h4 className="mt-1.5 text-[19px] md:text-[21px] leading-[1.02] font-semibold text-black/70">
+      <h4 className="mt-1.5 text-lg md:text-xl leading-[1.02] font-semibold text-black/80">
         {weekCopy.advancedTopic}
       </h4>
-      <p className="mt-1.5 text-[11px] md:text-[12px] leading-[1.4] text-black/50 max-w-[23rem] ml-auto">
+      <p className="mt-1.5 text-[10px] md:text-xs leading-[1.4] text-black/60 max-w-[23rem] ml-auto">
         {weekCopy.advancedDescription}
       </p>
       <div className="mt-2.5 pt-2 border-t border-black/8">
-        <div className="text-[8px] uppercase tracking-[0.16em] font-bold text-black/36">Спикер</div>
-        <div className="text-[12px] md:text-[13px] leading-[1.2] font-semibold text-black/62 mt-0.5">{speaker}</div>
+        <div className="text-[10px] uppercase tracking-[0.16em] font-bold text-black/40">Спикер</div>
+        <div className="text-xs md:text-xs leading-[1.2] font-semibold text-black/80 mt-0.5">{speaker}</div>
       </div>
     </div>
   );
 
   const weekSelector = (
-    <div className={`flex ${selectorPlacement === 'top' ? 'border-b border-black/8 pb-4 md:pb-5' : 'border-t border-black/8 pt-3'}`}>
+    <div className={`flex ${selectorPlacement === 'top' ? 'border-b border-black/8 pb-4 md:pb-6' : 'border-t border-black/8 pt-4'}`}>
       {PROGRAM_TRACKS.map((track, idx) => {
         const isActive = activeWeek === idx;
         return (
@@ -1440,11 +1718,11 @@ const ProgramReferenceSwipeCard = ({
             key={`reference-week-${track.id}`}
             onClick={() => setActiveWeek(idx)}
             className={`flex-1 px-2 py-2.5 text-center transition-colors ${idx !== 0 ? 'border-l border-black/10' : ''} ${
-              isActive ? 'text-[#8DC63F]' : 'text-black/40 hover:text-black/62'
+              isActive ? 'text-[#8DC63F]' : 'text-black/40 hover:text-black/80'
             }`}
           >
-            <span className={`block text-[10px] sm:text-[11px] font-black ${isActive ? 'opacity-100' : 'opacity-60'}`}>{track.id}</span>
-            <span className={`block text-[8px] uppercase tracking-[0.14em] font-bold mt-0.5 ${isActive ? 'opacity-100' : 'opacity-42'}`}>
+            <span className={`block text-[10px] sm:text-[10px] font-black ${isActive ? 'opacity-100' : 'opacity-60'}`}>{track.id}</span>
+            <span className={`block text-[10px] uppercase tracking-[0.14em] font-bold mt-0.5 ${isActive ? 'opacity-100' : 'opacity-42'}`}>
               Неделя
             </span>
           </button>
@@ -1455,7 +1733,7 @@ const ProgramReferenceSwipeCard = ({
 
   return (
     <div className="w-full max-w-sm mx-auto md:max-w-5xl">
-      <div className="rounded-[32px] md:rounded-[40px] border border-black/10 bg-[#f6f7f5] p-3 md:p-6">
+      <div className="rounded-[32px] md:rounded-[40px] border border-black/10 bg-[#f9f9f7] p-4 md:p-6">
         {selectorPlacement === 'top' && weekSelector}
 
         <AnimatePresence mode="wait">
@@ -1466,7 +1744,7 @@ const ProgramReferenceSwipeCard = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
-            className={`relative overflow-hidden rounded-[28px] md:rounded-[32px] border border-black/10 bg-[#fbfcfb] px-5 py-5 md:px-8 md:py-8 ${selectorPlacement === 'top' ? 'mt-5 md:mt-6' : ''}`}
+            className={`relative overflow-hidden rounded-[28px] md:rounded-[32px] border border-black/10 bg-[#f9f9f7] px-6 py-6 md:px-8 md:py-8 ${selectorPlacement === 'top' ? 'mt-6 md:mt-6' : ''}`}
           >
             {showGridOverlay && (
               <div
@@ -1476,26 +1754,26 @@ const ProgramReferenceSwipeCard = ({
             )}
 
             <div className="relative z-10">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <div className="text-[#8DC63F] text-[14px] md:text-[15px] font-mono font-black tracking-[0.14em] uppercase">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="text-[#8DC63F] text-sm md:text-sm font-mono font-black tracking-[0.14em] uppercase">
                 неделя {activeTrack.id}
               </div>
-              <div className="text-[8px] md:text-[9px] font-bold tracking-[0.12em] text-black/46 font-mono">{activeWeekCopy.dateRange}</div>
+              <div className="text-[10px] md:text-[10px] font-bold tracking-[0.12em] text-black/60 font-mono">{activeWeekCopy.dateRange}</div>
             </div>
 
             <div className={`${tagClass} mb-2 justify-end`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-black/25" />
+              <span className="w-1.5 h-1.5 rounded-full bg-black/40" />
               <span>Main Track</span>
             </div>
 
-            <div className="text-[12px] md:text-[13px] uppercase font-medium tracking-[0.05em] text-black/58 mb-2.5" style={{ textWrap: 'balance' }}>
+            <div className="text-xs md:text-xs uppercase font-medium tracking-[0.05em] text-black/60 mb-2.5" style={{ textWrap: 'balance' }}>
               {activeWeekCopy.framedDescription}
             </div>
-            <h3 className="text-[30px] md:text-[42px] font-black uppercase tracking-tighter leading-[0.92] mb-3 text-[#1a1a1a]" style={{ textWrap: 'balance' }}>
+            <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-[0.92] mb-4 text-[#181616]" style={{ textWrap: 'balance' }}>
               {activeWeekCopy.headerTopic}
             </h3>
 
-            <p className="text-[14px] md:text-[15px] leading-[1.38] font-medium text-black/76 max-w-[34rem]">
+            <p className="text-sm md:text-sm leading-[1.38] font-medium text-black/80 max-w-[34rem]">
               {activeWeekCopy.bodyDescription}
             </p>
 
@@ -1526,7 +1804,7 @@ const ProgramReferenceCleanStack = () => {
             className={`rounded-[38px] border transition-all ${
               isActive
                 ? 'border-black/10 bg-gradient-to-br from-[#f7fbf4] via-[#fbfdf8] to-[#edf5e6] shadow-[0_12px_30px_rgba(0,0,0,0.04)]'
-                : 'border-black/10 bg-[#f3f3f5]'
+                : 'border-black/10 bg-[#f9f9f7]'
             }`}
           >
             <button
@@ -1534,17 +1812,17 @@ const ProgramReferenceCleanStack = () => {
               onClick={() => setActiveWeek((prev) => (prev === idx ? null : idx))}
               className="w-full p-6 md:p-8 text-left"
             >
-                <div className="flex items-center gap-5 md:gap-7">
+                <div className="flex items-center gap-6 md:gap-8">
                   <div
                     className={`w-[88px] h-[88px] rounded-[24px] flex flex-col items-center justify-center shrink-0 font-mono font-black ${
-                      isActive ? 'bg-[#e5ecdf] text-[#8DC63F]' : 'bg-[#ececef] text-black/38'
+                      isActive ? 'bg-[#e5ecdf] text-[#8DC63F]' : 'bg-[#f9f9f7] text-black/40'
                     }`}
                   >
-                    <span className="text-[8px] uppercase tracking-[0.14em] leading-none">неделя</span>
+                    <span className="text-[10px] uppercase tracking-[0.14em] leading-none">неделя</span>
                     <span className="text-3xl leading-none mt-0.5">{idx + 1}</span>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-[30px] md:text-[42px] uppercase tracking-tight font-extrabold leading-[0.94] text-black/90" style={{ textWrap: 'balance' }}>
+                    <h3 className="text-3xl md:text-4xl uppercase tracking-tight font-extrabold leading-[0.94] text-black/90" style={{ textWrap: 'balance' }}>
                       {track.title}
                     </h3>
                   </div>
@@ -1560,27 +1838,27 @@ const ProgramReferenceCleanStack = () => {
                   transition={{ duration: 0.35, ease: 'easeInOut' }}
                 >
                   <div className="px-6 md:px-8 pb-6 md:pb-8 border-t border-black/8">
-                    <div className="pt-5">
+                    <div className="pt-6">
                       <span className={TRACK_TAG_BASE}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-black/25" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-black/40" />
                         <span>Main Track</span>
                       </span>
                     </div>
-                    <div className="pt-3 text-[12px] md:text-[14px] uppercase font-semibold tracking-[0.05em] text-black/58" style={{ textWrap: 'balance' }}>
+                    <div className="pt-4 text-xs md:text-sm uppercase font-semibold tracking-[0.05em] text-black/60" style={{ textWrap: 'balance' }}>
                       {weekCopy.framedDescription}
                     </div>
-                    <p className="pt-4 text-[16px] md:text-[18px] leading-[1.45] text-black/76">{weekCopy.bodyDescription}</p>
+                    <p className="pt-4 text-base md:text-lg leading-[1.45] text-black/80">{weekCopy.bodyDescription}</p>
 
-                    <div className="mt-5 ml-auto w-full md:w-[92%] rounded-3xl bg-[#f5f6f5]/80 border border-black/6 p-5 md:p-6 text-right">
-                      <div className="inline-flex items-center gap-1.5 text-[9px] uppercase tracking-[0.16em] font-mono font-bold text-black/46">
+                    <div className="mt-6 ml-auto w-full md:w-[92%] rounded-3xl bg-[#f9f9f7]/80 border border-black/6 p-6 md:p-6 text-right">
+                      <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.16em] font-mono font-bold text-black/60">
                         <span className="text-[10px] leading-none">*</span>
                         <span>Advanced Track</span>
                       </div>
-                      <div className="mt-2 text-[20px] md:text-[22px] leading-[1] font-semibold text-black/72">{weekCopy.advancedTopic}</div>
-                      <p className="mt-2 text-[12px] md:text-[13px] leading-[1.45] text-black/50 max-w-[24rem] ml-auto">{weekCopy.advancedDescription}</p>
-                      <div className="mt-3 pt-2 border-t border-black/10">
-                        <div className="text-[9px] uppercase tracking-[0.16em] font-bold text-black/40">Спикер</div>
-                        <div className="text-[13px] md:text-[14px] font-semibold text-black/66 mt-0.5">{advanced.speaker}</div>
+                      <div className="mt-2 text-xl md:text-xl leading-[1] font-semibold text-black/80">{weekCopy.advancedTopic}</div>
+                      <p className="mt-2 text-xs md:text-xs leading-[1.45] text-black/60 max-w-[24rem] ml-auto">{weekCopy.advancedDescription}</p>
+                      <div className="mt-4 pt-2 border-t border-black/10">
+                        <div className="text-[10px] uppercase tracking-[0.16em] font-bold text-black/40">Спикер</div>
+                        <div className="text-xs md:text-sm font-semibold text-black/80 mt-0.5">{advanced.speaker}</div>
                       </div>
                     </div>
                   </div>
@@ -1605,7 +1883,7 @@ const ProgramReferenceTechUi = () => {
       <div className="bg-white text-black border border-black/10 rounded-3xl flex flex-col overflow-hidden shadow-[0_18px_40px_rgba(0,0,0,0.08)] relative">
         <div className={`absolute top-0 right-0 w-64 h-64 bg-[#8DC63F]/20 rounded-full blur-[80px] transition-transform duration-1000 ${activeWeek % 2 === 0 ? 'translate-x-12 translate-y-12' : '-translate-x-12 -translate-y-12'}`} />
 
-        <div className="p-6 md:p-7 pb-6 relative z-10 flex flex-col h-[560px] md:h-[540px]">
+        <div className="p-6 md:p-8 pb-6 relative z-10 flex flex-col h-[560px] md:h-[540px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={`tech-ui-${activeWeek}`}
@@ -1615,8 +1893,8 @@ const ProgramReferenceTechUi = () => {
               transition={{ duration: 0.28 }}
               className="flex flex-col h-full"
             >
-              <div className="flex items-start justify-between mb-5">
-                <div className="text-[#8DC63F] font-mono text-[15px] font-black tracking-[0.14em] uppercase">
+              <div className="flex items-start justify-between mb-6">
+                <div className="text-[#8DC63F] font-mono text-sm font-black tracking-[0.14em] uppercase">
                   неделя {track.id}
                 </div>
                 <span className="text-[10px] uppercase font-mono tracking-[0.16em] opacity-46 text-right">
@@ -1625,42 +1903,42 @@ const ProgramReferenceTechUi = () => {
               </div>
 
               <div className={`${TRACK_TAG_BASE} mb-2`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-black/25" />
+                <span className="w-1.5 h-1.5 rounded-full bg-black/40" />
                 <span>Main Track</span>
               </div>
 
               <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-[0.9] mb-2" style={{ textWrap: 'balance' }}>{track.title}</h3>
-              <div className="text-[12px] md:text-[13px] uppercase font-semibold tracking-[0.05em] text-black/58 mb-3" style={{ textWrap: 'balance' }}>
+              <div className="text-xs md:text-xs uppercase font-semibold tracking-[0.05em] text-black/60 mb-4" style={{ textWrap: 'balance' }}>
                 {weekCopy.framedDescription}
               </div>
-              <p className="text-[14px] opacity-72 leading-relaxed max-w-sm mb-5">{weekCopy.bodyDescription}</p>
+              <p className="text-sm opacity-72 leading-relaxed max-w-sm mb-6">{weekCopy.bodyDescription}</p>
 
-              <div className="mt-4 self-end w-full md:w-[82%] bg-gradient-to-l from-black/5 to-transparent border-r-[3px] border-black/20 p-5 rounded-l-xl text-right min-h-[188px] opacity-80">
-                <div className="flex items-center justify-end gap-1.5 mb-2 text-[9px] uppercase tracking-[0.16em] font-mono font-bold text-black/46">
+              <div className="mt-4 self-end w-full md:w-[82%] bg-gradient-to-l from-black/5 to-transparent border-r-[3px] border-black/20 p-6 rounded-l-xl text-right min-h-[188px] opacity-80">
+                <div className="flex items-center justify-end gap-1.5 mb-2 text-[10px] uppercase tracking-[0.16em] font-mono font-bold text-black/60">
                   <span className="text-[10px] leading-none">*</span>
                   <span>Advanced Track</span>
                 </div>
-                <h4 className="font-semibold text-[19px] mb-2 text-black/74">{weekCopy.advancedTopic}</h4>
-                <p className="text-[11px] leading-[1.45] text-black/50 mb-3">{weekCopy.advancedDescription}</p>
+                <h4 className="font-semibold text-lg mb-2 text-black/80">{weekCopy.advancedTopic}</h4>
+                <p className="text-[10px] leading-[1.45] text-black/60 mb-4">{weekCopy.advancedDescription}</p>
                 <div className="text-[10px] tracking-widest font-mono uppercase text-black/40">
-                  Спикер: <span className="text-black/68 font-semibold">{advanced.speaker}</span>
+                  Спикер: <span className="text-black/80 font-semibold">{advanced.speaker}</span>
                 </div>
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        <div className="flex divide-x divide-black/10 bg-[#fbfcfb] border-t border-black/8 relative z-10">
+        <div className="flex divide-x divide-black/10 bg-[#f9f9f7] border-t border-black/8 relative z-10">
           {PROGRAM_TRACKS.map((t, i) => {
             const isActive = activeWeek === i;
             return (
               <button
                 key={`tech-tab-${t.id}`}
                 onClick={() => setActiveWeek(i)}
-                className="flex-1 py-3.5 flex items-center justify-center relative overflow-hidden group"
+                className="flex-1 py-4.5 flex items-center justify-center relative overflow-hidden group"
               >
                 {isActive && <motion.div layoutId="techTabIndicator" className="absolute top-0 left-0 right-0 h-0.5 bg-[#8DC63F]" />}
-                <span className={`text-[10px] font-mono font-bold uppercase tracking-[0.14em] transition-colors ${isActive ? 'text-[#8DC63F]' : 'text-black/36 group-hover:text-black/60'}`}>
+                <span className={`text-[10px] font-mono font-bold uppercase tracking-[0.14em] transition-colors ${isActive ? 'text-[#8DC63F]' : 'text-black/40 group-hover:text-black/60'}`}>
                   неделя {i + 1}
                 </span>
               </button>
@@ -1672,11 +1950,216 @@ const ProgramReferenceTechUi = () => {
   );
 };
 
+const DesktopTechUiV5 = () => {
+  const [activeWeek, setActiveWeek] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start center", "end center"]
+  });
+
+  // 1. Spring-smoothed progress prevents instant skipping of multiple weeks on fast scroll
+  const smoothProgress = useSpring(scrollYProgress, { damping: 40, stiffness: 80, restDelta: 0.001 });
+
+  // 2. Micro-scroll visual feedback via SVG transforms
+  const svgRotate = useTransform(smoothProgress, [0, 1], [-5, 15]);
+  const svgY = useTransform(smoothProgress, [0, 1], [-10, 10]);
+
+  useMotionValueEvent(smoothProgress, "change", (latest) => {
+    // Map weeks 1-4 to the first 80% of the scroll progress to leave 20% for a "hold" phase.
+    let newWeek = Math.min(Math.floor((latest / 0.8) * PROGRAM_TRACKS.length), PROGRAM_TRACKS.length - 1);
+    if (newWeek < 0) newWeek = 0;
+    
+    if (newWeek !== activeWeek) {
+      setActiveWeek(newWeek);
+    }
+  });
+
+  const handleWeekClick = (idx: number) => {
+    setActiveWeek(idx);
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const totalHeight = rect.height;
+    // Update target calculation for the new 80% mapping
+    const targetY = window.scrollY + rect.top + (totalHeight * 0.8 / PROGRAM_TRACKS.length) * idx + (totalHeight * 0.8 / PROGRAM_TRACKS.length / 2) - window.innerHeight / 2;
+    window.scrollTo({ top: targetY, behavior: 'smooth' });
+  };
+
+  const track = PROGRAM_TRACKS[activeWeek];
+  const weekCopy = PROGRAM_WEEK_COPY[track.id];
+
+  const weeklyRhythm = [
+    { day: 'ПН', time: '18:00 CET', task: 'ВОРКШОП', type: 'workshop' },
+    { day: 'ВТ', time: '', task: 'КОВОРКИНГ', type: 'normal' },
+    { day: 'СР', time: '18:00 CET', task: 'ADVANCED TRACK', type: 'core', advanced: true },
+    { day: 'ЧТ', time: '', task: '', type: 'empty' },
+    { day: 'ПТ', time: '', task: 'ЛЕКЦИЯ', type: 'normal' },
+    { day: 'СБ', time: '18:00 CET', task: 'Q&A СЕССИЯ', type: 'normal' },
+    { day: 'ВС', time: '', task: '', type: 'empty' },
+  ];
+
+  return (
+    <div ref={containerRef} className="w-full max-w-[1340px] mx-auto font-sans h-[400vh] relative">
+      <div className="sticky top-[8vh] flex flex-col items-center">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-stretch justify-center h-[580px] w-full pt-12">
+        <div className="w-[120px] shrink-0 flex flex-col relative h-[500px] mt-6">
+          <div className="absolute left-[11.5px] top-[40px] bottom-[40px] w-[1px] bg-black/20 z-0 pointer-events-none" />
+          <div className="flex-1 flex flex-col w-[120px] gap-2">
+            {PROGRAM_TRACKS.map((t, idx) => {
+              const isActive = activeWeek === idx;
+              return (
+                <button
+                  key={`v5-st-ref-${t.id}`}
+                  onClick={() => handleWeekClick(idx)}
+                  className="flex-1 w-full flex items-center gap-4.5 group text-left relative z-10 transition-colors hover:bg-black/[0.04] rounded-[10px] -ml-4 pl-4 cursor-pointer"
+                >
+                  <div className={cn(
+                    "w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 z-10",
+                    isActive ? "bg-black border border-black shadow-[rgba(0,0,0,0.1)_0_4px_12px]" : "bg-white border border-black/20 group-hover:border-black/40"
+                  )}>
+                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <div className="flex flex-col">
+                    <div className={cn("text-[10px] font-mono font-bold uppercase transition-colors mb-0.5", isActive ? "text-black" : "text-black/40 group-hover:text-black/60")}>НЕДЕЛЯ</div>
+                    <div className={cn("text-lg font-black tracking-tighter leading-none transition-colors", isActive ? "text-black" : "text-black/20 group-hover:text-black/40")}>0{idx + 1}</div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+          <div className="w-[100px] flex items-center gap-2 p-2 border border-black/10 rounded-[6px] bg-[#f9f9f7] text-left relative z-10 opacity-70 mt-1 mb-8 -ml-1">
+            <div className="flex flex-col">
+              <div className="text-[8.5px] font-mono font-bold uppercase text-black/60 mb-0.5 tracking-wider">FINAL</div>
+              <div className="text-[10px] font-black tracking-widest leading-none text-black/90">DEMO DAY</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 border border-black/15 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col pt-12 max-w-[940px] bg-white rounded-none">
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-10 bg-white" 
+               style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+          <motion.div 
+            animate={{ scale: activeWeek === 3 ? 1.05 : 0.82, opacity: activeWeek === 3 ? 0.45 : 0.35, top: activeWeek === 3 ? "-10%" : "0%" }}
+            style={{ rotate: svgRotate, y: svgY }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-[-40px] w-[740px] h-[740px] pointer-events-none mix-blend-multiply z-0 flex justify-center"
+          >
+             <MorphSvg week={activeWeek} />
+          </motion.div>
+
+          <div className="relative z-20 flex flex-col flex-1 pl-12 pr-0 pb-0">
+             <div className="flex items-center justify-between mb-4 h-6 pr-12">
+                <div className="flex items-center gap-2">
+                   <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
+                   <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
+                </div>
+                <div className="w-[320px] h-full" />
+             </div>
+
+             <div className="flex-1 flex flex-col lg:flex-row relative">
+                <div className="flex-1 min-w-0 relative pr-10 pb-12 flex flex-col">
+                  {/* use popLayout to absolute-position the exiting text silently, avoiding layout jumping! */}
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={`v5-blur-crossfade-${activeWeek}`}
+                      initial={{ opacity: 0, filter: "blur(12px)", scale: 0.98 }}
+                      animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
+                      exit={{ opacity: 0, filter: "blur(12px)", scale: 1.02 }}
+                      transition={{ duration: 0.75, ease: [0.32, 0.72, 0, 1] }}
+                      className="flex flex-col pt-0 h-full w-full"
+                    >
+                      <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-[0.85] text-black mb-4 max-w-[540px]">
+                        {track.title}
+                      </h2>
+                      <div className="text-[#8DC63F] font-mono text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
+                        {weekCopy.framedDescription}
+                      </div>
+                      <p className="text-sm leading-[1.6] text-black/80 font-medium max-w-[440px] mb-8">
+                        {weekCopy.bodyDescription}
+                      </p>
+                      <div className="mt-auto relative z-10">
+                        <div className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-4 ml-1 flex items-center gap-2">
+                          <span>НЕДЕЛЬНЫЙ РИТМ</span> 
+                          <span className="text-black/60 font-medium tracking-widest lowercase px-1.5 py-[2px] rounded-[4px] bg-white/40 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.7)] border border-white/50">
+                            11—17 ноября 2024
+                          </span>
+                        </div>
+                        <div className="flex border border-black/10 w-full max-w-[720px] bg-black/10 gap-px rounded-[1px] overflow-hidden shadow-none">
+                          {weeklyRhythm.map((item, idx) => {
+                            const isWorkshop = item.type === 'workshop';
+                            const isCore = item.type === 'core';
+                            const isEmpty = item.type === 'empty';
+                            const displayTask = isWorkshop ? "MAIN ВОРКШОП" : item.task;
+                            return (
+                            <div key={`cal-redesign-${idx}`} 
+                              className={cn("flex-1 flex flex-col px-2 pt-2 pb-[3px] relative transition-colors h-[68px]",
+                                isWorkshop ? "bg-[#8DC63F]" : isCore ? "bg-black" : isEmpty ? "bg-white/80 backdrop-blur-sm" : "bg-white"
+                              )}
+                            >
+                               <div className="flex flex-col items-start mb-0">
+                                 <span className={cn("text-[8.5px] font-mono font-black tracking-widest leading-none", isWorkshop ? "text-white/80" : isCore ? "text-white/60" : "text-black/40")}>{item.day}</span>
+                                 {item.time && <div className={cn("text-[7.5px] font-mono font-bold tracking-widest leading-[1.15] mt-[3px] whitespace-nowrap", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>{item.time}</div>}
+                               </div>
+                               <div className={cn("font-black uppercase mt-auto leading-[0.95] font-sans text-left flex flex-col tracking-tight", 
+                                 isWorkshop || isCore ? "text-white text-[10px] tracking-[0.02em]" : 
+                                 isEmpty ? "opacity-0 text-[10px]" : "text-black/80 text-[10px]"
+                               )}>
+                                 {displayTask.includes(' ') && (isCore || isWorkshop) ? displayTask.split(' ').map((w, i) => <span key={i}>{w}</span>) : displayTask}
+                               </div>
+                            </div>
+                          )})}
+                        </div>
+                      </div>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <div className="w-full lg:w-[320px] shrink-0 relative bg-black shadow-none h-full border-l border-white/10 z-20 pb-0">
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={`v5-restore-adv-crossfade-${activeWeek}`}
+                      initial={{ opacity: 0, x: 20, filter: "blur(12px)" }}
+                      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, x: -20, filter: "blur(12px)" }}
+                      transition={{ duration: 0.75, ease: [0.32, 0.72, 0, 1] }}
+                      className="absolute inset-x-0 inset-y-0 h-full w-full flex flex-col items-start p-10 pt-12 pb-[6.5rem]"
+                    >
+                        <div className="inline-flex items-center gap-2 mb-4">
+                           <span className="text-sm text-white leading-none">✻</span>
+                           <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/60">ADVANCED TRACK</span>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-[0.85] mb-6 max-w-[280px]" style={{ color: '#ffffff' }}>
+                          {weekCopy.advancedTopic}
+                        </div>
+                        <p className="text-sm leading-[1.6] text-white/60 font-medium max-w-[260px] pb-10">
+                          {weekCopy.advancedDescription}
+                        </p>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+             </div>
+          </div>
+        </div>
+        </div>
+        
+        {/* Desktop Caption inside Sticky Wrapper */}
+        <div className="mt-8 flex w-full max-w-[1060px] justify-end pr-0 lg:pr-6">
+          <p className="max-w-[23rem] text-left text-sm font-medium leading-[1.45] text-black/60">
+            <span className="mr-1.5 font-bold">*</span>
+            {PROGRAM_TRACKS_CAPTION}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AsciiCaseArt = ({ frames, className = "" }: { frames: string[]; className?: string }) => {
   const frame = frames[0];
 
   return (
-    <div className={`font-mono text-[7px] leading-[1.2] whitespace-pre bg-transparent font-light ${className}`}>
+    <div className={`font-mono text-[10px] leading-[1.2] whitespace-pre bg-transparent font-light ${className}`}>
       {frame.split('\n').map((line, lineIdx) => (
         <div key={lineIdx} className="leading-[1.2]">
           {line.split('').map((char, charIdx) => {
@@ -1704,10 +2187,10 @@ const AsciiCaseArt = ({ frames, className = "" }: { frames: string[]; className?
 
 const SymbolBorder = ({ children, className = "", variant = "default" }: { children: React.ReactNode; className?: string; variant?: "default" | "heavy" | "dots"; key?: React.Key }) => (
   <div className={`relative p-[2px] ${className}`}>
-    <div className="absolute top-0 left-0 w-full overflow-hidden whitespace-nowrap text-[8px] leading-none opacity-20 select-none">
+    <div className="absolute top-0 left-0 w-full overflow-hidden whitespace-nowrap text-[10px] leading-none opacity-20 select-none">
       {variant === "heavy" ? Array(100).fill("=").join("") : Array(100).fill("-").join(" ")}
     </div>
-    <div className="absolute bottom-0 left-0 w-full overflow-hidden whitespace-nowrap text-[8px] leading-none opacity-20 select-none">
+    <div className="absolute bottom-0 left-0 w-full overflow-hidden whitespace-nowrap text-[10px] leading-none opacity-20 select-none">
       {variant === "heavy" ? Array(100).fill("=").join("") : Array(100).fill("-").join(" ")}
     </div>
     <div className="absolute top-0 left-0 h-full w-[8px] flex flex-col overflow-hidden opacity-20 select-none">
@@ -1738,89 +2221,6 @@ const SectionLabel = ({ text, number }: { text: string, number?: string }) => (
   </div>
 );
 
-const VoxelLogoFace = ({ scale = 1, opacity = 1, className = "" }: { scale?: number; opacity?: number; className?: string }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const interactionRef = useRef({ x: -999, y: -999 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (canvasRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        interactionRef.current.x = (e.clientX - rect.left) * (600 / rect.width);
-        interactionRef.current.y = (e.clientY - rect.top) * (600 / rect.height);
-      }
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = 600;
-    canvas.height = 600;
-    const voxels: any[] = [];
-    const size = 11, gap = 3, total = size + gap;
-    const width = AI_MINDSET_LOGO_MAP[0].length;
-    const height = AI_MINDSET_LOGO_MAP.length;
-    const startX = 300 - (width * total) / 2;
-    const startY = 300 - (height * total) / 2;
-
-    for (let r = 0; r < height; r++) {
-      for (let c = 0; c < width; c++) {
-        if (AI_MINDSET_LOGO_MAP[r][c] === '1' && c >= width / 2 - 1) {
-            voxels.push({
-              homeX: startX + c * total, homeY: startY + r * total,
-              x: startX + c * total + (Math.random() - 0.5) * 400,
-              y: startY + r * total + (Math.random() - 0.5) * 400,
-              vx: 0, vy: 0, firmness: 0.05 + Math.random() * 0.05
-            });
-        }
-      }
-    }
-
-    const logoLeft = new Image();
-    logoLeft.src = LOGO_LEFT_SRC;
-    let logoLoaded = false;
-    logoLeft.onload = () => { logoLoaded = true; };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, 600, 600);
-      if (logoLoaded && logoLeft.height > 0) {
-         const scaleFactor = 1.07;
-         const targetHeight = height * total * scaleFactor;
-         const targetWidth = targetHeight * (logoLeft.width / logoLeft.height);
-         const targetX = startX + ((width / 2) * total) - targetWidth;
-         const offsetY = (targetHeight - (height * total)) / 2;
-         const seamOffsetY = total * 0.3;
-         ctx.drawImage(logoLeft, targetX, startY - offsetY + seamOffsetY, targetWidth, targetHeight);
-      }
-      voxels.forEach(v => {
-        const dx = v.x - interactionRef.current.x, dy = v.y - interactionRef.current.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 100) { v.vx += (dx / dist) * 2; v.vy += (dy / dist) * 2; }
-        v.vx += (v.homeX - v.x) * v.firmness;
-        v.vy += (v.homeY - v.y) * v.firmness;
-        v.vx *= 0.8; v.vy *= 0.8;
-        v.x += v.vx; v.y += v.vy;
-        ctx.fillStyle = '#181616';
-        ctx.fillRect(v.x, v.y, size, size);
-      });
-      requestAnimationFrame(draw);
-    };
-    draw();
-  }, []);
-
-  return (
-    <div className={`aspect-square ${className}`} style={{ transform: `scale(${scale})`, opacity }}>
-      <canvas ref={canvasRef} width={600} height={600} className="w-full h-full object-contain" />
-    </div>
-  );
-};
-
 const LabsHoverMenu = () => (
   <motion.div
     initial={{ opacity: 0, x: 10 }}
@@ -1831,8 +2231,8 @@ const LabsHoverMenu = () => (
     <div className="pointer-events-none absolute inset-y-0 -left-4 w-4 bg-transparent" />
     <div className="bg-white border border-black/20 p-6 flex flex-col xl:flex-row gap-4 shadow-2xl">
       {LAB_MENU_LINKS.map((link) => (
-        <a key={link.label} href={link.href} target="_blank" className="group block border border-black/10 px-4 py-3 w-48 hover:border-black transition-colors bg-white">
-          <div className="text-[9px] uppercase tracking-widest opacity-40 mb-3">{link.status}</div>
+        <a key={link.label} href={link.href} target="_blank" className="group block border border-black/10 px-4 py-4 w-48 hover:border-black transition-colors bg-white">
+          <div className="text-[10px] uppercase tracking-widest opacity-40 mb-4">{link.status}</div>
           <div className="text-xs font-bold uppercase tracking-widest">
             <MenuStrikeText>{link.label}</MenuStrikeText>
           </div>
@@ -1909,7 +2309,7 @@ const ProgramScheduleGrid = () => {
   ];
 
   return (
-    <section className="py-24 md:py-32 bg-[#161620] text-white font-mono overflow-hidden">
+    <section className="py-24 md:py-32 bg-[#181616] text-white font-mono overflow-hidden">
       <Container>
         <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
           
@@ -1920,17 +2320,17 @@ const ProgramScheduleGrid = () => {
             <div className="flex flex-col gap-16">
               {weeks.map((wk, i) => (
                 <div key={i} className="relative">
-                  <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#161620] border-2 border-[#4dc9d4] z-10 shadow-[0_0_15px_rgba(77,201,212,0.5)]" />
+                  <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#181616] border-2 border-[#4dc9d4] z-10 shadow-[0_0_15px_rgba(77,201,212,0.5)]" />
                   <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">week {wk.num} — <span className="text-white opacity-100">{wk.title}</span></div>
-                  <div className="text-lg md:text-xl font-black uppercase mb-3 tracking-tight">{wk.subtitle}</div>
-                  <p className="text-xs opacity-50 mb-3 leading-relaxed max-w-md">{wk.desc}</p>
+                  <div className="text-lg md:text-xl font-black uppercase mb-4 tracking-tight">{wk.subtitle}</div>
+                  <p className="text-xs opacity-50 mb-4 leading-relaxed max-w-md">{wk.desc}</p>
                   <p className="text-[10px] opacity-30 italic">артефакт: {wk.artifact}</p>
                 </div>
               ))}
               <div className="relative">
-                <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#161620] border-2 border-[#ff6b6b] z-10 shadow-[0_0_15px_rgba(255,107,107,0.5)]" />
+                <div className="absolute left-[-56px] top-2 w-4 h-4 rounded-full bg-[#181616] border-2 border-[#ff6b6b] z-10 shadow-[0_0_15px_rgba(255,107,107,0.5)]" />
                 <div className="text-[10px] opacity-40 uppercase tracking-[0.2em] mb-2">финал — <span className="text-[#ff6b6b] opacity-100 font-black">DEMO DAY</span></div>
-                <div className="text-lg md:text-xl font-black uppercase mb-3 tracking-tight">презентация результатов + 90-дневный план</div>
+                <div className="text-lg md:text-xl font-black uppercase mb-4 tracking-tight">презентация результатов + 90-дневный план</div>
                 <p className="text-xs opacity-50 leading-relaxed">обратная связь от группы и экспертов</p>
               </div>
             </div>
@@ -1950,45 +2350,45 @@ const ProgramScheduleGrid = () => {
 
             <div className="grid grid-cols-[80px_repeat(7,1fr)] w-full border border-white/5 bg-white/[0.02]">
               {/* DOW Headers */}
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">MON</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">TUE</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">WED</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">THU</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">FRI</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">SAT</div>
-              <div className="p-3 border-b border-r border-white/5 opacity-20 text-[8px] flex items-center justify-center">SUN</div>
-              <div className="p-3 border-b border-white/5"></div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">MON</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">TUE</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">WED</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">THU</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">FRI</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">SAT</div>
+              <div className="p-4 border-b border-r border-white/5 opacity-20 text-[10px] flex items-center justify-center">SUN</div>
+              <div className="p-4 border-b border-white/5"></div>
 
               {/* Rows */}
               {['W1', 'W2', 'W3', 'W4'].map((wk, weekIdx) => (
                 <React.Fragment key={wk}>
-                  <div className="p-3 border-b border-r border-white/5 flex flex-col justify-center items-start">
+                  <div className="p-4 border-b border-r border-white/5 flex flex-col justify-center items-start">
                     <div className="text-[10px] font-black text-[#4dc9d4]">{wk}</div>
-                    <div className="text-[7px] opacity-30 uppercase leading-none mt-1">
+                    <div className="text-[10px] opacity-30 uppercase leading-none mt-1">
                       {weekIdx === 0 ? 'Prompt' : weekIdx === 1 ? 'Context' : weekIdx === 2 ? 'Mind' : 'Life'}
                     </div>
                   </div>
                   {calendarDays.slice(weekIdx * 7, (weekIdx + 1) * 7).map((day, i) => (
                     <div key={i} className={`h-24 p-2 border-b border-r border-white/5 relative flex flex-col items-center justify-center group ${day.type !== 'rest' ? 'bg-white/[0.03]' : ''}`}>
                       {day.month && (
-                        <div className="absolute top-1 left-1 text-[6px] font-bold text-[#4dc9d4] opacity-50">{day.month}</div>
+                        <div className="absolute top-1 left-1 text-[10px] font-bold text-[#4dc9d4] opacity-50">{day.month}</div>
                       )}
                       {/* Horizontal line for rail effect */}
                       <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/10 -translate-y-[2px]" />
                       
                       <div className={`relative z-10 w-8 h-8 flex items-center justify-center text-[10px] font-bold rounded-lg transition-all duration-300
-                        ${day.type === 'lecture' ? 'bg-[#4dc9d4] text-[#161620] shadow-[0_0_15px_rgba(77,201,212,0.4)]' : ''}
+                        ${day.type === 'lecture' ? 'bg-[#4dc9d4] text-[#181616] shadow-[0_0_15px_rgba(77,201,212,0.4)]' : ''}
                         ${day.type === 'workshop' ? 'border-2 border-[#38d9a9] text-[#38d9a9] bg-[#38d9a9]/10' : ''}
                         ${day.type === 'coworking' ? 'border border-[#4dc9d4] text-white' : ''}
                         ${day.type === 'demo' ? 'bg-[#ff6b6b] text-white shadow-[0_0_15px_rgba(255,107,107,0.4)]' : ''}
                         ${day.type === 'rest' ? 'text-white/20' : ''}
                       `}>
                         {day.date}
-                        {day.type === 'workshop' && <div className="absolute -top-1 -right-1 text-[6px] bg-[#38d9a9] text-[#161620] px-1 rounded-sm">x2</div>}
+                        {day.type === 'workshop' && <div className="absolute -top-1 -right-1 text-[10px] bg-[#38d9a9] text-[#181616] px-1 rounded-sm">x2</div>}
                       </div>
 
                       {day.label && (
-                         <div className="absolute bottom-1 w-full text-center text-[5px] opacity-40 truncate px-1 uppercase">{day.label}</div>
+                         <div className="absolute bottom-1 w-full text-center text-[10px] opacity-40 truncate px-1 uppercase">{day.label}</div>
                       )}
                     </div>
                   ))}
@@ -1997,7 +2397,7 @@ const ProgramScheduleGrid = () => {
             </div>
 
             {/* Legend */}
-            <div className="mt-8 flex flex-wrap gap-6 text-[8px] uppercase font-bold tracking-widest opacity-60 justify-center lg:justify-start">
+            <div className="mt-8 flex flex-wrap gap-6 text-[10px] uppercase font-bold tracking-widest opacity-60 justify-center lg:justify-start">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#4dc9d4]" /> лекция
               </div>
@@ -2023,24 +2423,31 @@ const ProgramScheduleGrid = () => {
 };
 
 // --- MAIN PAGE ---
+type PricingPlan = {
+  name: string;
+  price: string;
+  tag: string;
+  tagHref?: string;
+  highlight?: boolean;
+  desc: React.ReactNode;
+  features: React.ReactNode[];
+  more: React.ReactNode[];
+};
 
-
-  const pricingPlans = [
+  const pricingPlans: PricingPlan[] = [
     {
       name: 'MAIN LAB',
       price: '590',
-      tag: '',
+      tag: 'БАЗА',
       features: [
-        'четыре воркшопа, четыре коворкинга, четыре Q&A сессии, дополнительные гостевые лекции',
-        'закрытый чат участников',
-        'программа',
+        <><strong>4 воркшопа</strong>, 4 коворкинга, 4 Q&A-сессии и гостевые лекции</>,
+        <>закрытый чат участников</>,
+        <>программа</>,
       ],
-      desc: 'базовый формат для самостоятельной работы',
+      desc: <>базовый формат для самостоятельной работы</>,
       more: [
-        'Формат: 4 недели, online',
-        'подходит non-tech и advanced users',
-        'доступ к библиотеке материалов',
-        'возврат после первой недели — без вопросов',
+        <>доступ к библиотеке материалов</>,
+        <>возврат после первой недели без вопросов</>,
       ]
     },
     {
@@ -2050,37 +2457,31 @@ const ProgramScheduleGrid = () => {
       tagHref: '#tracks',
       highlight: true,
       features: [
-        'всё из MAIN LAB',
-        'четыре advanced занятия',
-        'дополнительный чат advanced участников',
-        'еженедельные закрытые разборы',
+        <>всё из MAIN LAB</>,
+        <><strong>4 дополнительных занятия</strong></>,
+        <>дополнительный чат advanced-участников</>,
+        <>еженедельные закрытые разборы</>,
+        <>приоритетная обратная связь</>,
       ],
-      desc: 'для тех, кто строит полный ai-стек',
+      desc: <>углублённый формат для личных кейсов</>,
       more: [
-        'AI coaching · AI agents · vibe-coding · AI creative',
-        'углубление в личные кейсы и доменные задачи',
-        'приоритетная обратная связь',
-        'лучший выбор для системного внедрения',
+        <>углубление в личные кейсы и доменные задачи</>,
       ]
     },
     {
       name: 'PREMIUM',
       price: '1490',
-      tag: '',
+      tag: 'СВОЙ МАРШРУТ',
       features: [
-        'всё из ADVANCED',
-        'индивидуальный маршрут',
-        'сессии 1:1',
-        'аудит процессов',
-        'priority support',
+        <>всё из ADVANCED</>,
+        <><strong>индивидуальный маршрут</strong></>,
+        <>приоритетная поддержка</>,
+        <>персональный канал связи</>,
       ],
-      desc: 'индивидуальный маршрут внедрения',
+      desc: <>персональный формат под ваш контекст</>,
       more: [
-        'персональная стратегия под ваш контекст',
-        'две сессии 1:1 со стратегами',
-        'аудит процессов и подбор экосистемы',
-        'персональный канал и точечная поддержка',
-        'фокус на реальные бизнес-задачи',
+        <>персональная стратегия под ваш контекст</>,
+        <>фокус на реальные бизнес-задачи</>,
       ]
     },
   ];
@@ -2092,13 +2493,31 @@ export default function LabW26PageV4() {
   const [scrolled, setScrolled] = useState(false);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
-  const [pricingDetailsOpen, setPricingDetailsOpen] = useState(false);
+  const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
   const [showReturnToPricing, setShowReturnToPricing] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
-  const [activeCase, setActiveCase] = useState<CaseCard | null>(null);
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
-  const [activeSpeakerIndex, setActiveSpeakerIndex] = useState<number | null>(null);
+  const [activeCaseToolFilter, setActiveCaseToolFilter] = useState('all');
+  const [isCasesOverlayOpen, setIsCasesOverlayOpen] = useState(false);
+  const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
+  const [hoveredCaseIndex, setHoveredCaseIndex] = useState<number | null>(null);
+  const [hoveredOverlayCaseIndex, setHoveredOverlayCaseIndex] = useState<number | null>(null);
+  const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
+  const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const labsCloseTimeoutRef = useRef<number | null>(null);
+  const sectionHashSyncLockRef = useRef<number | null>(null);
+  const lastSyncedHashRef = useRef<string>('');
+
+  useEffect(() => {
+    if (isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2113,6 +2532,91 @@ export default function LabW26PageV4() {
       if (labsCloseTimeoutRef.current !== null) {
         window.clearTimeout(labsCloseTimeoutRef.current);
       }
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const lockSectionHashSync = (duration = 900) => {
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
+      sectionHashSyncLockRef.current = window.setTimeout(() => {
+        sectionHashSyncLockRef.current = null;
+      }, duration);
+    };
+
+    const scrollToHashTarget = (behavior: ScrollBehavior) => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      lastSyncedHashRef.current = hash;
+      window.requestAnimationFrame(() => {
+        document.querySelector(hash)?.scrollIntoView({ behavior, block: 'start' });
+      });
+    };
+
+    const handleHashChange = () => {
+      lockSectionHashSync();
+      scrollToHashTarget('smooth');
+    };
+
+    scrollToHashTarget('auto');
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  useEffect(() => {
+    let ticking = false;
+
+    const syncHashToVisibleSection = () => {
+      ticking = false;
+      if (sectionHashSyncLockRef.current !== null) return;
+
+      const threshold = Math.min(220, window.innerHeight * 0.28);
+      let activeSectionId: string | null = null;
+      let nearestSectionId: string | null = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      for (const id of PAGE_SECTION_HASH_IDS) {
+        const element = document.getElementById(id);
+        if (!element) continue;
+        const rect = element.getBoundingClientRect();
+        const distance = Math.abs(rect.top - threshold);
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestSectionId = id;
+        }
+
+        if (rect.top <= threshold && rect.bottom > threshold) {
+          activeSectionId = id;
+        }
+      }
+
+      const nextSectionId = activeSectionId ?? nearestSectionId;
+      if (!nextSectionId) return;
+
+      const nextHash = `#${nextSectionId}`;
+      if (lastSyncedHashRef.current === nextHash && window.location.hash === nextHash) return;
+
+      lastSyncedHashRef.current = nextHash;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
+    };
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(syncHashToVisibleSection);
+    };
+
+    syncHashToVisibleSection();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
     };
   }, []);
 
@@ -2134,10 +2638,109 @@ export default function LabW26PageV4() {
     }
   }[theme];
 
-  const visibleCases = CASE_CARDS.filter((card) => {
-    if (activeCaseFilter === 'all') return true;
-    return card.filters.includes(activeCaseFilter);
-  });
+  const filteredCases = CASE_CARDS
+    .map((card, index) => ({ card, index }))
+    .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter))
+    .filter(({ card }) => activeCaseToolFilter === 'all' || getCaseTools(card).includes(activeCaseToolFilter));
+  const visibleCases = filteredCases.slice(0, 8);
+  const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
+  const activeCaseVisualIndex = activeCaseIndex ?? 0;
+
+  const renderCaseCard = (
+    card: CaseCard,
+    index: number,
+    hovered: boolean,
+    setHovered: (value: number | null | ((current: number | null) => number | null)) => void,
+    keyPrefix: string,
+    options?: { showTools?: boolean; descriptionLines?: 2 | 3 },
+  ) => (
+    <button
+      key={`${keyPrefix}-${card.title}-${index}`}
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        setActiveCaseIndex(index);
+      }}
+      onPointerEnter={() => setHovered(index)}
+      onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
+      onFocus={() => setHovered(index)}
+      onBlur={() => setHovered((current) => (current === index ? null : current))}
+      className="group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[4px] border border-black/10 bg-white px-4 pb-4 pt-2 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
+    >
+      <div
+        className={cn(
+          "relative mb-2.5 h-[92px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent md:h-[100px]",
+          CASE_DARK_VARIANTS.has(index) ? "bg-[#181616]" : "bg-[#f9f9f7]",
+        )}
+      >
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
+            CASE_DARK_VARIANTS.has(index)
+              ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+              : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+          )}
+        />
+
+        {CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className="absolute inset-x-2 top-1.5 h-5 border border-white/10 bg-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/20 transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-300 group-hover:opacity-0" />
+          </>
+        ) : null}
+
+        <div
+          className={cn(
+            "absolute transition-transform duration-500",
+            getCaseVisualFrameClassName(index),
+            CASE_DARK_VARIANTS.has(index)
+              ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
+              : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
+          )}
+        >
+          <CaseVisualGraphic
+            index={index}
+            className={getCaseVisualToneClassName(index)}
+            animate={hovered}
+          />
+        </div>
+
+        {CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className="absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-300 group-hover:opacity-0" />
+          </>
+        ) : null}
+      </div>
+
+      <h4 className="mb-1.5 max-w-[10.6rem] text-sm font-black uppercase leading-[0.94] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white md:text-sm">
+        {card.title}
+      </h4>
+
+      <p className={cn(
+        "mb-2 text-xs font-normal leading-[1.34] text-black/80 transition-colors duration-300 group-hover:text-white/90",
+        options?.descriptionLines === 3 ? "line-clamp-3" : "line-clamp-2",
+      )}>
+        {card.details}
+      </p>
+
+      <div className="mt-auto truncate font-mono text-[10px] leading-[1.1] tracking-[0.02em] text-black/60 transition-colors duration-300 group-hover:text-white/80 md:text-[10px]">
+        {card.author}, {card.role.toLowerCase()}
+      </div>
+
+      {options?.showTools ? (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {getCaseTools(card).map((tool) => (
+            <span key={`${keyPrefix}-tool-${card.title}-${tool}`} className="rounded-[2px] border border-black/10 bg-black/[0.03] px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] text-black/60 transition-colors duration-300 group-hover:border-black/15 group-hover:bg-white/60 group-hover:font-bold group-hover:text-black md:text-[10px]">
+              {tool}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </button>
+  );
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2145,7 +2748,17 @@ export default function LabW26PageV4() {
 
   const scrollTo = (id: string) => {
     const el = document.querySelector(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (el) {
+      if (sectionHashSyncLockRef.current !== null) {
+        window.clearTimeout(sectionHashSyncLockRef.current);
+      }
+      sectionHashSyncLockRef.current = window.setTimeout(() => {
+        sectionHashSyncLockRef.current = null;
+      }, 900);
+      lastSyncedHashRef.current = id;
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${id}`);
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
     setIsMenuOpen(false);
   };
 
@@ -2178,8 +2791,20 @@ export default function LabW26PageV4() {
     }, 220);
   };
 
+  const toggleMobileSpeaker = (index: number, rowSize: number) => {
+    const rowIndex = Math.floor(index / rowSize);
+    if (activeMobileSpeakerIndex === index) {
+      setActiveMobileSpeakerIndex(null);
+      setActiveMobileSpeakerRowIndex(null);
+      return;
+    }
+
+    setActiveMobileSpeakerIndex(index);
+    setActiveMobileSpeakerRowIndex(rowIndex);
+  };
+
   return (
-    <div className="min-h-screen bg-[#f9f9f7] text-[#181616] font-mono selection:bg-black selection:text-white overflow-x-hidden relative">
+    <div className="relative min-h-screen bg-[#f9f9f7] font-mono text-[#181616] selection:bg-black selection:text-white">
       
       {/* Sidebar (Desktop) */}
       <aside className={`fixed top-0 left-0 w-full md:w-[18%] h-screen border-r border-black/10 p-10 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-full'}`}>
@@ -2189,7 +2814,14 @@ export default function LabW26PageV4() {
           </div>
           <div className="font-black text-xs tracking-tighter uppercase">AI MINDSET</div>
         </div>
-        <nav className="flex flex-col gap-6 text-[11px] font-bold uppercase tracking-widest">
+        <nav className="flex flex-col gap-6 text-[10px] font-bold uppercase tracking-widest">
+          <button
+            type="button"
+            onClick={() => scrollTo('#hero')}
+            className="group flex w-fit items-center gap-2 text-left opacity-60 transition-opacity hover:text-black hover:opacity-100"
+          >
+            <MenuStrikeText>главная</MenuStrikeText> <span className="opacity-30">|</span>
+          </button>
           <div className="relative flex items-center gap-2 w-fit" onMouseEnter={openLabsDropdown} onMouseLeave={closeLabsDropdown}>
             <div className="group flex items-center gap-2 opacity-60 hover:text-black hover:opacity-100 transition-opacity cursor-pointer">
               <MenuStrikeText>{`{labs}`}</MenuStrikeText> <span className="opacity-30">|</span>
@@ -2208,7 +2840,7 @@ export default function LabW26PageV4() {
           <a
             href="#pricing"
             onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-            className="block box-border mx-[calc(-10px-1vw)] w-[calc(100%+20px+2vw)] max-w-none whitespace-nowrap bg-black text-white px-4 py-[15px] text-[12px] leading-none font-black tracking-[0.08em] text-center hover:bg-[#8DC63F] hover:text-white transition-all rounded-sm"
+            className={`${DARK_CTA_BUTTON_CLASS} box-border mx-[calc(-10px-1vw)] w-[calc(100%+20px+2vw)] max-w-none whitespace-nowrap px-4 py-[15px] text-center`}
           >
             хочу на лабораторию
           </a>
@@ -2222,11 +2854,11 @@ export default function LabW26PageV4() {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-[450] flex flex-col p-8 overflow-y-auto md:hidden"
+            className="fixed inset-0 z-[10005] flex flex-col p-8 overflow-y-auto md:hidden"
             style={{ backgroundColor: colors.bg, color: colors.text }}
           >
             <div className="flex justify-between items-center mb-12">
-              <div className="text-xl font-bold uppercase tracking-widest">МЕНЮ //</div>
+              <div className="text-xl font-bold uppercase tracking-widest">НАВИГАЦИЯ //</div>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-current/5 rounded-full border border-current">
                 <X size={24} />
               </button>
@@ -2234,7 +2866,7 @@ export default function LabW26PageV4() {
 
             <div className="grid gap-12">
               <div>
-                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы страницы</div>
+                <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы текущей страницы</div>
                 <div className="flex flex-col gap-4">
                   {SIDEBAR_NAV.map((link) => (
                     <button
@@ -2249,16 +2881,45 @@ export default function LabW26PageV4() {
               </div>
 
               <div>
-                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-5 border-b-2 border-current/20 pb-3">меню</div>
-                <div className="flex flex-col gap-4 pl-4 border-l border-current/15">
-                  {LAB_MENU_LINKS.map((link) => (
+                <div className="text-[10px] opacity-60 uppercase tracking-widest mb-6 border-b-2 border-current/20 pb-4">меню сайта</div>
+                <div className="flex flex-col gap-4">
+                  <a
+                    href="#hero"
+                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
+                    className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
+                  >
+                    главная
+                  </a>
+
+                  <a
+                    href="#hero"
+                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
+                    className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
+                  >
+                    Labs
+                  </a>
+
+                  {LAB_MENU_LINKS.slice(0, 3).map((link) => (
                     <a
                       key={link.label}
                       href={link.href}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => setIsMenuOpen(false)}
-                      className="text-2xl font-bold uppercase tracking-tight hover:line-through"
+                      className="pl-6 text-[1.35rem] font-bold uppercase tracking-tight opacity-40 hover:line-through"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
+
+                  {PRIMARY_MENU_LINKS.map((link) => (
+                    <a
+                      key={link.label}
+                      href={link.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
                     >
                       {link.label}
                     </a>
@@ -2298,7 +2959,7 @@ export default function LabW26PageV4() {
 
         {/* Header Ticker */}
         <div
-          className="fixed top-0 left-0 w-full z-[260] border-b border-current/10 py-1 overflow-hidden whitespace-nowrap text-[8px] uppercase tracking-[0.3em] select-none"
+          className="fixed top-0 left-0 w-full z-[260] border-b border-current/10 py-1 overflow-hidden whitespace-nowrap text-[10px] uppercase tracking-[0.3em] select-none"
           style={{
             backgroundColor: colors.bg,
             color: colors.text === '#181616' ? 'rgba(24, 22, 22, 0.42)' : 'rgba(43, 61, 43, 0.46)',
@@ -2312,24 +2973,24 @@ export default function LabW26PageV4() {
           <Container>
             <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
                <div className="w-full lg:w-3/5 text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start gap-3 mb-8 opacity-40 text-[10px] font-black uppercase tracking-widest">BATCH: WINTER 26 MAIN LAB // STATUS: CLOSED</div>
+                  <div className="flex items-center justify-center lg:justify-start gap-4 mb-8 opacity-40 text-[10px] font-black uppercase tracking-widest">BATCH: WINTER 26 MAIN LAB // STATUS: CLOSED</div>
                   <h1 className="text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tighter leading-[0.9] mb-12 uppercase">
                     <span className="whitespace-nowrap">AI Mindset</span> Main Lab W26
                   </h1>
                   
                   {/* MODAL ORDER FOR MOBILE: LOGO BETWEEN TITLE AND DESCRIPTION */}
                   <div className="lg:hidden mb-12">
-                     <VoxelLogoFace className="w-full max-w-[280px] mx-auto -translate-x-3" scale={1} />
+                     <InvertedVoxelLogoFace className="w-full max-w-[392px] mx-auto -translate-x-4" scale={1.4} />
                   </div>
 
-                  <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
-                    Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
+                  <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-8 md:mb-12">
+                     Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
                   <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6">
                      <a
                        href="#pricing"
                        onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                       className="inline-flex min-w-[18rem] md:min-w-[22rem] items-center justify-center bg-black text-white px-10 md:px-14 py-5 md:py-6 text-xs font-black tracking-widest hover:bg-[#8DC63F] transition-all text-center rounded-sm"
+                       className={`${DARK_CTA_BUTTON_CLASS} min-w-[18rem] px-10 py-6 text-center md:min-w-[22rem] md:px-14 md:py-6`}
                      >
                        хочу на лабораторию
                      </a>
@@ -2338,7 +2999,7 @@ export default function LabW26PageV4() {
                
                {/* DESKTOP LOGO */}
                <div className="hidden lg:block w-full lg:w-2/5">
-                  <VoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
+                  <InvertedVoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
                </div>
             </div>
           </Container>
@@ -2346,49 +3007,33 @@ export default function LabW26PageV4() {
 
          <div className="md:ml-[18%] md:w-[82%] w-full">
 
-            <section className="py-20 md:py-32 relative bg-black/[0.03]">
+            <section className="py-20 md:py-24 relative bg-black/[0.03]">
               <Container>
-                <div className="w-full max-w-5xl mx-auto">
-                  <div className="flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-12 md:gap-24">
-                    <div className="flex flex-col gap-6 max-w-xl text-left">
-                      <div className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.885]">
-                        лаборатория <br />
-                        нового мышления <br />
-                        в эпоху AI
-                      </div>
-                    </div>
-                    <div className="flex w-full flex-col gap-6 text-left">
-                      <div className="inline-flex items-center gap-3 text-[10px] leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 self-start border border-black/10">
-                        <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                        базовое обучение, старт раз в квартал
-                      </div>
-                      <p className="text-sm md:text-base uppercase leading-relaxed opacity-70">
-                        AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
-                      </p>
+                <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-x-24 gap-y-7 md:grid-cols-[minmax(0,34rem)_minmax(0,1fr)] md:grid-rows-[auto_auto] md:items-end md:gap-y-5">
+                  <div>
+                    <div className="max-w-[33rem] text-left text-3xl font-black uppercase tracking-[-0.05em] leading-[0.92] sm:text-4xl md:text-5xl md:leading-[0.88]">
+                      лаборатория <br />
+                      нового мышления <br />
+                      в эпоху AI
                     </div>
                   </div>
 
-                  <div className="mt-6 md:mt-8 flex flex-col gap-4 md:gap-3">
-                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-24 items-start md:items-baseline">
-                      <div className="flex items-center gap-3 text-[10px] md:text-xs leading-none font-bold opacity-60 tracking-[0.18em] bg-black/[0.03] px-3 py-1 self-start border border-black/10 hidden md:inline-flex">
-                          <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                          базовое обучение, старт раз в квартал
-                      </div>
-                      <div className="mt-3 md:mt-0 text-[10px] md:text-xs leading-none opacity-40 font-bold uppercase tracking-widest text-left">следующий поток</div>
-                    </div>
+                  <div>
+                    <p className="max-w-[35rem] text-left text-xs uppercase leading-[1.42] tracking-[0.03em] opacity-70 sm:text-sm md:text-xs">
+                      AI mindset winter lab w26 — это лаборатория, пространство для экспериментов. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя. от хаоса промптов к персональной AI-операционной системе.
+                    </p>
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-24 items-start">
-                      <div />
-                      <div className="flex flex-col items-start gap-2 text-left">
-                        <div className="text-[14px] md:text-[16px] font-black tracking-[0.18em]">20 апреля 2026</div>
-                        <a
-                          href="#pricing"
-                          onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                          className="inline-flex items-center justify-center px-7 md:px-10 py-3.5 md:py-4.5 bg-[#8DC63F]/12 text-[#5b7f23] hover:bg-[#8DC63F] hover:text-[#181616] transition-all duration-300 font-mono text-[11px] md:text-[13px] font-bold tracking-[0.18em] border border-dashed border-[#8DC63F]/80 shadow-[0_8px_24px_rgba(141,198,63,0.12)] w-auto max-w-full text-center rounded-md"
-                        >
-                          подать заявку на x26 main lab
-                        </a>
-                      </div>
+                  <div>
+                    <div className="inline-flex items-baseline gap-4 self-start border border-black/10 bg-black/[0.03] px-4 py-1 text-[10px] font-bold leading-none tracking-[0.18em] opacity-60">
+                      <div className="h-2 w-2 self-center rounded-full bg-current animate-pulse" />
+                      базовое обучение, старт раз в квартал
+                    </div>
+                  </div>
+
+                  <div className="md:-translate-y-[3px]">
+                    <div className="whitespace-nowrap text-left text-xs font-black uppercase leading-none tracking-[0.16em] md:text-sm">
+                      19 января — 16 февраля · 4 недели
                     </div>
                   </div>
                 </div>
@@ -2397,284 +3042,56 @@ export default function LabW26PageV4() {
 
             <div className="py-4 md:hidden">
               <Container>
-                <div className="mx-auto h-[0.5px] w-full bg-black/10" />
+                <div className="mx-auto h-[1px] w-full bg-black/10" />
               </Container>
             </div>
 
-            <section id="philosophy-cards" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
+            <section id="program" className="pt-20 md:pt-32 pb-16 md:pb-20">
               <Container>
-                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
-                  {PHILOSOPHY_PILLARS.map((item) => (
-                    <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                      <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
-                        <PhilosophyPillarArt art={item.art} />
-                      </div>
-                      <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
-                        <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
-                          {item.title}
-                        </h3>
-                        <p className="w-full max-w-[22rem] text-left text-[15px] md:text-[13px] leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24 text-left" />
+
+                <div className="mb-12 md:mb-16 text-left">
+                  <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
+                  <p className="max-w-[18rem] md:max-w-3xl text-[10px] md:text-sm opacity-60 leading-relaxed mt-[5px]">
+                    не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта. основная программа дает фундамент, а треки — это углубление.
+                  </p>
+                </div>
+
+                <div className="md:hidden">
+                  <div id="dots-v1">
+                    <ProgramIntegratedTimeline
+                      triggerVariant="text-link"
+                      secondaryInHeader={false}
+                      subtitleStrong={false}
+                      showSecondaryTitle={true}
+                      showMainTrackTag={true}
+                      showGridOverlay={true}
+                      secondaryTitleAccent={true}
+                      allowMultipleDesktop={true}
+                      desktopMainTrackBottom={true}
+                      desktopHideMainAdvancedDivider={true}
+                      lighterAdvancedBackground={true}
+                      forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
+                      forcedOpenNonce={programFocusNonce}
+                      focusAdvancedOnForce={true}
+                    />
+                  </div>
+                </div>
+
+                <div className="hidden md:block">
+                  <DesktopTechUiV5 />
+                </div>
+
+
+                <div className="mt-2 flex justify-end md:hidden">
+                  <p className="max-w-[18rem] text-left text-[10px] leading-[1.45] text-black/60">
+                    <span className="mr-1.5 font-bold">*</span>
+                    {PROGRAM_TRACKS_CAPTION}
+                  </p>
                 </div>
               </Container>
             </section>
 
-            <div className="py-12 md:py-20">
-              <Container>
-                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
-              </Container>
-            </div>
-
-            <section id="mindset" className="pt-0 pb-24 md:pt-0 md:pb-32 overflow-hidden">
-              <Container>
-                <div className="grid md:grid-cols-[1.35fr_0.65fr] lg:grid-cols-[1.45fr_0.55fr] gap-12 md:gap-16 items-center">
-                  <div className="order-2 md:order-1">
-                    <div className="relative flex flex-col justify-end h-[30rem] md:h-[38rem] lg:h-[42rem] py-8">
-                      {/* Quote Text: Expands upwards via flex items-end */}
-                      <div className="flex-1 flex items-end pb-32">
-                        <motion.h2 
-                          key={activeMindsetQuote}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="max-w-[34rem] md:max-w-[40rem] lg:max-w-[44rem] pr-6 md:pr-8 text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[0.95] items-end text-left"
-                        >
-                          {MINDSET_QUOTES[activeMindsetQuote].text}
-                        </motion.h2>
-                      </div>
-
-                      {/* [CRITICAL: FIXED_BUTTONS_POSITION] 
-                          Do not modify these positioning classes. The buttons must remain 
-                          in a fixed absolute position at the bottom of the section 
-                          to prevent jumping when quotes change length. */}
-                      <div className="absolute bottom-8 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
-                        <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
-                          <button
-                            type="button"
-                            aria-label="Предыдущая цитата"
-                            onClick={() => cycleMindsetQuote(-1)}
-                            className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                          >
-                            <span className="font-normal text-[22px] leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
-                          </button>
-                          <button
-                            type="button"
-                            aria-label="Следующая цитата"
-                            onClick={() => cycleMindsetQuote(1)}
-                            className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                          >
-                            <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
-                          </button>
-                        </div>
-                        <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'} text-left`}>
-                          <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
-                          <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
-                            {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="order-1 md:order-2 flex justify-center md:justify-end">
-                    <div className="w-80 h-80 md:w-[28rem] md:h-[28rem] lg:w-[32rem] lg:h-[32rem] relative flex items-center justify-center">
-                      <MindsetDynamicArt className="scale-100" />
-                    </div>
-                  </div>
-                </div>
-              </Container>
-            </section>
-
-            <section className="pt-20 pb-0 md:pt-32 md:pb-0 overflow-hidden">
-              <Container>
-                <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
-                  {PHILOSOPHY_PILLARS.map((item) => (
-                    <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                      <div className="h-[150px] md:h-[96px] flex-none flex items-center justify-center py-10 md:py-0 -translate-x-3 md:translate-x-0 scale-[1.8] md:scale-100 origin-center">
-                        <PhilosophyPillarArt art={item.art} />
-                      </div>
-                      <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
-                        <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
-                          {item.title}
-                        </h3>
-                        <p className="w-full max-w-[22rem] text-left text-[15px] md:text-[13px] leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Container>
-            </section>
-
-            <div className="py-0">
-              <Container>
-                <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
-              </Container>
-            </div>
-
-<section id="philosophy" className="pt-0 pb-24 md:pt-0 md:pb-32 overflow-hidden">
-        <Container>
-          <div className="grid md:grid-cols-[1.35fr_0.65fr] lg:grid-cols-[1.45fr_0.55fr] gap-12 md:gap-16 items-center">
-            <div className="order-2 md:order-1">
-              <div className="relative flex flex-col justify-end h-[30rem] md:h-[38rem] lg:h-[42rem] py-8">
-                {/* Quote Text: Expands upwards via flex items-end */}
-                <div className="flex-1 flex items-end pb-32">
-                  <h2 className="max-w-[34rem] md:max-w-[40rem] lg:max-w-[44rem] pr-6 md:pr-8 text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tight leading-[0.95] items-end">
-                    {MINDSET_QUOTES[activeMindsetQuote].text}
-                  </h2>
-                </div>
-
-                {/* [CRITICAL: FIXED_BUTTONS_POSITION] 
-                    Do not modify these positioning classes. The buttons must remain 
-                    in a fixed absolute position at the bottom of the section 
-                    to prevent jumping when quotes change length. */}
-                <div className="absolute bottom-8 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
-                  <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
-                    <button
-                      type="button"
-                      aria-label="Предыдущая цитата"
-                      onClick={() => cycleMindsetQuote(-1)}
-                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                    >
-                      <span className="font-normal text-[22px] leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Следующая цитата"
-                      onClick={() => cycleMindsetQuote(1)}
-                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/55 hover:text-black hover:border-black/40 transition-colors"
-                    >
-                      <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
-                    </button>
-                  </div>
-                  <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'}`}>
-                    <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
-                    <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
-                      {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="order-1 md:order-2 flex justify-center md:justify-end text-[#8DC63F]">
-              <div className="w-48 h-48 md:w-80 md:h-80 lg:w-96 lg:h-96 relative flex items-center justify-center text-[4px] md:text-[8px] leading-[4px] md:leading-[8px]">
-                <LargeDiamondArt className="scale-100 md:scale-150" />
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-<section id="program" className="pt-24 md:pt-32 pb-24 md:pb-32 overflow-hidden">
-        <Container>
-          <EditorialSectionHeader eyebrow="контур лаборатории" title="программа" className="mb-16 md:mb-24 text-left" />
-
-          <div className="mb-12 md:mb-16 text-left">
-            <h2 className={BLOCK_SUBTITLE_CLASS}>19 января – 16 февраля • 4 недели</h2>
-            <p className="max-w-[18rem] ml-auto md:ml-0 md:max-w-3xl text-[11px] md:text-sm opacity-60">
-              не курс, а лаборатория с чёткой траекторией: за месяц собираешь работающую систему усиления интеллекта.
-            </p>
-          </div>
-
-          <div className="md:hidden">
-            <div id="dots-v1">
-              <ProgramIntegratedTimeline
-                triggerVariant="text-link"
-                secondaryInHeader={false}
-                subtitleStrong={false}
-                showSecondaryTitle={true}
-                showMainTrackTag={true}
-                showGridOverlay={true}
-                secondaryTitleAccent={true}
-                allowMultipleDesktop={true}
-                desktopMainTrackBottom={true}
-                desktopHideMainAdvancedDivider={true}
-                lighterAdvancedBackground={true}
-                forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
-                forcedOpenNonce={programFocusNonce}
-                focusAdvancedOnForce={true}
-              />
-            </div>
-          </div>
-
-          <div className="hidden md:block">
-            <ProgramReferenceSwipeCard
-              selectorPlacement="top"
-              showGridOverlay={true}
-              forcedWeekIndex={programFocusNonce === undefined ? undefined : 0}
-              forcedWeekNonce={programFocusNonce}
-              focusAdvancedOnForce={true}
-            />
-          </div>
-
-          <div className="mt-6 md:mt-8 flex justify-end">
-            <p className="max-w-[18rem] md:max-w-[23rem] text-left text-[11px] md:text-[13px] leading-[1.45] text-black/46">
-              <span className="mr-1.5 font-bold">*</span>
-              {PROGRAM_TRACKS_CAPTION}
-            </p>
-          </div>
-        </Container>
-      </section>
-
-      {/* Tracks Section
-      <SlashDivider />
-      <section id="tracks" className="py-24 md:py-32 overflow-hidden">
-        <Container>
-          <EditorialSectionHeader eyebrow="ДОПОЛНИТЕЛЬНАЯ ГРУППА" title="Advanced Tracks" className="mb-24" />
-          <div className="mb-16 text-center max-w-3xl mx-auto">
-            <p className="text-sm opacity-60 uppercase leading-relaxed">
-              основная программа даёт фундамент. треки — это углубление в конкретный домен. выбираешь то, что нужно.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 border-l border-black/10 bg-white/30">
-            {ADVANCED_TRACKS.map((track, idx) => (
-              <motion.div
-                key={track.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover="hover"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.4, delay: idx * 0.06 }}
-              >
-                <div className="h-full border-r border-black/10">
-                  <AsciiCardBorder className={`group min-h-[250px] md:min-h-[290px] transition-all duration-500 ${colors.card}`}>
-                    <div className="flex h-full flex-col justify-between gap-6">
-                      <div className="flex justify-between items-start">
-                        <div className="text-[10px] font-bold opacity-40 uppercase">{track.week}</div>
-                      </div>
-
-                      <div className="flex flex-col gap-3 min-h-[6.25rem] md:min-h-[7rem]">
-                        <motion.h3
-                          variants={{
-                            hover: { color: '#8DC63F' },
-                          }}
-                          className="text-xl md:text-2xl font-black uppercase tracking-tighter leading-tight min-h-[2.8em] transition-colors duration-300"
-                        >
-                          {track.title}
-                        </motion.h3>
-                        <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest min-h-[1.2rem]">
-                          {track.speaker}
-                        </div>
-                      </div>
-
-                      <p className="text-sm leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
-                        {track.description}
-                      </p>
-                    </div>
-                  </AsciiCardBorder>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </Container>
-      </section>
-      */}
 
       {/* Cases Section */}
       <SlashDivider />
@@ -2690,9 +3107,9 @@ export default function LabW26PageV4() {
             </p>
           </div>
 
-          <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-3">
-            <div className="mr-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
-              кем создано
+          <div className="mb-10 flex flex-wrap items-center gap-2 md:gap-4">
+            <div className="mr-2 text-[10px] md:text-[10px] font-black tracking-[0.12em] text-black/60">
+              Кем сделано:
             </div>
             {CASE_FILTERS.map((filter) => {
               const isActive = activeCaseFilter === filter.id;
@@ -2701,11 +3118,12 @@ export default function LabW26PageV4() {
                   key={filter.id}
                   type="button"
                   onClick={() => setActiveCaseFilter(filter.id)}
-                  className={`px-3 py-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.18em] transition-colors rounded-sm text-left leading-[1.15] ${
+                  className={cn(
+                    "rounded-sm px-4 py-2 text-left text-[10px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
                     isActive
-                      ? 'bg-black text-white'
-                      : 'border border-black/10 bg-white/60 text-black/55 hover:bg-[#8DC63F] hover:border-[#8DC63F] hover:text-black'
-                  }`}
+                      ? "bg-black text-white"
+                      : "border border-black/10 bg-white/60 text-black/60 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                  )}
                 >
                   {filter.label}
                 </button>
@@ -2713,40 +3131,31 @@ export default function LabW26PageV4() {
             })}
           </div>
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-3 md:-mx-12 md:px-12">
-            <div className="grid min-w-max grid-flow-col grid-rows-2 gap-4 md:gap-6 auto-cols-[14.5rem] md:auto-cols-[15rem]">
-            {visibleCases.map((card, i) => (
-              <button
-                key={`${card.title}-${i}`}
-                type="button"
-                onClick={() => setActiveCase(card)}
-                className="relative overflow-hidden min-h-[146px] rounded-[6px] bg-white p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#fbfcf7] hover:border-[#8DC63F]/70 flex flex-col justify-between"
-              >
-                <div className="pointer-events-none absolute right-4 bottom-3 transition-transform duration-500 group-hover:scale-[1.04]">
-                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] text-current opacity-[0.14] group-hover:opacity-[0.18]" />
-                </div>
-                <div className="relative z-10 mb-6 flex w-full items-start justify-end">
-                  <div className="ml-auto flex flex-col items-end text-right">
-                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.08em] text-black/82">
-                      {card.author}
-                    </div>
-                    <div className="text-[9px] md:text-[10px] uppercase tracking-[0.04em] text-black/48">
-                      {card.role}
-                    </div>
-                  </div>
-                </div>
-                <div className="relative z-10 max-w-[11rem]">
-                  <h4 className="mb-1 text-[12px] md:text-[13px] font-bold uppercase tracking-[0.12em] leading-tight text-black/92">
-                    {card.title}
-                  </h4>
-                  <p className="text-[10px] md:text-[11px] leading-[1.45] text-black/68 line-clamp-2">
-                    {card.desc}
-                  </p>
-                </div>
-              </button>
-            ))}
-            </div>
+          <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {visibleCases.map(({ card, index }) =>
+              renderCaseCard(card, index, hoveredCaseIndex === index, setHoveredCaseIndex, 'main', {
+                showTools: true,
+                descriptionLines: 3,
+              })
+            )}
           </div>
+
+          {filteredCases.length > 0 ? (
+            <div className="mt-10 flex items-center justify-center w-full">
+              <button
+                type="button"
+                onClick={() => setIsCasesOverlayOpen(true)}
+                className="group flex min-w-0 flex-row items-center justify-center gap-4 border border-black/10 bg-transparent px-8 py-4 text-black/60 transition-colors hover:border-black/60 hover:bg-transparent"
+                aria-haspopup="dialog"
+                aria-label="Посмотреть все кейсы"
+              >
+                <span className="font-mono text-[10px] sm:text-[10px] font-bold uppercase tracking-[0.24em] transition-colors">
+                  Посмотреть все
+                </span>
+                <ChevronDown className="h-5 w-5 -rotate-90 text-black/80 transition-colors group-hover:text-black" />
+              </button>
+            </div>
+          ) : null}
         </Container>
       </section>
 
@@ -2754,81 +3163,193 @@ export default function LabW26PageV4() {
       <SlashDivider />
       <section id="team" className="py-20 md:py-32">
         <Container>
-          <EditorialSectionHeader eyebrow="lab team" title="Спикеры" className="mb-16" />
+          <div id="speakers" className="relative -top-24" aria-hidden="true" />
+          <EditorialSectionHeader eyebrow="команда лаборатории" title="Спикеры" className="mb-16" />
           <div className="mb-16 max-w-3xl">
             <p className="text-sm md:text-base opacity-70 leading-relaxed">
               ниже — проводники, которые будут рядом на всём протяжении лаборатории.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-2 md:gap-x-12 md:gap-y-16 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-20">
-            {TEAM_MEMBERS.map((member, i) => (
-              <React.Fragment key={member.name}>
-                <div
-                  className={`flex flex-col gap-3 md:gap-5 ${
-                    i === TEAM_MEMBERS.length - 1
-                      ? 'md:col-span-2 md:max-w-[calc(50%-1.5rem)] md:w-full md:mx-auto lg:col-span-1 lg:col-start-2 lg:max-w-none'
-                      : ''
-                  }`}
-                >
-                   <div
-                    className="group"
-                  >
-                    <div className="aspect-square bg-[#332b2b]/5 border border-[#332b2b]/10 relative overflow-hidden">
-                      <img
-                        src={member.image}
-                        alt={member.name}
-                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        referrerPolicy="no-referrer"
-                        loading="lazy"
-                      />
-                      <div className={`absolute inset-0 transition-colors duration-300 md:hidden ${activeSpeakerIndex === i ? 'bg-black/20' : 'bg-black/0 group-hover:bg-black/8'}`} />
-                      
-                      {/* Desktop Hover Info */}
-                      <div className="hidden md:flex absolute inset-0 bg-black/85 p-8 flex-col justify-center items-center text-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm">
-                        <p className="text-white text-[15px] leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100 max-w-[80%]">
-                          {member.description}
-                        </p>
-                      </div>
+          <div className="grid grid-cols-2 gap-6 md:hidden">
+            {TEAM_MEMBERS.map((member, index) => {
+              const currentRowIndex = Math.floor(index / 2);
+              const isLastInRow = index % 2 === 1 || index === TEAM_MEMBERS.length - 1;
+              const isActive = activeMobileSpeakerIndex === index;
+              const dimmed = activeMobileSpeakerIndex !== null && !isActive;
 
-                      {/* Mobile Arrow and Trigger */}
-                      <div className="md:hidden absolute inset-0 z-10">
-                        <button
-                          type="button"
-                          className="absolute inset-0 w-full h-full text-left"
-                          onClick={() => setActiveSpeakerIndex((prev) => (prev === i ? null : i))}
-                        >
-                          <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
-                            <ArrowRight size={20} strokeWidth={2.25} className={`transition-transform duration-300 ${activeSpeakerIndex === i ? 'rotate-90' : ''}`} />
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-[13px] md:text-xl font-bold uppercase tracking-tight leading-tight">{member.name}</h3>
-                    <p className="text-[8px] md:text-[10px] opacity-40 uppercase tracking-widest">{member.role}</p>
-                  </div>
-                  <AnimatePresence initial={false}>
-                    {activeSpeakerIndex === i && (
-                         <motion.div
-                        key={`speaker-detail-${member.name}`}
-                        initial={{ height: 0, opacity: 0, y: -10 }}
-                        animate={{ height: 'auto', opacity: 1, y: 0 }}
-                        exit={{ height: 0, opacity: 0, y: -10 }}
-                        transition={{ duration: 0.28, ease: 'easeInOut' }}
-                        className="overflow-hidden md:hidden"
-                      >
-                        <div className="pt-1 md:pt-0">
-                          <p className="max-w-5xl text-[13px] md:text-[16px] leading-[1.75] text-black/78">
-                            {member.description}
-                          </p>
+              return (
+                <div key={member.name} className="contents">
+                  <article className={cn('flex flex-col gap-4 transition-opacity duration-300', dimmed && 'opacity-40')}>
+                    <button type="button" onClick={() => toggleMobileSpeaker(index, 2)} className="group text-left">
+                      <div className="relative aspect-square overflow-hidden border border-[#332b2b]/10 bg-[#332b2b]/5">
+                        <img
+                          src={member.image}
+                          alt={member.name}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
+                        />
+                        <div className={cn('absolute inset-0 transition-colors duration-300', isActive ? 'bg-black/20' : dimmed ? 'bg-black/60' : 'bg-black/10 group-hover:bg-black/20')} />
+                        <div className="absolute right-3 bottom-3 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
+                          <ArrowRight size={20} strokeWidth={2.25} className={cn('transition-transform duration-300', isActive && 'rotate-90')} />
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      </div>
+                    </button>
+
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-tight leading-tight text-black/90">
+                        {member.name}
+                      </h3>
+                      <p className="mt-1 text-[10px] opacity-40 uppercase tracking-widest">
+                        {member.role}
+                      </p>
+                    </div>
+                  </article>
+
+                  {isLastInRow ? (
+                    <div className="col-span-2">
+                      <AnimatePresence initial={false}>
+                        {activeMobileSpeakerIndex !== null && activeMobileSpeakerRowIndex === currentRowIndex ? (
+                          <motion.div
+                            key={`speaker-detail-mobile-${currentRowIndex}`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="mt-0.5 overflow-hidden bg-[#f9f9f7]"
+                          >
+                            <div className="px-1 pt-2 pb-4 text-xs leading-[1.6] text-black/80">
+                              {renderSpeakerDescription(
+                                TEAM_MEMBERS[activeMobileSpeakerIndex].name,
+                                TEAM_MEMBERS[activeMobileSpeakerIndex].description,
+                              )}
+                            </div>
+                          </motion.div>
+                        ) : null}
+                      </AnimatePresence>
+                    </div>
+                  ) : null}
                 </div>
-              </React.Fragment>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-2 md:justify-items-center md:gap-x-6 md:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
+            {TEAM_MEMBERS.map((member) => (
+              <article key={member.name} className="group relative flex h-full w-full max-w-[286px] flex-col p-4">
+                <SpeakerCornerFrame />
+
+                <div className="mx-auto mb-6 w-full">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-black/10">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(0,0,0,0.08)_100%)]" />
+                  </div>
+                </div>
+
+                <div className="flex flex-1 flex-col">
+                  <div className="mb-1 min-h-[3rem]">
+                    <h3 className="mb-1 text-base font-bold uppercase tracking-tight leading-tight text-black/90">
+                      {member.name.toUpperCase()}
+                    </h3>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-black/40">
+                      {member.role.toUpperCase()}
+                    </p>
+                  </div>
+
+                  <p className="text-xs leading-[1.58] text-black/80">
+                    {renderSpeakerDescription(member.name, member.description)}
+                  </p>
+                </div>
+              </article>
             ))}
+          </div>
+        </Container>
+      </section>
+
+      <SlashDivider />
+      <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
+        <Container>
+          <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
+            {PHILOSOPHY_PILLARS.map((item) => (
+              <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
+                <div className="flex h-[152px] w-full max-w-[10rem] flex-none items-center justify-center py-6 md:h-[112px] md:max-w-[9rem] md:py-0">
+                  <PhilosophyPillarArt art={item.art} />
+                </div>
+                <div className="mt-6 md:mt-8 flex w-full flex-col items-center gap-2">
+                  <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
+                    {item.title}
+                  </h3>
+                  <p className="w-full max-w-[22rem] text-left text-sm md:text-xs leading-[1.45] opacity-60 lowercase tracking-[0.08em] md:min-h-[5.2rem]">
+                    {item.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      <div className="py-2 md:py-4">
+        <Container>
+          <div className="mx-auto h-[0.5px] max-w-sm bg-black/10" />
+        </Container>
+      </div>
+
+      <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
+        <Container>
+          <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
+            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
+              <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
+                <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
+              </div>
+            </div>
+            <div className="w-full h-[30rem] md:h-[40rem] lg:h-[46rem] order-2 lg:order-1">
+              <div className="relative flex flex-col justify-end h-full py-0">
+                <div className="flex-1 flex items-end pb-[12rem] md:pb-40">
+                  <motion.h2
+                    key={activeMindsetQuote}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full pr-0 md:pr-4 text-3xl md:text-5xl font-black tracking-tight leading-tight text-left normal-case"
+                  >
+                    {MINDSET_QUOTES[activeMindsetQuote].text}
+                  </motion.h2>
+                </div>
+
+                <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                  <div className="flex w-[6.25rem] shrink-0 items-center gap-4">
+                    <button
+                      type="button"
+                      aria-label="Предыдущая цитата"
+                      onClick={() => cycleMindsetQuote(-1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/60 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-xl leading-[0.8] -translate-x-[1px] -translate-y-[1px]">{'‹'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Следующая цитата"
+                      onClick={() => cycleMindsetQuote(1)}
+                      className="h-11 w-11 rounded-full border border-black/20 flex items-center justify-center text-black/60 hover:text-black hover:border-black/40 transition-colors"
+                    >
+                      <span className="font-normal text-xl leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
+                    </button>
+                  </div>
+                  <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'} text-left`}>
+                    <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
+                    <span className="block mt-1 normal-case tracking-normal text-[10px] text-black/60">
+                      {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </Container>
       </section>
@@ -2837,108 +3358,100 @@ export default function LabW26PageV4() {
       {false && <ProgramScheduleGrid />}
 
       {/* Pricing Section */}
-      <ReviewsSection />
       <SlashDivider />
       <section id="pricing" className="py-20 md:py-32">
         <Container>
           <EditorialSectionHeader eyebrow="Форматы участия" title="Тарифы" className="mb-16" />
 
-          <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="pb-4 md:pb-0">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {pricingPlans.map((plan, idx) => (
               <motion.div
                 key={plan.name}
+                className="w-full"
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.35, delay: idx * 0.06 }}
               >
-                <div className="h-full rounded-[0.4rem] border border-black/10 bg-white/80 shadow-[0_20px_50px_rgba(0,0,0,0.04)] p-6 md:p-8 flex flex-col">
-                  <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex h-full flex-col rounded-[0.4rem] border border-black/10 bg-white/80 p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] md:p-6">
+                  <div className="mb-2 flex min-h-[1.1rem] items-start justify-end">
                     {plan.tagHref ? (
                       <button
                         type="button"
                         onClick={scrollToProgramFromPricing}
-                        className="text-[10px] font-bold border border-black/15 px-3 py-1 uppercase tracking-[0.18em] hover:bg-black hover:text-white transition-colors rounded-sm"
+                        className="inline-flex min-h-[0.9rem] items-center bg-black/[0.04] px-2.5 py-[0.28rem] text-right uppercase tracking-[0.18em] text-black/60 transition-colors hover:bg-black/10 hover:text-black/80"
                       >
-                        {plan.tag}
+                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </button>
                     ) : plan.tag ? (
                       <div
-                        className="text-[10px] font-bold px-3 py-1 uppercase tracking-[0.18em] border border-black/15 rounded-sm"
+                        className="inline-flex min-h-[0.9rem] items-center bg-black/[0.04] px-2.5 py-[0.28rem] text-right uppercase tracking-[0.18em] text-black/60"
                       >
-                        {plan.tag}
+                        <span className="text-[10px] font-bold leading-none">{plan.tag}</span>
                       </div>
                     ) : <div />}
                   </div>
 
-                  <h3 className="text-3xl md:text-4xl font-black tracking-tight mb-5">
-                    {plan.name}
-                  </h3>
-
-                  <div className="flex items-end gap-2 mb-8">
-                    <span className="text-6xl md:text-7xl font-black tracking-tighter leading-none">€{plan.price}</span>
-                  </div>
-
-                  <div className="flex-1 flex flex-col min-h-[16rem]">
-                    <div className="space-y-4 mb-8">
-                      {plan.features.map((feature) => (
-                        <div key={feature} className="flex items-start gap-3 text-[14px] md:text-[15px] leading-[1.38] text-black/72">
-                          <span className="mt-[0.32rem] h-2 w-2 shrink-0 rounded-full bg-black" />
-                          <span>{feature}</span>
+                  <div className="mb-4 flex min-h-[8.25rem] flex-col justify-start md:min-h-[8.75rem]">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-xl font-black uppercase leading-none tracking-tight text-black/60 md:text-xl">
+                        {plan.name}
+                      </h3>
+                      <div className="flex items-baseline gap-2">
+                         <span className="text-5xl font-black leading-[0.88] tracking-[-0.045em] text-black md:text-7xl">€{plan.price}</span>
+                      </div>
+                      <div className="mt-2">
+                        <div className="inline-flex bg-black/[0.05] px-2 py-1 text-xs font-semibold leading-[1.25] tracking-[0.01em] text-black/80 md:text-xs">
+                          {plan.desc}
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-auto mb-8">
-                      <div className="inline-block py-1 px-3 bg-black/[0.04] border border-black/5 rounded-sm text-[11px] md:text-[12px] uppercase tracking-wider font-bold text-black/60">
-                        {plan.desc}
                       </div>
                     </div>
                   </div>
 
-                  <AnimatePresence initial={false}>
-                    {pricingDetailsOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.28, ease: 'easeOut' }}
-                        className="overflow-hidden"
-                      >
-                        <div className="border-t border-black/10 pt-8 mb-8 space-y-4">
-                          {plan.more.map((item) => (
-                            <div key={item} className="flex items-start gap-3 text-[14px] md:text-[15px] leading-[1.45] text-black/82">
-                              <span className="mt-[0.35rem] h-1.5 w-1.5 shrink-0 rounded-full bg-black/20" />
-                              <span>{item}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div className="flex flex-col md:flex-1">
+                    <div className="mb-2 md:min-h-[8.75rem] lg:min-h-[9.75rem] xl:min-h-[10.5rem]">
+                      <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
+                        что включено:
+                      </div>
+                      <div className="space-y-2.5 md:space-y-2.5">
+                        {plan.features.map((feature, featureIdx) => (
+                          <div key={`feature-${plan.name}-${featureIdx}`} className="flex items-start gap-4 text-xs leading-[1.42] text-black/80 md:text-sm md:leading-[1.34]">
+                            <span className="mt-[0.14rem] shrink-0 text-xs font-bold leading-none text-[#8DC63F]">›</span>
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                  <button
-                    type="button"
-                    aria-label="Показать подробности тарифов"
-                    onClick={() => setPricingDetailsOpen((prev) => !prev)}
-                    className="mt-auto mb-5 flex w-full items-center justify-center text-black/40 hover:text-black transition-colors"
-                  >
-                    <ChevronDown
-                      size={24}
-                      className={`transition-transform duration-300 ${pricingDetailsOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
+                    <div className="mb-6 border-t border-black/8 pt-4">
+                      <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-[#8DC63F]">
+                        что получаешь
+                      </div>
+                      <div className="space-y-2.5 md:space-y-2.5">
+                        {plan.more.map((item, itemIdx) => (
+                          <div key={`more-${plan.name}-${itemIdx}`} className="flex items-start gap-4 text-xs leading-[1.42] text-black/80 md:text-sm md:leading-[1.34]">
+                            <span className="mt-[0.14rem] shrink-0 text-xs font-bold leading-none text-[#8DC63F]">›</span>
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
-                  <a
-                    href="#pricing"
-                    onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
-                    className="w-full bg-[#8DC63F] px-6 py-5 text-center text-[15px] md:text-[16px] font-black uppercase tracking-[0.12em] text-white hover:bg-black hover:text-[#f9f9f7] transition-all rounded-sm"
-                  >
-                    выбрать
-                  </a>
+                  <div className="mt-auto flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setActivePaymentPlan({ name: plan.name, price: plan.price })}
+                      className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6 !text-white`}
+                    >
+                      присоединиться
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}
+            </div>
           </div>
 
           <motion.a
@@ -2949,9 +3462,9 @@ export default function LabW26PageV4() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.35, delay: 0.16 }}
-            className="mt-8 md:mt-10 flex w-full md:w-[58%] items-center justify-between gap-6 border border-black/10 bg-white/60 px-6 py-5 md:px-8 md:py-6 hover:bg-white/82 transition-colors rounded-[0.4rem]"
+            className="mt-8 md:mt-10 flex w-full md:w-[58%] items-center justify-between gap-6 border border-black/10 bg-white/60 px-6 py-6 md:px-8 md:py-6 hover:bg-white/80 transition-colors rounded-[0.4rem]"
           >
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 min-w-0">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 min-w-0">
               <div className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">
                 Для компаний
               </div>
@@ -2961,13 +3474,13 @@ export default function LabW26PageV4() {
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center justify-center text-black/70">
+            <div className="shrink-0 flex items-center justify-center text-black/80">
               <ChevronRight size={22} />
             </div>
           </motion.a>
 
           <div className="mt-8 max-w-3xl">
-            <p className="text-[11px] md:text-[13px] leading-[1.45] text-black/46">
+            <p className="text-[10px] md:text-xs leading-[1.45] text-black/60">
               скидки: Alumni (-20%), Bring a Friend (-10% каждому). возврат после первой недели — без вопросов. возможна оплата в рублях.
             </p>
           </div>
@@ -2977,31 +3490,53 @@ export default function LabW26PageV4() {
               <button
                 type="button"
                 onClick={returnToPricing}
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f9f9f7]/96 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-black/70 shadow-[0_10px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm hover:text-black"
+                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f9f9f7]/96 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-black/80 shadow-[0_10px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm hover:text-black"
               >
-                <span className="text-[12px] leading-none">↓</span>
+                <span className="text-xs leading-none">↓</span>
                 <span>назад к тарифам</span>
               </button>
             </div>
           ) : null}
+        </Container>
+      </section>
 
-          <section className="py-56 md:py-72 overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
-              <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
-                <pre className="font-mono text-[15px] md:text-[19px] leading-[1.06] opacity-90 select-none">
+      <SlashDivider />
+      <section id="reviews">
+        <ReviewsSection />
+      </section>
+
+      <section id="manifesto" className="py-24 md:py-32 overflow-hidden">
+        <Container>
+          <div className="grid grid-cols-1 md:grid-cols-[150px_minmax(0,1fr)] items-center gap-10 md:gap-16">
+            <div className="flex justify-center md:justify-end text-[#8DC63F] md:translate-y-5">
+              <pre className="font-mono text-sm md:text-lg leading-[1.06] opacity-90 select-none">
 {`   /\\     /\\
   /  \\   /  \\
  /    \\_/    \\`}
-                </pre>
-              </div>
-
-              <div className="max-w-3xl md:ml-auto text-right">
-                <h2 className="text-3xl md:text-5xl leading-tight">
-                  Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
-                </h2>
-              </div>
+              </pre>
             </div>
-          </section>
+
+            <div className="max-w-3xl md:ml-auto text-right">
+              <h2 className="text-3xl md:text-5xl leading-tight">
+                Мы не учим кодить или создавать промпты, мы учим собирать системы, многократно усиливающие ваши возможности
+              </h2>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      <SlashDivider />
+      <section id="faq" className="bg-[#f9f9f7] py-10 md:py-14">
+        <Container>
+          <div className="space-y-10 md:space-y-14">
+            <FooterFaqBlock title="вопросы и ответы" versionLabel={null} />
+            <div className="py-1 md:py-2">
+              <SlashDivider />
+            </div>
+            <div id="labs">
+              <FooterLabsNavigatorBlock />
+            </div>
+          </div>
         </Container>
       </section>
 
@@ -3055,7 +3590,7 @@ export default function LabW26PageV4() {
                   </div>
 
                   <div className="relative">
-                    <div className="absolute bottom-full left-0 bg-white/10 px-4 py-2 text-[8px] uppercase tracking-widest border-t border-r border-white/10">
+                    <div className="absolute bottom-full left-0 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-widest border-t border-r border-white/10">
                       AIM STYLE // 54 . 01
                     </div>
                     <button className="w-full bg-[#88b04b] text-black py-8 font-black uppercase text-xl hover:bg-[#97c456] transition-colors">
@@ -3071,7 +3606,7 @@ export default function LabW26PageV4() {
 
       {/* Footer */}
       <footer className="py-24 relative overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.04]">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.045]">
           <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
             AI MINDSET
           </div>
@@ -3100,7 +3635,7 @@ export default function LabW26PageV4() {
           </div>
 
           <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-[8px] text-white/55 uppercase tracking-[0.5em]">MADE WITH LOVE AND AI // 2026</div>
+            <div className="text-[10px] text-white/60 uppercase tracking-[0.5em]">MADE WITH LOVE AND AI // 2026</div>
             <div className="flex gap-4">
               {['/', '\\', '/', '\\'].map((s, i) => <span key={i} className="opacity-20">{s}</span>)}
             </div>
@@ -3109,76 +3644,214 @@ export default function LabW26PageV4() {
       </footer>
 
       <AnimatePresence>
-        {activeCase && (
+        {isCasesOverlayOpen ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[920] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
-            onClick={() => setActiveCase(null)}
+            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/60 p-4 backdrop-blur-md md:items-center md:p-6"
+            onClick={() => setIsCasesOverlayOpen(false)}
           >
             <motion.div
-              initial={{ opacity: 0, y: 40, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="flex h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-black/12 bg-white text-black shadow-2xl md:h-[min(46rem,calc(100vh-3rem))]"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 18 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="relative flex h-[calc(100vh-1.5rem)] w-full max-w-[92rem] flex-col overflow-hidden rounded-lg border border-black/10 bg-[#f9f9f7] text-black shadow-2xl md:h-[min(50rem,calc(100vh-3rem))]"
+              onClick={() => setIsCasesOverlayOpen(false)}
             >
-              <div className="flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
+              <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:22px_22px] opacity-70" />
+              <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85),transparent_70%)]" />
+              <div className="relative z-10 flex items-start justify-between gap-4 border-b border-black/8 px-6 py-4 md:px-8 md:py-6">
+                <div className="min-w-0">
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">Все кейсы</h3>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/10 hover:text-black"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsCasesOverlayOpen(false);
+                  }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="border-b border-black/8 px-6 py-4 md:px-8">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                      <div className="mr-2 text-[10px] md:text-[10px] font-black tracking-[0.12em] text-black/60">
+                        Кем сделано:
+                      </div>
+                      {CASE_FILTERS.map((filter) => {
+                        const isActive = activeCaseFilter === filter.id;
+                        return (
+                          <button
+                            key={`overlay-${filter.id}`}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveCaseFilter(filter.id);
+                            }}
+                            className={cn(
+                              "rounded-sm px-4 py-2 text-left text-[10px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
+                              isActive
+                                ? "bg-black text-white"
+                                : "border border-black/10 bg-white/80 text-black/60 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                            )}
+                          >
+                            {filter.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 md:gap-4">
+                      <div className="mr-2 text-[10px] md:text-[10px] font-black tracking-[0.12em] text-black/60">
+                        Инструменты:
+                      </div>
+                      {CASE_TOOL_FILTERS.map((tool) => {
+                        const isActive = activeCaseToolFilter === tool;
+                        const label = tool === 'all' ? 'все' : tool;
+                        return (
+                          <button
+                            key={`overlay-tool-${tool}`}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveCaseToolFilter(tool);
+                            }}
+                            className={cn(
+                              "rounded-sm border px-2.5 py-1.5 text-left font-mono text-[10px] uppercase leading-[1.15] tracking-[0.14em] transition-colors md:text-[10px]",
+                              isActive
+                                ? "border-black bg-black text-white"
+                                : "border-black/10 bg-white/80 text-black/60 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="min-h-0 overflow-y-auto px-6 py-6 md:px-8 md:py-6">
+                  <div className="mx-auto grid max-w-[88rem] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                    {filteredCases.map(({ card, index }) =>
+                      renderCaseCard(card, index, hoveredOverlayCaseIndex === index, setHoveredOverlayCaseIndex, 'overlay', {
+                        showTools: true,
+                        descriptionLines: 2,
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {activeCase ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10010] flex items-end justify-center bg-black/80 p-4 backdrop-blur-md md:items-center md:p-6"
+            onClick={() => setActiveCaseIndex(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 18 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="flex h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl md:h-[min(46rem,calc(100vh-3rem))]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-black/8 px-6 py-4 md:px-8 md:py-6">
                 <div className="min-w-0">
                   <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">кейс</div>
                   <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
-                  <p className="mt-2 max-w-2xl text-sm opacity-70 md:text-base">{activeCase.desc}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
+                  <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/60">
                     <span>{activeCase.author}</span>
                     <span>{activeCase.role}</span>
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="shrink-0 p-2 text-black/40 transition-colors hover:text-black hover:bg-black/5 rounded-full"
-                  onClick={() => setActiveCase(null)}
+                  className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/10 hover:text-black"
+                  onClick={() => setActiveCaseIndex(null)}
                 >
                   <X size={20} />
                 </button>
               </div>
 
               <div className="grid min-h-0 flex-1 gap-0 md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)]">
-                <div className="border-b border-black/8 bg-[#f5f7f2] p-5 md:border-b-0 md:border-r md:border-black/8 md:p-7">
-                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">артефакт</div>
-                  <div className="flex h-[14rem] items-center justify-center overflow-hidden rounded-[22px] border border-[#8DC63F]/20 bg-white md:h-full md:min-h-[24rem]">
-                    <AsciiCaseArt frames={activeCase.artFrames} className="origin-center scale-[2.35] md:scale-[3.15] transform text-[#8DC63F]" />
+                <div className="border-b border-black/8 bg-[#f9f9f7] p-6 md:border-b-0 md:border-r md:border-black/8 md:p-8">
+                  <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">визуал</div>
+                  <div
+                    className={cn(
+                      "relative flex h-[14rem] items-center justify-center overflow-hidden md:h-full md:min-h-[24rem]",
+                      CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "bg-[#181616]" : "bg-white",
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "absolute inset-0",
+                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex)
+                          ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
+                          : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+                      )}
+                    />
+                    <div
+                      className={cn(
+                        "absolute",
+                        getCaseVisualFrameClassName(activeCaseVisualIndex),
+                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "mix-blend-screen opacity-100" : "mix-blend-multiply opacity-82",
+                      )}
+                    >
+                      <CaseVisualGraphic
+                        index={activeCaseVisualIndex}
+                        className={getCaseVisualToneClassName(activeCaseVisualIndex)}
+                        animate={false}
+                      />
+                    </div>
                   </div>
-                  <p className="mt-3 text-[11px] leading-[1.5] text-black/48">
-                    Здесь можно разместить скриншот интерфейса, схему workflow или любой визуальный результат кейса.
-                  </p>
+                  {activeCase.filters.length ? (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {activeCase.filters.map((filterId) => (
+                        <span
+                          key={`modal-filter-${activeCase.title}-${filterId}`}
+                          className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-black/60"
+                        >
+                          {CASE_FILTER_LABELS[filterId]}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
+                <div className="min-h-0 overflow-y-auto px-6 py-6 md:px-8 md:py-6">
                   <div className="space-y-5 pb-8">
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">задача</div>
-                      <p className="text-[14px] leading-[1.65] text-black/72 md:text-[15px]">
-                        {activeCase.desc}
-                      </p>
-                    </section>
-
-                    <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
-                      <p className="text-[14px] leading-[1.7] text-black/78 md:text-[15px]">
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">решение</div>
+                      <p className="text-sm leading-[1.7] text-black/80 md:text-sm">
                         {activeCase.details}
                       </p>
                     </section>
 
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">инструменты</div>
-                      <div className="rounded-[18px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">инструменты</div>
+                      <div className="rounded-[18px] border border-black/8 bg-black/[0.03] px-4 py-4 text-xs leading-[1.6] text-black/80 md:text-sm">
                         {activeCase.tools}
                       </div>
                     </section>
 
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">результат</div>
-                      <div className="text-[13px] md:text-[14px] font-semibold uppercase tracking-[0.08em] text-[#56771f]">
+                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/40">результат</div>
+                      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-[#56771f] md:text-sm">
                         {activeCase.metric}
                       </div>
                     </section>
@@ -3187,8 +3860,14 @@ export default function LabW26PageV4() {
               </div>
             </motion.div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
+
+      <PricingPaymentPopupNeon
+        isOpen={activePaymentPlan !== null}
+        plan={activePaymentPlan}
+        onClose={() => setActivePaymentPlan(null)}
+      />
          </div>
       </main>
 
@@ -3212,18 +3891,18 @@ const CookieConsent = () => {
     setShow(false);
   };
   return (
-    <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[600] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
+    <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-6 md:px-8 md:py-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
         <button
           type="button"
           onClick={dismissConsent}
-          className="absolute top-3 right-3 p-1 text-black/50 hover:text-black transition-colors"
+          className="absolute top-3 right-3 p-1 text-black/60 hover:text-black transition-colors"
           aria-label="Закрыть уведомление о cookies"
         >
           <X size={14} />
         </button>
-        <div className="text-[8px] md:text-[9px] font-black opacity-30 mb-2 md:mb-3 uppercase tracking-widest">SYSTEM NOTICE</div>
-        <p className="text-[9px] md:text-[10px] font-bold leading-relaxed mb-4 md:mb-4 uppercase text-black">МЫ ИСПОЛЬЗУЕМ КУКИ ДЛЯ ВАШЕЙ AI-СИНХРОНИЗАЦИИ.</p>
-        <button onClick={dismissConsent} className="w-full bg-black text-white py-2 md:py-3 text-[9px] md:text-[10px] font-black uppercase hover:bg-[#8DC63F] transition-colors">ПОНЯТНО</button>
+        <div className="text-[10px] md:text-[10px] font-black opacity-30 mb-2 md:mb-4 uppercase tracking-widest">SYSTEM NOTICE</div>
+        <p className="text-[10px] md:text-[10px] font-bold leading-relaxed mb-4 md:mb-4 uppercase text-black">МЫ ИСПОЛЬЗУЕМ КУКИ ДЛЯ ВАШЕЙ AI-СИНХРОНИЗАЦИИ.</p>
+        <button onClick={dismissConsent} className={`${DARK_CTA_BUTTON_CLASS} w-full px-4 py-4 text-xs`}>понятно</button>
     </div>
   );
 };

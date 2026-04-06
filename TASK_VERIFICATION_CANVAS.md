@@ -2,6 +2,162 @@
 
 ## User Requests
 
+- Task: Довести desktop-блок `программа` на живой странице до реально видимого состояния: правый full-height black panel с glow-art и двумя glass-карточками, плюс заметно более узкие `ЧТ` и `ВС`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Найдена причина расхождения: live `/` использовал desktop `ProgramIntegratedTimeline` со stacked-карточками, хотя в коде рядом уже существовал более старый detailed V5-layout. Текущий проход вернул в `LabW26PageV3` desktop-рендер через `DesktopTechUiV5` с левой вертикальной шкалой недель, `DEMO DAY`, большой main-track canvas и правой full-height black advanced-panel; mobile программа не менялась. Ждёт визуального подтверждения пользователя.
+
+- Task: В live FAQ убрать двойную линию под вопросом и увеличить расстояние между верхним label блока, названием раздела и первым `q:`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `FooterFaqBlock` live-mode возвращена линия под строкой `question`, а акцент перенесён на верхнюю линию открытого блока через более заметный `border-b` у раскрытой категории. Gap между `q:` и текстом вопроса уменьшен. `npm run build` прошёл, preview на `:3001` отвечает `HTTP 200`.
+
+- Task: В live-отзывах убрать кривой перенос ролей и висячие закрывающие скобки, чтобы длинные роли занимали нормальную ширину карточки
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `ReviewsSection` live-expanded footer переведён на full-width role layout: роль занимает всю ширину карточки, центрируется между скобками и переносится через `wbr` вокруг `|` и `/`, чтобы не было висячих закрывающих скобок. `ТГ` возвращён к зелёному текстовому виду без постоянного фона; подсветка появляется только на hover карточки. `npm run build` прошёл, preview на `:3001` отвечает `HTTP 200`.
+
+- Task: Синхронизировать anchors текущей страницы в mobile и desktop меню с реальными блоками сайта и визуально отделить page navigation от menu сайта
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: `LabW26PageV3` переведён на единый список `PAGE_SECTION_LINKS` для mobile и desktop; после нового фидбэка в список возвращён и первый раздел `HERO BLOG`, чтобы anchors снова совпадали с реальными блоками сайта. На mobile блок сохранён на старом месте, а desktop page-nav теперь читается заметнее: минимум `10px`, выше контраст, одна точка вместо троеточия и активный раздел отмечается левым маркером.
+
+- Task: В блоке `Философия` увеличить три morph-анимации примерно на 30 процентов
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Увеличен размер контейнера для трёх philosophy SVG в live `LabW26PageV3`; дополнительно ряд философии опущен ниже заголовка, а контейнеры анимаций переведены на общее выравнивание по нижнему краю, чтобы узкие SVG не подпрыгивали вверх относительно соседних. Нужна быстрая проверка в браузере по фактическому визуальному ритму.
+
+- Task: В `Cases` убрать с live четыре чужеродных dark-signal SVG, перенести их в experimental blocks и оставить на live только hover-only SVG в общей стилистике
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` live-мэппинг возвращён на основной набор `case-0..9.svg`; четыре dark-signal SVG сняты с live-страницы. Вне hover в DOM теперь монтируется статичный SVG без `<animate>`, а живой animated markup подгружается только на hover, поэтому анимация не должна крутиться постоянно.
+
+- Task: Перенести снятые с live dark-signal кейсы в `experimental blogs`, чтобы смотреть их отдельно от live-сайта
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В repo `AIM Website/Elements Research/ai-mindset-blocks` добавлен отдельный review-вариант `cases-v7` (`DesktopCasesMovedDarkReview`) с четырьмя снятыми dark-signal visual. Asset copy log: `AI Mindset/public/assets/cases/case-coaching-dark.svg -> ai-mindset-blocks/public/assets/cases/case-coaching-dark.svg`, `case-vision-dark.svg -> case-vision-dark.svg`, `case-automation-dark.svg -> case-automation-dark.svg`, `case-research-dark.svg -> case-research-dark.svg`.
+
+- Task: В первом блоке `программа` сделать ячейки `ЧТ` и `ВС` в `недельном ритме` намеренно уже и на полуэкранной ширине
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Логика `недельного ритма` переведена с гибких `fr` на фиксированные безопасные desktop-ширины, чтобы текст не обрезался. Уже остаются только `ЧТ` и `ВС`, а остальные дни держат нормальную ширину. Нужна визуальная проверка пользователя, не выглядит ли блок теперь слишком жёстким по общей ширине.
+
+- Task: В первом блоке `программа` сделать правую advanced-колонку полной чёрной высоты и заменить старую мини-карточку на две полупрозрачные карточки поверх зелёного glow-арта
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `DesktopTechUiV5` правая колонка expanded-программы переведена в full-height чёрный модуль с green glow-art и двумя event-card; `speaker/slot` убраны, вместо них оставлены только `инструменты`. Нужна визуальная проверка пользователя, что карточки действительно совпадают по логике с нужным референсом, а не выглядят как новая интерпретация.
+
+- Task: Заменить CTA `хочу на лабораторию` на `/хочу на лабу` и привести pricing CTA `присоединиться` к той же стилистике без лишней жирности и разрядки
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: На live-экране `LabW26PageV3` hero/sidebar CTA заменены на `/хочу на лабу`, pricing CTA переведён на отдельный `PRICING_CTA_BUTTON_CLASS` с той же mono-типографикой, но без лишней жирности и разрядки; альтернативный `v4` возвращён без этих правок. `npm run build` прошёл, local preview на `:3001` отдаёт `HTTP 200`.
+
+- Task: В раскрытых отзывах на живом экране убрать белые карточки, уменьшить паддинги, исправить перенос роли без одиноких скобок и выделить `ТГ` как кликабельный элемент
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `ReviewsSection` добавлен режим `mode=\"live\"`, который подключён только в `LabW26PageV3`: в раскрытом состоянии карточки прозрачные до hover, padding уменьшен, роль собрана в 3-колоночный bracket-layout без висячих `[`/`]`, а `ТГ ↗` оформлен как явная ссылка. `npm run build` прошёл, preview доступен на `:3001`.
+
+- Task: В live FAQ укоротить линию до ширины текста, облегчить типографику раскрытого текста и увеличить расстояние между ответом и следующим вопросом
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `FooterFaqBlock` добавлен режим `mode=\"live\"`, подключённый только в `LabW26PageV3`: категория теперь получает underline только по ширине текста, раскрытый `q/a` уменьшен до масштаба внешних разделов, текст ответа ослаблен по цвету и кеглю, line-height увеличен, а расстояние между следующими вопросами расширено. `npm run build` прошёл, local preview на `:3001` отвечает корректно.
+
+- Task: Убрать блок `другие лаборатории` с главной страницы live-сайта и перенести его в соседний research-проект `ai-mindset-blocks` как experimental block `Ready for review`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Блок снят с `LabW26PageV3` и добавлен в `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AIM Website/Elements Research/ai-mindset-blocks` как новый `navigator-v6` (`DesktopLabsNavigatorReadyForReview.tsx`). Сборка `AI Mindset` и `ai-mindset-blocks` прошла; локальные preview отвечают на `:3001` и `:5173/ai-mindset-blocks/`.
+
+- Task: На мобильной версии главной страницы опустить cookie-форму почти к нижнему краю экрана
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: В `src/components/LabW26PageV3.tsx` mobile `bottom-24` у cookie-баннера снижен до `bottom-4` при сохранении `md:bottom-6`; сборка `npm run build` прошла, а mobile headless screenshot на pricing-переходе показал баннер у нижнего края экрана.
+
+- Task: На мобильной версии hero визуально выровнять воксель-логотип строго по центру
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: У mobile-wrapper hero добавлен `flex justify-center`, а прежний ручной сдвиг у `InvertedVoxelLogoFace` уже снят; mobile screenshot с live `:3001/` подтверждает симметричный wrapper и центрированную композицию.
+
+- Task: Найти полный face-logo в чёрном прозрачном исполнении и перевести на него статический логотип в mobile и desktop header
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: Отдельный полный чёрный transparent-ассет в рабочем проекте не найден; вместо этого статический full-face `assets/ai-mindset-logo.png` переведён в чёрный вариант через `invert` в mobile/desktop header, без замены hero-вокселя и без изменения размеров layout.
+
+- Task: На мобильном header исправить wordmark рядом с логотипом, чтобы `AI` не терялся и не выглядел как случайная полоска
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: Mobile-header переведён с `MINDSET` + разделитель на явный `AI MINDSET` рядом с full-face знаком; live mobile screenshot подтверждает читаемый wordmark без ложной «палочки» вместо `AI`.
+
+- Task: После клика по `хочу на лабораторию` временно подсвечивать приземление в блоке тарифов небольшой иконкой
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: В `LabW26PageV3` добавлен transient-state `showPricingCue`, CTA `хочу на лабораторию` теперь идёт через `scrollToPricingWithCue`, а у `EditorialSectionHeader` секции `Тарифы` показывается краткий зелёный `ChevronDown`; build прошёл, DOM/headless проверка после hero-CTA подтвердила `cueFound: true` и `opacity: 1`.
+
+- Task: Добавить на mobile внизу ненавязчивую кнопку `Связаться с нами`, ведущую в уже существующую форму связи
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: Добавлена mobile-only fixed-кнопка `Связаться с нами`, ведущая на уже используемую contact/waitlist форму `https://join.aimindset.org/waitlist`; headless DOM-проверка подтвердила fixed anchor и корректный `href`.
+
+- Task: Провести аудит дизайн-системы страницы `/lab-w26/v3` (шрифты, цвета, отступы), предложить объединение стилей и перевести дубликат страницы `LabW26PageV4` на 8-пиксельную 12-колоночную сетку
+  Status: requested
+  Owner: assistant
+  Last Checked: 2026-04-03
+  Note: Запрошено создание копии, разработка 8px-grid / столбцовки, привязка всех размеров к сетке и объединение стилей через artifact. План работ выставлен на ревью.
+
+- Task: Ужать карточки `Cases` на живом сайте, убрать из них описательный текст, сделать `Посмотреть все` тем же самым карточным шаблоном и уместить overlay плотнее в два ряда
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: После пользовательской коррекции в `src/components/LabW26PageV3.tsx` основной grid и overlay оставлены на едином компактном case-card шаблоне, карточкам возвращён `description`, author/role снова собраны в одну строку, лишние номер/дополнительные теги сняты, visual-shell поджат ближе к верхней рамке, из opened case-popup убран дублирующий `desc`, затем на основном сайте показ расширен до двух рядов (`8` кейсов), `description` ослаблен до regular и чуть увеличен; позже карточка разделена на два режима: на главной `description` раскрыт до `3` строк и tool-теги оставлены внутри карточек, при этом filter-row `Инструменты` снят с основной страницы, а в overlay tool-теги и filter-row `Инструменты` сохранены, усилены по читаемости на hover, сам набор кейсов расширен сверх исходных `10`, и клики по пустому фону внутри большого overlay теперь тоже закрывают его, тогда как клики по карточкам и filter-tags — нет; `npm run build` прошёл, ждёт визуальной проверки пользователя.
+
+- Task: При обычном скролле синхронизировать URL hash с текущим блоком страницы, чтобы refresh не возвращал к старому anchor
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: В `src/components/LabW26PageV3.tsx` добавлена scroll-based синхронизация hash с текущей секцией (`hero/program/cases/speakers/philosophy/pricing/reviews/faq/labs`) и убран плавный initial jump на reload; `npm run build` прошёл, ждёт пользовательской проверки поведения.
+
+- Task: Перенести на живой сайт новый облегчённый FAQ-вариант из experimental, убрать массивность закрытого состояния, сузить колонку открытого текста и выделить ключевые слова в ответах
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: В `src/components/FooterFaqBlock.tsx` live FAQ переведён на flat-state без белых плашек, плюсик перенесён ближе к тексту, открытые ответы ограничены по ширине адаптивно (`lg ~74% / xl ~70% / 2xl ~66%`), внутри ответов добавлены точечные bold-акценты на ключевых фразах, мягкая выключка по ширине включается только на `xl+` с поджатым `word-spacing`, а для строки вопроса внутри ответа сейчас показан A/B-preview: в первой раскрывашке мягкий зелёный прямоугольник, во второй — тонкий чёрный stroke; `npm run build` прошёл.
+
+- Task: В desktop-блоке `Спикеры` на живом сайте запретить карточкам увеличиваться при изменении ширины экрана: они могут только уменьшаться или перестраиваться по колонкам
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: В `src/components/LabW26PageV3.tsx` desktop-grid переведён на центрирование с `max-w-[286px]` у каждой карточки и промежуточным `lg:grid-cols-3`, чтобы карточки не растягивались на широких ячейках; `npm run build` прошёл.
+
+- Task: На живом сайте `/lab-w26/v3` заменить desktop-блок `Спикеры` на layout из экспериментального `Speakers V5`, сохранив текущие live-данные и мобильное поведение
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: В `src/components/LabW26PageV3.tsx` desktop speakers-section переведена на портретную композицию с угловыми рамками по мотивам `DesktopSpeakersV5`, при этом live-тексты, изображения и mobile-логика сохранены.
+
+- Task: На живом сайте `/lab-w26/v3` починить anchor-ссылки на блоки, чтобы URL hash не терялся и прямые ссылки работали как ссылки на конкретные секции
+  Status: self-checked
+  Owner: user
+  Last Checked: 2026-04-02
+  Note: `scrollTo` теперь синхронизирует URL hash через `history.replaceState`, на mount/hashchange добавлен прямой scroll к hash-цели, и вокруг `reviews` / `faq` / `labs` / `speakers` добавлены явные anchor-обёртки.
+
 - Task: В FAQ-блоке на странице `/lab-w26/v3` убрать внешний background и border, а верхнюю чёрную линию сделать тоньше
   Status: implemented
   Owner: user
@@ -24,7 +180,7 @@
   Status: self-checked
   Owner: user
   Last Checked: 2026-03-31
-  Note: После уточнения пользователя блок донастроен: шапка заменена на `другие лаборатории:`, длинная горизонтальная линия убрана, в табах оставлены только `текущие / будущие / архив`, английские названия четырёх лабораторий возвращены, статусные теги сняты полностью; после нового фидбэка карточкам возвращён компактный `max-width`, а уменьшение расстояния оставлено за счёт gap и выравнивания влево, даже если справа остаётся свободное место.
+  Note: После уточнения пользователя блок донастроен: шапка заменена на `другие лаборатории:`, длинная горизонтальная линия убрана, в табах оставлены только `текущие / будущие / архив`, английские названия четырёх лабораторий возвращены, статусные теги сняты полностью; после нового фидбэка карточки переведены с растянутого grid на обычный left-aligned flex-ряд с фиксированной шириной и маленьким gap, чтобы они стояли значительно ближе друг к другу, а свободное место оставалось справа.
 
 - Task: Между блоками `FAQ` и `Labs Navigator` на `/lab-w26/v3` сделать более заметный разрыв в духе slash-divider референса
   Status: self-checked
@@ -306,12 +462,13 @@
   Note: Пользовательский ревью открыл задачу заново: предыдущая интеграция не дала нужного sticky-scroll и оставляла слишком большой белый хвост. В текущих проходах сохранены общие данные и исходная `motion/useScroll` логика из `4007`; overlap под sticky убран, root `overflow-x-hidden` снят, а после нового пользовательского фидбэка проблема локализована в соседнем элементе, а не только в shell. Последняя правка подтягивает desktop-подпись `* основная программа...` вверх в пустую зону под карточкой через локальный layout offset, без изменений mobile и логики недель; `npm run build` прошёл, ожидание user-approved
 
 - Task: В секции `Отзывы` убрать `1 / 2` и заменить это на стрелку вниз, которая по клику раскрывает сразу все отзывы большой разноразмерной плиткой
-  Status: requested
-  Owner: user
-  Last Checked: 2026-03-25
-  Note: После пользовательского ревью задача снова открыта: expanded-grid местами выглядит сломанной, одна карточка стала слишком большой, стрелка не в нужном стиле; дополнительно пользователь попросил больше фото и подписи с местом работы
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Пагинация `1 / 2` снята, внизу секции оставлена кнопка-стрелка `открыть все отзывы / свернуть отзывы`, expanded-flow работает через единую masonry/grid раскладку. Дополнительно live-версия уже отдельно доточена по белому фону, `tg ->` и логике скобок, поэтому историческую задачу больше не держим в `requested`.
 
 ## Agent Self-Checks
+- 2026-04-06: `DesktopTechUiV5` self-check rerun. Fixed desktop overlap by giving the left program column a hard minimum width and reducing the right panel to `320px`; normalized empty-day weekly-rhythm fill back to neutral gray; tightened and enlarged the `разделы страницы` marker so it lives inside the same row with the label. Build passed and both `localhost:3001` and LAN preview returned `HTTP 200`.
 
 - Task: Подтвердить, что правки блока `Спикеры` внесены именно в GitHub-backed repo `eppelas/aimwebsite0.5`, а не в старый локальный клон
   Status: self-checked

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 type FooterFaqBlockProps = {
   title?: string;
   versionLabel?: string | null;
+  mode?: 'default' | 'live';
 };
 
 const FAQ_DATA = [
@@ -49,7 +50,7 @@ const renderHighlightedAnswer = (text: string, highlights: string[]) => {
   const parts = text.split(matcher);
 
   return parts.map((part, index) =>
-    highlights.includes(part) ? <strong key={`${part}-${index}`} className="font-semibold text-black/88">{part}</strong> : part,
+    highlights.includes(part) ? <strong key={`${part}-${index}`} className="font-normal text-black/82">{part}</strong> : part,
   );
 };
 
@@ -58,8 +59,12 @@ const EXPANDED_QUESTION_CLASS_NAME = 'inline-flex w-fit items-start rounded-none
 export function FooterFaqBlock({
   title = 'вопросы и ответы',
   versionLabel = null,
+  mode = 'default',
 }: FooterFaqBlockProps) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const isLiveMode = mode === 'live';
+  const liveCategoryClassName =
+    'flex w-full max-w-[17.2rem] items-center justify-between gap-3 px-0 py-3 text-[13px] text-black/66 md:max-w-[18rem] md:py-3.5 md:text-[14px]';
 
   return (
     <div className="w-full px-5 py-10 md:px-8 md:py-12">
@@ -86,13 +91,20 @@ export function FooterFaqBlock({
             const isOpen = openIdx === idx;
 
             return (
-              <div key={category.category} className="overflow-hidden border-b border-black/8 transition-colors last:border-b-0">
+              <div
+                key={category.category}
+                className={`overflow-hidden transition-colors ${isLiveMode ? 'pb-2 md:pb-3' : 'border-b border-black/8 last:border-b-0'}`}
+              >
                 <button
                   type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-start gap-3 px-1 py-3 text-left font-mono text-[13px] md:px-2 md:py-3.5 md:text-[14px] font-semibold lowercase tracking-[0.02em] text-black/74 transition-colors"
+                  className={`text-left font-mono font-semibold lowercase tracking-[0.02em] transition-colors ${
+                    isLiveMode
+                      ? `${liveCategoryClassName} ${isOpen ? 'border-b-0 text-black/82' : 'border-b border-black/12 text-black/66'}`
+                      : 'w-full flex items-center justify-start gap-3 px-1 py-3 text-[13px] text-black/74 md:px-2 md:py-3.5 md:text-[14px]'
+                  }`}
                 >
-                  <span className={isOpen ? 'text-black' : undefined}>{category.category.toLowerCase()}</span>
+                  <span className={`min-w-0 ${isOpen ? 'text-black' : undefined}`}>{category.category.toLowerCase()}</span>
                   <span className={`text-[18px] leading-none shrink-0 ${isOpen ? 'text-black' : 'text-black/22'}`}>
                     {isOpen ? '—' : '+'}
                   </span>
@@ -107,16 +119,19 @@ export function FooterFaqBlock({
                       transition={{ duration: 0.25, ease: 'circOut' }}
                       className="overflow-hidden bg-transparent"
                     >
-                      <div className="px-1 pb-5 pt-1 md:px-2 md:pb-6 flex flex-col gap-5">
+                      <div
+                        onClick={() => setOpenIdx(null)}
+                        className={`${isLiveMode ? 'pt-6 px-0 pb-7 md:pt-7 md:pb-9' : 'pt-2 px-1 pb-5 md:px-2 md:pb-6'} flex cursor-pointer flex-col ${isLiveMode ? 'gap-10 md:gap-12' : 'gap-5'}`}
+                      >
                         {category.items.map((item) => (
-                          <div key={item.q} className="flex flex-col gap-1.5 max-w-full lg:max-w-[74%] xl:max-w-[70%] 2xl:max-w-[66%]">
-                            <div className="inline-flex w-fit items-baseline gap-2">
-                              <span className="font-mono select-none text-[#8DC63F] text-[14px] md:text-[15px] font-bold lowercase tracking-tight leading-none">q:</span>
-                              <span className={`${EXPANDED_QUESTION_CLASS_NAME} text-[14px] md:text-[15px] text-black font-mono font-bold lowercase tracking-tight leading-none`}>
+                          <div key={item.q} className={`flex flex-col max-w-full lg:max-w-[74%] xl:max-w-[70%] 2xl:max-w-[66%] ${isLiveMode ? 'gap-2' : 'gap-1.5'}`}>
+                            <div className="inline-flex w-fit items-baseline gap-[0.18rem]">
+                              <span className={`font-mono select-none text-[#8DC63F] font-bold lowercase leading-none ${isLiveMode ? 'text-[12px] md:text-[13px] tracking-[0.04em]' : 'text-[14px] md:text-[15px] tracking-tight'}`}>q:</span>
+                              <span className={`${EXPANDED_QUESTION_CLASS_NAME} ${isLiveMode ? 'px-0 py-0 border-0 border-b border-black/6 text-[13px] md:text-[14px] text-black/84 font-semibold tracking-[0.015em]' : 'text-[14px] md:text-[15px] text-black font-bold tracking-tight'} font-mono lowercase leading-none`}>
                                 {item.q.toLowerCase()}
                               </span>
                             </div>
-                            <div className="text-[14px] md:text-[15px] text-black/72 leading-[1.6] font-sans pl-[20px] md:pl-[22px] text-left xl:[text-align:justify] xl:[text-align-last:left] xl:[hyphens:auto] xl:[word-spacing:-0.045em] 2xl:[word-spacing:-0.06em]">
+                            <div lang="ru" className={`${isLiveMode ? 'text-[13px] md:text-[14px] text-black/62 leading-[2] tracking-[0.01em] pl-[15px] md:pl-[16px]' : 'text-[14px] md:text-[15px] text-black/72 leading-[1.6] pl-[20px] md:pl-[22px]'} font-sans text-justify [hyphens:auto] [overflow-wrap:normal] [word-break:normal]`}>
                               {renderHighlightedAnswer(item.a, item.highlights)}
                             </div>
                           </div>

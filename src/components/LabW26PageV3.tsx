@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
 import {
   Menu,
@@ -10,10 +10,9 @@ import {
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
 import PricingPaymentPopupNeon from './PricingPaymentPopupNeon';
-import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS } from './ctaButtonStyles';
+import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS, PRICING_CTA_BUTTON_CLASS } from './ctaButtonStyles';
 import ReviewsSection from './ReviewsSection';
 import { FooterFaqBlock } from './FooterFaqBlock';
-import { FooterLabsNavigatorBlock } from './FooterLabsNavigatorBlock';
 import { InvertedVoxelLogoFace } from './InvertedVoxelLogoFace';
 
 
@@ -69,32 +68,75 @@ const renderSpeakerDescription = (name: string, description: string): React.Reac
   );
 };
 
-const SpeakerCornerFrame = () => (
-  <>
-    <div className="pointer-events-none absolute left-0 top-0 h-4 w-4 border-l border-t border-black/40" />
-    <div className="pointer-events-none absolute right-0 top-0 h-4 w-4 border-r border-t border-black/40" />
-    <div className="pointer-events-none absolute bottom-0 left-0 h-4 w-4 border-b border-l border-black/40" />
-    <div className="pointer-events-none absolute bottom-0 right-0 h-4 w-4 border-b border-r border-black/40" />
-  </>
-);
+type SpeakerCornerKey = 'tl' | 'tr' | 'bl' | 'br';
 
-const CASE_DARK_VARIANTS = new Set(Array.from({ length: 10 }, (_, index) => index));
+const SPEAKER_CORNER_VARIANTS: SpeakerCornerKey[][] = [
+  ['tl', 'br'],
+  ['tr', 'bl'],
+  ['tl', 'bl'],
+  ['tr', 'br'],
+  ['tl', 'br'],
+  ['tr', 'bl'],
+  ['tl', 'tr'],
+];
+
+const SpeakerCornerFrame = ({ corners }: { corners: SpeakerCornerKey[] }) => {
+  const redCorners = new Set<SpeakerCornerKey>(corners);
+
+  const cornerClassByKey: Record<SpeakerCornerKey, string> = {
+    tl: 'left-0 top-0 border-l border-t',
+    tr: 'right-0 top-0 border-r border-t',
+    bl: 'bottom-0 left-0 border-b border-l',
+    br: 'bottom-0 right-0 border-b border-r',
+  };
+
+  const hoverWidthClassByKey: Record<SpeakerCornerKey, string> = {
+    tl: 'group-hover:border-l-[1.7px] group-hover:border-t-[1.7px]',
+    tr: 'group-hover:border-r-[1.7px] group-hover:border-t-[1.7px]',
+    bl: 'group-hover:border-b-[1.7px] group-hover:border-l-[1.7px]',
+    br: 'group-hover:border-b-[1.7px] group-hover:border-r-[1.7px]',
+  };
+
+  return (
+    <>
+      {corners.map((corner) => (
+        <div
+          key={corner}
+          className={cn(
+            'pointer-events-none absolute h-[18px] w-[18px] border-black/36 transition-all duration-200',
+            cornerClassByKey[corner],
+            redCorners.has(corner)
+              ? cn('group-hover:border-[#d83b2d]', hoverWidthClassByKey[corner])
+              : 'group-hover:border-black/36',
+          )}
+        />
+      ))}
+    </>
+  );
+};
+
+const SPEAKER_FRAME_WIDTH_CLASS = 'max-w-[248px]';
+const SPEAKER_PHOTO_WIDTH_CLASS = 'w-[224px]';
+const SPEAKER_PHOTO_RADIUS_CLASS = 'rounded-[2px]';
+
+const CASE_DARK_VARIANTS = new Set([3, 7]);
 const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
-  0: 'case-0-dark.svg',
-  1: 'case-1-dark.svg',
+  0: 'case-0.svg',
+  1: 'case-1.svg',
   2: 'case-2.svg',
   3: 'case-3.svg',
-  4: 'case-0.svg',
-  5: 'case-1.svg',
-  6: 'case-2.svg',
-  7: 'case-3.svg',
-  8: 'case-0.svg',
-  9: 'case-1.svg',
+  4: 'case-4.svg',
+  5: 'case-5.svg',
+  6: 'case-6.svg',
+  7: 'case-7.svg',
+  8: 'case-8.svg',
+  9: 'case-9.svg',
 };
 
 const getCaseVisualSrc = (index: number) => `${BASE_URL}assets/cases/${CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`}`;
-const CASE_STATIC_SVG_CACHE = new Map<string, string>();
-const CASE_STATIC_SVG_REQUESTS = new Map<string, Promise<string>>();
+const CASE_SVG_CACHE = new Map<string, { staticMarkup: string; animatedMarkup: string; hoverMarkup: string }>();
+const CASE_SVG_REQUESTS = new Map<string, Promise<{ staticMarkup: string; animatedMarkup: string; hoverMarkup: string }>>();
+const CASE_HOVER_START_TIME = 0; // Start from absolute beginning to ensure the full sequence is visible immediately
 
 const getCaseVisualFrameClassName = (index: number) => {
   if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
@@ -122,22 +164,34 @@ const getCaseVisualToneClassName = (index: number) => {
   return "";
 };
 
-const sanitizeCaseSvgMarkup = (svgMarkup: string) =>
+const normalizeCaseSvgMarkup = (svgMarkup: string) =>
   svgMarkup
     .replace(/<\?xml[\s\S]*?\?>\s*/g, '')
-    .replace(/<animate(?:Transform|Motion)?[\s\S]*?\/>/g, '')
-    .replace(/<animate(?:Transform|Motion)?[\s\S]*?<\/animate(?:Transform|Motion)?>/g, '')
-    .replace(/<set[\s\S]*?\/>/g, '')
     .replace(
       /<svg\b([^>]*)>/,
       '<svg$1 class="h-full w-full overflow-visible" preserveAspectRatio="xMidYMid meet">',
     );
 
-const loadStaticCaseSvgMarkup = async (assetName: string) => {
-  const cachedMarkup = CASE_STATIC_SVG_CACHE.get(assetName);
-  if (cachedMarkup) return cachedMarkup;
+const stripCaseSvgAnimation = (svgMarkup: string) =>
+  svgMarkup
+    .replace(/<animate(?:Transform|Motion)?\b[\s\S]*?\/>/gi, '')
+    .replace(/<animate(?:Transform|Motion)?\b[\s\S]*?<\/animate(?:Transform|Motion)?>/gi, '')
+    .replace(/<set\b[\s\S]*?\/>/gi, '')
+    .replace(/<set\b[\s\S]*?<\/set>/gi, '');
 
-  const pendingRequest = CASE_STATIC_SVG_REQUESTS.get(assetName);
+const createCaseHoverSvgMarkup = (svgMarkup: string) =>
+  normalizeCaseSvgMarkup(svgMarkup)
+    .replace(/stroke="(?!none)([^"]+)"/gi, 'stroke="#ffffff"')
+    .replace(/fill="(?!none)(?!url\()([^"]+)"/gi, 'fill="#ffffff"')
+    .replace(/stop-color="([^"]+)"/gi, 'stop-color="#ffffff"');
+
+const loadCaseSvgMarkup = async (assetName: string, animated: boolean) => {
+  const cachedMarkup = CASE_SVG_CACHE.get(assetName);
+  if (cachedMarkup) {
+    return animated ? cachedMarkup.animatedMarkup : cachedMarkup.staticMarkup;
+  }
+
+  const pendingRequest = CASE_SVG_REQUESTS.get(assetName);
   if (pendingRequest) return pendingRequest;
 
   const request = fetch(`${BASE_URL}assets/cases/${assetName}`)
@@ -146,70 +200,106 @@ const loadStaticCaseSvgMarkup = async (assetName: string) => {
         throw new Error(`Failed to load ${assetName}`);
       }
 
-      const sanitizedMarkup = sanitizeCaseSvgMarkup(await response.text());
-      CASE_STATIC_SVG_CACHE.set(assetName, sanitizedMarkup);
-      return sanitizedMarkup;
+      const rawMarkup = await response.text();
+      const animatedMarkup = normalizeCaseSvgMarkup(rawMarkup);
+      const staticMarkup = normalizeCaseSvgMarkup(stripCaseSvgAnimation(rawMarkup));
+      const hoverMarkup = animatedMarkup;
+      const cachedVariants = { staticMarkup, animatedMarkup, hoverMarkup };
+      CASE_SVG_CACHE.set(assetName, cachedVariants);
+      return cachedVariants;
     })
     .finally(() => {
-      CASE_STATIC_SVG_REQUESTS.delete(assetName);
+      CASE_SVG_REQUESTS.delete(assetName);
     });
 
-  CASE_STATIC_SVG_REQUESTS.set(assetName, request);
-  return request;
+  CASE_SVG_REQUESTS.set(assetName, request);
+  const cachedVariants = await request;
+  return animated ? cachedVariants.animatedMarkup : cachedVariants.staticMarkup;
+};
+
+const primeCaseSvgMarkup = async (assetName: string) => {
+  const cachedMarkup = CASE_SVG_CACHE.get(assetName);
+  if (cachedMarkup) return cachedMarkup;
+
+  const pendingRequest = CASE_SVG_REQUESTS.get(assetName);
+  if (pendingRequest) return pendingRequest;
+
+  await loadCaseSvgMarkup(assetName, false);
+  return CASE_SVG_CACHE.get(assetName) ?? null;
 };
 
 function CaseVisualGraphic({ index, className, animate = false }: { index: number; className: string; animate?: boolean }) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
-  const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
+  const [markup, setMarkup] = useState<{ static: string; animated: string } | null>(null);
+  const animatedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let disposed = false;
-
-    loadStaticCaseSvgMarkup(assetName)
-      .then((markup) => {
-        if (!disposed) setStaticMarkup(markup);
-      })
-      .catch(() => {
-        if (!disposed) setStaticMarkup(null);
-      });
-
-    return () => {
-      disposed = true;
-    };
+    loadCaseSvgMarkup(assetName, true).then(() => {
+      if (disposed) return;
+      const cached = CASE_SVG_CACHE.get(assetName);
+      if (cached) {
+        setMarkup({ static: cached.staticMarkup, animated: cached.animatedMarkup });
+      }
+    });
+    return () => { disposed = true; };
   }, [assetName]);
 
-  if (!animate) {
-    return (
-      <div
-        aria-hidden
-        className={cn(
-          "flex h-full w-full origin-center items-center justify-center transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert [&_svg]:h-full [&_svg]:w-full",
-          className,
-        )}
-        dangerouslySetInnerHTML={staticMarkup ? { __html: staticMarkup } : undefined}
-      />
-    );
-  }
+  // Precise sync with hover state
+  React.useLayoutEffect(() => {
+    if (!markup) return;
+    const svg = animatedRef.current?.querySelector('svg');
+    if (!svg || typeof svg.pauseAnimations !== 'function') return;
+
+    if (animate) {
+      svg.unpauseAnimations();
+      try {
+        svg.setCurrentTime(CASE_HOVER_START_TIME);
+      } catch(e) {}
+    } else {
+      svg.pauseAnimations();
+      try {
+        svg.setCurrentTime(0);
+      } catch(e) {}
+    }
+  }, [animate, markup]);
 
   return (
-    <img
-      src={getCaseVisualSrc(index)}
-      alt=""
-      className={cn(
-        "h-full w-full origin-center object-contain transition-[filter,opacity] duration-300 group-hover:brightness-0 group-hover:invert",
-        className,
-      )}
-    />
+    <div className={cn("relative h-full w-full overflow-hidden transition-transform duration-300 group-hover:scale-[1.1]", className)}>
+      {/* Static layer: always here, zero CPU */}
+      <div 
+        className={cn(
+          "absolute inset-0 transition-[filter,opacity] duration-300",
+          animate ? "opacity-0" : "opacity-100",
+          "[filter:none] group-hover:[filter:brightness(0)_invert(1)]"
+        )}
+        dangerouslySetInnerHTML={markup ? { __html: markup.static } : undefined}
+      />
+      
+      {/* Animated layer: fades in and unpauses on hover */}
+      <div 
+        ref={animatedRef}
+        className={cn(
+          "absolute inset-0 transition-opacity duration-300 pointer-events-none",
+          animate ? "opacity-100" : "opacity-0",
+          "[filter:brightness(0)_invert(1)]"
+        )}
+        dangerouslySetInnerHTML={markup ? { __html: markup.animated } : undefined}
+      />
+    </div>
   );
 }
 
 // --- CONSTANTS ---
-const SIDEBAR_NAV: NavItem[] = [
-  { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
+const PAGE_SECTION_LINKS: NavItem[] = [
+  { label: 'Описание', href: '#hero' },
   { label: 'ПРОГРАММА', href: '#program' },
   { label: 'КЕЙСЫ', href: '#cases' },
+  { label: 'СПИКЕРЫ', href: '#speakers' },
+  { label: 'ФИЛОСОФИЯ', href: '#philosophy' },
   { label: 'ТАРИФЫ', href: '#pricing' },
   { label: 'ОТЗЫВЫ', href: '#reviews' },
+  { label: 'FAQ', href: '#faq' },
 ];
 
 const EXTERNAL_LINKS = [
@@ -234,6 +324,8 @@ const PRIMARY_MENU_LINKS = [
 
 const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
+const LOGO_TRANSPARENT_SRC = `${BASE_URL}assets/ai-mindset-logo-transparent.png`;
+const CONTACT_FORM_URL = 'https://join.aimindset.org/waitlist';
 const speakerImage = (filename: string) => `${BASE_URL}assets/speakers/${filename}`;
 const philosophyAnimation = (filename: string) => `${BASE_URL}assets/${filename}`;
 
@@ -715,11 +807,24 @@ const LargeDiamondArt = ({ className = "" }: { className?: string }) => (
   </pre>
 );
 
-const EditorialSectionHeader = ({ eyebrow, title, className = "" }: { eyebrow: string; title: string; className?: string }) => (
+const EditorialSectionHeader = ({
+  eyebrow,
+  title,
+  className = "",
+  titleAddon,
+}: {
+  eyebrow: string;
+  title: string;
+  className?: string;
+  titleAddon?: React.ReactNode;
+}) => (
   <div className={`flex items-end gap-3 md:gap-10 ${className}`}>
     <div className="text-[10px] md:text-[13px] font-bold uppercase tracking-[0.2em] opacity-40 shrink-0 mb-[0.15rem] md:mb-[0.25rem]">{eyebrow}</div>
     <div className="h-px min-w-[20px] flex-1 bg-black/10 mb-[0.45rem] md:mb-[0.75rem]" />
-    <div className="font-black uppercase tracking-widest text-xl md:text-5xl/none text-right shrink-0">{title}</div>
+    <div className="flex shrink-0 items-center gap-2 md:gap-3">
+      {titleAddon}
+      <div className="font-black uppercase tracking-widest text-xl md:text-5xl/none text-right">{title}</div>
+    </div>
   </div>
 );
 
@@ -871,12 +976,7 @@ const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy'
         src={src}
         alt=""
         aria-hidden="true"
-        className={cn(
-          "block h-full w-full object-contain",
-          art === 'synergy' && "-translate-y-[4%]",
-          art === 'action' && "translate-y-[8%]",
-          art === 'trajectory' && "translate-y-[8%]",
-        )}
+        className="block h-full w-full object-contain object-bottom"
       />
     );
   }
@@ -1541,7 +1641,9 @@ const ProgramIntegratedTimeline = ({
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
-                                    className={`relative border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[54px] md:h-[46px] flex flex-col ${
+                                    className={cn(
+                                      "relative border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[54px] md:h-[46px] flex flex-col",
+                                      (day.day === 'ЧТ' || day.day === 'ВС') ? "flex-[0.7]" : "flex-1",
                                       day.type === 'advanced'
                                         ? 'bg-black border-black text-white'
                                         : day.type === 'off'
@@ -1551,7 +1653,7 @@ const ProgramIntegratedTimeline = ({
                                             : day.type === 'qna'
                                               ? 'bg-[#eff3ea] border-black/12 text-black/70'
                                               : 'bg-white border-black/12 text-black/72'
-                                    }`}
+                                    )}
                                   >
                                     <div className="flex justify-between items-start">
                                       <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
@@ -1690,7 +1792,7 @@ const ProgramReferenceSwipeCard = ({
   const renderAdvancedCard = (weekCopy: (typeof PROGRAM_WEEK_COPY)[string], speaker: string) => (
     <div
       ref={advancedCardRef}
-      className="mt-4 ml-auto w-full md:w-[74%] rounded-[24px] border border-black/7 bg-[#f3f4f4] p-4 md:p-5 text-right min-h-[154px] flex flex-col justify-start"
+      className="absolute inset-y-0 right-0 w-[320px] rounded-[24px] border border-black/7 bg-[#f3f4f4] p-4 md:p-5 text-right min-h-[154px] flex flex-col justify-start"
     >
       <div className={`justify-end ${tagClass}`}>
         <span className="text-[10px] leading-none">*</span>
@@ -1753,7 +1855,7 @@ const ProgramReferenceSwipeCard = ({
               />
             )}
 
-            <div className="relative z-10">
+            <div className="relative z-10 pr-[340px]">
             <div className="flex items-center justify-between gap-3 mb-4">
               <div className="text-[#8DC63F] text-[14px] md:text-[15px] font-mono font-black tracking-[0.14em] uppercase">
                 неделя {activeTrack.id}
@@ -1950,7 +2052,13 @@ const ProgramReferenceTechUi = () => {
   );
 };
 
-const DesktopTechUiV5 = () => {
+const DesktopTechUiV5 = ({
+  forcedOpenIndex,
+  forcedOpenNonce,
+}: {
+  forcedOpenIndex?: number;
+  forcedOpenNonce?: number;
+}) => {
   const [activeWeek, setActiveWeek] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -1959,18 +2067,19 @@ const DesktopTechUiV5 = () => {
     offset: ["start center", "end center"]
   });
 
-  // 1. Spring-smoothed progress prevents instant skipping of multiple weeks on fast scroll
   const smoothProgress = useSpring(scrollYProgress, { damping: 40, stiffness: 80, restDelta: 0.001 });
-
-  // 2. Micro-scroll visual feedback via SVG transforms
   const svgRotate = useTransform(smoothProgress, [0, 1], [-5, 15]);
   const svgY = useTransform(smoothProgress, [0, 1], [-10, 10]);
 
+  useEffect(() => {
+    if (forcedOpenNonce === undefined || forcedOpenIndex === undefined) return;
+    setActiveWeek(forcedOpenIndex);
+  }, [forcedOpenIndex, forcedOpenNonce]);
+
   useMotionValueEvent(smoothProgress, "change", (latest) => {
-    // Map weeks 1-4 to the first 80% of the scroll progress to leave 20% for a "hold" phase.
     let newWeek = Math.min(Math.floor((latest / 0.8) * PROGRAM_TRACKS.length), PROGRAM_TRACKS.length - 1);
     if (newWeek < 0) newWeek = 0;
-    
+
     if (newWeek !== activeWeek) {
       setActiveWeek(newWeek);
     }
@@ -1981,8 +2090,12 @@ const DesktopTechUiV5 = () => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const totalHeight = rect.height;
-    // Update target calculation for the new 80% mapping
-    const targetY = window.scrollY + rect.top + (totalHeight * 0.8 / PROGRAM_TRACKS.length) * idx + (totalHeight * 0.8 / PROGRAM_TRACKS.length / 2) - window.innerHeight / 2;
+    const targetY =
+      window.scrollY +
+      rect.top +
+      (totalHeight * 0.8 / PROGRAM_TRACKS.length) * idx +
+      (totalHeight * 0.8 / PROGRAM_TRACKS.length / 2) -
+      window.innerHeight / 2;
     window.scrollTo({ top: targetY, behavior: 'smooth' });
   };
 
@@ -2003,63 +2116,90 @@ const DesktopTechUiV5 = () => {
     <div ref={containerRef} className="w-full max-w-[1340px] mx-auto font-sans h-[400vh] relative">
       <div className="sticky top-[8vh] flex flex-col items-center">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-stretch justify-center h-[580px] w-full pt-12">
-        <div className="w-[120px] shrink-0 flex flex-col relative h-[500px] mt-6">
-          <div className="absolute left-[11.5px] top-[40px] bottom-[40px] w-[1px] bg-black/15 z-0 pointer-events-none" />
-          <div className="flex-1 flex flex-col w-[120px] gap-2">
-            {PROGRAM_TRACKS.map((t, idx) => {
-              const isActive = activeWeek === idx;
-              return (
-                <button
-                  key={`v5-st-ref-${t.id}`}
-                  onClick={() => handleWeekClick(idx)}
-                  className="flex-1 w-full flex items-center gap-3.5 group text-left relative z-10 transition-colors hover:bg-black/[0.04] rounded-[10px] -ml-4 pl-4 cursor-pointer"
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 z-10",
-                    isActive ? "bg-black border border-black shadow-[rgba(0,0,0,0.1)_0_4px_12px]" : "bg-white border border-black/20 group-hover:border-black/40"
-                  )}>
-                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                  </div>
-                  <div className="flex flex-col">
-                    <div className={cn("text-[9px] font-mono font-bold uppercase transition-colors mb-0.5", isActive ? "text-black" : "text-black/30 group-hover:text-black/50")}>НЕДЕЛЯ</div>
-                    <div className={cn("text-[17px] font-black tracking-tighter leading-none transition-colors", isActive ? "text-black" : "text-black/20 group-hover:text-black/40")}>0{idx + 1}</div>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-          <div className="w-[100px] flex items-center gap-2 p-2 border border-black/10 rounded-[6px] bg-[#f8f8f8] text-left relative z-10 opacity-70 mt-1 mb-8 -ml-1">
-            <div className="flex flex-col">
-              <div className="text-[8.5px] font-mono font-bold uppercase text-black/50 mb-0.5 tracking-wider">FINAL</div>
-              <div className="text-[11px] font-black tracking-widest leading-none text-black/90">DEMO DAY</div>
+          <div className="w-[120px] shrink-0 flex flex-col relative h-[500px] mt-6">
+            <div className="absolute left-[11.5px] top-[40px] bottom-[40px] w-[1px] bg-black/20 z-0 pointer-events-none" />
+            <div className="flex-1 flex flex-col w-[120px] gap-2">
+              {PROGRAM_TRACKS.map((t, idx) => {
+                const isActive = activeWeek === idx;
+                return (
+                  <button
+                    key={`v5-st-ref-${t.id}`}
+                    onClick={() => handleWeekClick(idx)}
+                    className="flex-1 w-full flex items-center gap-4.5 group text-left relative z-10 transition-colors hover:bg-black/[0.04] rounded-[10px] -ml-4 pl-4 cursor-pointer"
+                  >
+                    <div
+                      className={cn(
+                        "w-6 h-6 rounded-full flex items-center justify-center transition-all shrink-0 z-10",
+                        isActive ? "bg-black border border-black shadow-[rgba(0,0,0,0.1)_0_4px_12px]" : "bg-white border border-black/20 group-hover:border-black/40"
+                      )}
+                    >
+                      {isActive && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                    <div className="flex flex-col">
+                      <div className={cn("text-[10px] font-mono font-bold uppercase transition-colors mb-0.5", isActive ? "text-black" : "text-black/40 group-hover:text-black/60")}>НЕДЕЛЯ</div>
+                      <div className={cn("text-lg font-black tracking-tighter leading-none transition-colors", isActive ? "text-black" : "text-black/20 group-hover:text-black/40")}>0{idx + 1}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="w-[100px] flex items-center gap-2 p-2 border border-black/10 rounded-[6px] bg-[#f9f9f7] text-left relative z-10 opacity-70 mt-1 mb-8 -ml-1">
+              <div className="flex flex-col">
+                <div className="text-[8.5px] font-mono font-bold uppercase text-black/60 mb-0.5 tracking-wider">FINAL</div>
+                <div className="text-[10px] font-black tracking-widest leading-none text-black/90">DEMO DAY</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 border border-black/15 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col pt-12 max-w-[940px] bg-white rounded-none">
-          <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-10 bg-white" 
-               style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-          <motion.div 
-            animate={{ scale: activeWeek === 3 ? 1.05 : 0.82, opacity: activeWeek === 3 ? 0.45 : 0.35, top: activeWeek === 3 ? "-10%" : "0%" }}
-            style={{ rotate: svgRotate, y: svgY }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-[-40px] w-[740px] h-[740px] pointer-events-none mix-blend-multiply z-0 flex justify-center"
-          >
-             <MorphSvg week={activeWeek} />
-          </motion.div>
+          <div className="flex-1 border border-black/15 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col pt-12 max-w-[940px] bg-white rounded-none">
+            <div
+              className="absolute inset-0 pointer-events-none opacity-[0.03] z-10 bg-white"
+              style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }}
+            />
+            <motion.div
+              animate={{ scale: activeWeek === 3 ? 1.05 : 0.82, opacity: activeWeek === 3 ? 0.45 : 0.35, top: activeWeek === 3 ? "-10%" : "0%" }}
+              style={{ rotate: svgRotate, y: svgY }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute right-[-40px] w-[740px] h-[740px] pointer-events-none mix-blend-multiply z-0 flex justify-center"
+            >
+              <MorphSvg week={activeWeek} />
+            </motion.div>
 
-          <div className="relative z-20 flex flex-col flex-1 pl-12 pr-0 pb-0">
-             <div className="flex items-center justify-between mb-4 h-6 pr-12">
+            <div className="absolute inset-y-0 right-0 z-20 hidden w-[320px] border-l border-white/10 bg-black lg:block">
+              <AnimatePresence mode="popLayout">
+                <motion.div
+                  key={`v5-restore-adv-crossfade-${activeWeek}`}
+                  initial={{ opacity: 0, x: 20, filter: "blur(12px)" }}
+                  animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, x: -20, filter: "blur(12px)" }}
+                  transition={{ duration: 0.75, ease: [0.32, 0.72, 0, 1] }}
+                  className="absolute inset-0 flex h-full w-full flex-col items-start p-10 pt-[8.5rem] pb-[6.5rem]"
+                >
+                  <div className="inline-flex items-center gap-2 mb-4">
+                    <span className="text-sm text-white leading-none">✻</span>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/60">ADVANCED TRACK</span>
+                  </div>
+                  <div className="text-3xl md:text-4xl font-black uppercase tracking-tighter leading-[0.85] mb-6 max-w-[280px]" style={{ color: '#ffffff' }}>
+                    {weekCopy.advancedTopic}
+                  </div>
+                  <p className="text-sm leading-[1.6] text-white/60 font-medium max-w-[260px] pb-10">
+                    {weekCopy.advancedDescription}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            <div className="relative z-30 flex flex-col flex-1 pl-12 pr-0 pb-0">
+              <div className="flex items-center justify-between mb-4 h-6 pr-12">
                 <div className="flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
-                   <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
+                  <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
+                  <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
                 </div>
                 <div className="w-[320px] h-full" />
-             </div>
+              </div>
 
-             <div className="flex-1 flex flex-col lg:flex-row relative">
+              <div className="relative flex flex-1 flex-col lg:pr-[320px]">
                 <div className="flex-1 min-w-0 relative pr-10 pb-12 flex flex-col">
-                  {/* use popLayout to absolute-position the exiting text silently, avoiding layout jumping! */}
                   <AnimatePresence mode="popLayout">
                     <motion.div
                       key={`v5-blur-crossfade-${activeWeek}`}
@@ -2069,83 +2209,64 @@ const DesktopTechUiV5 = () => {
                       transition={{ duration: 0.75, ease: [0.32, 0.72, 0, 1] }}
                       className="flex flex-col pt-0 h-full w-full"
                     >
-                      <h2 className="text-[48px] md:text-[56px] font-black uppercase tracking-tighter leading-[0.85] text-black mb-4 max-w-[540px]">
+                      <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-[0.85] text-black mb-4 max-w-[540px]">
                         {track.title}
                       </h2>
                       <div className="text-[#8DC63F] font-mono text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
                         {weekCopy.framedDescription}
                       </div>
-                      <p className="text-[15px] leading-[1.6] text-black/80 font-medium max-w-[440px] mb-8">
+                      <p className="text-sm leading-[1.6] text-black/80 font-medium max-w-[440px] mb-8">
                         {weekCopy.bodyDescription}
                       </p>
                       <div className="mt-auto relative z-10">
-                        <div className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-3 ml-1 flex items-center gap-2">
-                          <span>НЕДЕЛЬНЫЙ РИТМ</span> 
+                        <div className="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-black/80 mb-4 ml-1 flex items-center gap-2">
+                          <span>НЕДЕЛЬНЫЙ РИТМ</span>
                           <span className="text-black/60 font-medium tracking-widest lowercase px-1.5 py-[2px] rounded-[4px] bg-white/40 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.7)] border border-white/50">
                             11—17 ноября 2024
                           </span>
                         </div>
-                        <div className="flex border border-black/10 w-full max-w-[720px] bg-black/10 gap-px rounded-[1px] overflow-hidden shadow-none">
+                        <div className="grid w-full max-w-[720px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] border border-black/10 bg-black/10 gap-px rounded-[1px] overflow-hidden shadow-none">
                           {weeklyRhythm.map((item, idx) => {
                             const isWorkshop = item.type === 'workshop';
                             const isCore = item.type === 'core';
                             const isEmpty = item.type === 'empty';
                             const displayTask = isWorkshop ? "MAIN ВОРКШОП" : item.task;
                             return (
-                            <div key={`cal-redesign-${idx}`} 
-                              className={cn("flex-1 flex flex-col px-2 pt-2 pb-[3px] relative transition-colors h-[68px]",
-                                isWorkshop ? "bg-[#8DC63F]" : isCore ? "bg-black" : isEmpty ? "bg-white/70 backdrop-blur-sm" : "bg-white"
-                              )}
-                            >
-                               <div className="flex flex-col items-start mb-0">
-                                 <span className={cn("text-[8.5px] font-mono font-black tracking-widest leading-none", isWorkshop ? "text-white/80" : isCore ? "text-white/50" : "text-black/40")}>{item.day}</span>
-                                 {item.time && <div className={cn("text-[7.5px] font-mono font-bold tracking-widest leading-[1.15] mt-[3px] whitespace-nowrap", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>{item.time}</div>}
-                               </div>
-                               <div className={cn("font-black uppercase mt-auto leading-[0.95] font-sans text-left flex flex-col tracking-tight", 
-                                 isWorkshop || isCore ? "text-white text-[10px] tracking-[0.02em]" : 
-                                 isEmpty ? "opacity-0 text-[9px]" : "text-black/70 text-[9px]"
-                               )}>
-                                 {displayTask.includes(' ') && (isCore || isWorkshop) ? displayTask.split(' ').map((w, i) => <span key={i}>{w}</span>) : displayTask}
-                               </div>
-                            </div>
-                          )})}
+                              <div
+                                key={`cal-redesign-${idx}`}
+                                className={cn(
+                                  "min-w-0 flex flex-col px-2 pt-2 pb-[3px] relative transition-colors h-[68px]",
+                                  isWorkshop ? "bg-[#8DC63F]" : isCore ? "bg-black" : isEmpty ? "bg-white/80 backdrop-blur-sm" : "bg-white"
+                                )}
+                              >
+                                <div className="flex flex-col items-start mb-0">
+                                  <span className={cn("text-[8.5px] font-mono font-black tracking-widest leading-none", isWorkshop ? "text-white/80" : isCore ? "text-white/60" : "text-black/40")}>{item.day}</span>
+                                  {item.time && <div className={cn("text-[7.5px] font-mono font-bold tracking-widest leading-[1.15] mt-[3px] whitespace-nowrap", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>{item.time}</div>}
+                                </div>
+                                <div
+                                  className={cn(
+                                    "font-black uppercase mt-auto leading-[0.95] font-sans text-left flex flex-col tracking-tight",
+                                    isWorkshop || isCore ? "text-white text-[10px] tracking-[0.02em]" :
+                                    isEmpty ? "opacity-0 text-[10px]" : "text-black/80 text-[10px]"
+                                  )}
+                                >
+                                  {displayTask.includes(' ') && (isCore || isWorkshop) ? displayTask.split(' ').map((w, i) => <span key={i}>{w}</span>) : displayTask}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </motion.div>
                   </AnimatePresence>
                 </div>
-
-                <div className="w-full lg:w-[320px] shrink-0 relative bg-black shadow-none h-full border-l border-white/10 z-20 pb-0">
-                  <AnimatePresence mode="popLayout">
-                    <motion.div
-                      key={`v5-restore-adv-crossfade-${activeWeek}`}
-                      initial={{ opacity: 0, x: 20, filter: "blur(12px)" }}
-                      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                      exit={{ opacity: 0, x: -20, filter: "blur(12px)" }}
-                      transition={{ duration: 0.75, ease: [0.32, 0.72, 0, 1] }}
-                      className="absolute inset-x-0 inset-y-0 h-full w-full flex flex-col items-start p-10 pt-12 pb-[6.5rem]"
-                    >
-                        <div className="inline-flex items-center gap-2 mb-4">
-                           <span className="text-[14px] text-white leading-none">✻</span>
-                           <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/50">ADVANCED TRACK</span>
-                        </div>
-                        <div className="text-[32px] md:text-[36px] font-black uppercase tracking-tighter leading-[0.85] mb-6 max-w-[280px]" style={{ color: '#ffffff' }}>
-                          {weekCopy.advancedTopic}
-                        </div>
-                        <p className="text-[14px] leading-[1.6] text-white/60 font-medium max-w-[260px] pb-10">
-                          {weekCopy.advancedDescription}
-                        </p>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-             </div>
+              </div>
+            </div>
           </div>
         </div>
-        </div>
-        
-        {/* Desktop Caption inside Sticky Wrapper */}
+
         <div className="mt-8 flex w-full max-w-[1060px] justify-end pr-0 lg:pr-6">
-          <p className="max-w-[23rem] text-left text-[14px] font-medium leading-[1.45] text-black/46">
+          <p className="max-w-[23rem] text-left text-sm font-medium leading-[1.45] text-black/60">
             <span className="mr-1.5 font-bold">*</span>
             {PROGRAM_TRACKS_CAPTION}
           </p>
@@ -2454,7 +2575,6 @@ type PricingPlan = {
       name: 'ADVANCED',
       price: '890',
       tag: '+4 ЗАНЯТИЯ',
-      tagHref: '#tracks',
       highlight: true,
       features: [
         <>всё из MAIN LAB</>,
@@ -2494,7 +2614,7 @@ export default function LabW26PageV3() {
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
   const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
-  const [showReturnToPricing, setShowReturnToPricing] = useState(false);
+  const [showPricingCue, setShowPricingCue] = useState(false);
   const [programFocusNonce, setProgramFocusNonce] = useState<number | undefined>(undefined);
   const [activeCaseFilter, setActiveCaseFilter] = useState('all');
   const [activeCaseToolFilter, setActiveCaseToolFilter] = useState('all');
@@ -2504,6 +2624,7 @@ export default function LabW26PageV3() {
   const [hoveredOverlayCaseIndex, setHoveredOverlayCaseIndex] = useState<number | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
+  const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
   const labsCloseTimeoutRef = useRef<number | null>(null);
   const sectionHashSyncLockRef = useRef<number | null>(null);
   const lastSyncedHashRef = useRef<string>('');
@@ -2528,6 +2649,12 @@ export default function LabW26PageV3() {
   }, []);
 
   useEffect(() => {
+    Object.values(CASE_VISUAL_ASSET_BY_INDEX).forEach((assetName) => {
+      primeCaseSvgMarkup(assetName).catch(() => null);
+    });
+  }, []);
+
+  useEffect(() => {
     return () => {
       if (labsCloseTimeoutRef.current !== null) {
         window.clearTimeout(labsCloseTimeoutRef.current);
@@ -2537,6 +2664,14 @@ export default function LabW26PageV3() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!showPricingCue) return;
+    const timeout = window.setTimeout(() => {
+      setShowPricingCue(false);
+    }, 2200);
+    return () => window.clearTimeout(timeout);
+  }, [showPricingCue]);
 
   useEffect(() => {
     const lockSectionHashSync = (duration = 900) => {
@@ -2552,6 +2687,7 @@ export default function LabW26PageV3() {
       const hash = window.location.hash;
       if (!hash) return;
       lastSyncedHashRef.current = hash;
+      setActivePageSectionId(hash.slice(1));
       window.requestAnimationFrame(() => {
         document.querySelector(hash)?.scrollIntoView({ behavior, block: 'start' });
       });
@@ -2601,6 +2737,7 @@ export default function LabW26PageV3() {
       const nextHash = `#${nextSectionId}`;
       if (lastSyncedHashRef.current === nextHash && window.location.hash === nextHash) return;
 
+      setActivePageSectionId(nextSectionId);
       lastSyncedHashRef.current = nextHash;
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
     };
@@ -2665,17 +2802,19 @@ export default function LabW26PageV3() {
       onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
       onFocus={() => setHovered(index)}
       onBlur={() => setHovered((current) => (current === index ? null : current))}
-      className="group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[4px] border border-black/10 bg-white px-3 pb-3 pt-2 text-left transition-all duration-300 hover:border-[#8DC63F] hover:bg-[#8DC63F]"
+      className={cn(
+        "group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[2px] border border-black/10 px-3 pb-3 pt-2 text-left bg-white hover:bg-[#8DC63F] hover:border-[#8DC63F]",
+      )}
     >
       <div
         className={cn(
-          "relative mb-2.5 h-[92px] overflow-hidden transition-colors duration-300 group-hover:bg-transparent md:h-[100px]",
-          CASE_DARK_VARIANTS.has(index) ? "bg-[#111411]" : "bg-[#f4f4ef]",
+          "relative mb-2.5 h-[92px] overflow-hidden md:h-[100px] rounded-[2px]",
+          CASE_DARK_VARIANTS.has(index) ? "bg-[#111411] group-hover:bg-[#111411]" : "bg-[#f4f4ef] group-hover:bg-[#8DC63F]",
         )}
       >
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-300 group-hover:opacity-0",
+            "absolute inset-0 transition-opacity duration-150 group-hover:opacity-0",
             CASE_DARK_VARIANTS.has(index)
               ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
               : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
@@ -2684,20 +2823,21 @@ export default function LabW26PageV3() {
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className="absolute inset-x-2 top-1.5 h-5 border border-white/10 bg-white/6 shadow-[0_8px_24px_rgba(0,0,0,0.18)] backdrop-blur-[12px] transition-opacity duration-300 group-hover:opacity-0" />
-            <div className="absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-300 group-hover:opacity-0" />
-            <div className="absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-300 group-hover:opacity-0" />
-            <div className="absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className="absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 group-hover:opacity-0" />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100 group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100 group-hover:opacity-0")} />
           </>
         ) : null}
 
         <div
           className={cn(
-            "absolute transition-transform duration-500",
+            "absolute transition-[transform,filter,opacity] duration-150 group-hover:mix-blend-normal group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
-            CASE_DARK_VARIANTS.has(index)
-              ? "opacity-100 mix-blend-screen group-hover:mix-blend-normal"
-              : "opacity-78 mix-blend-multiply group-hover:opacity-100 group-hover:mix-blend-normal",
+            hovered
+              ? "opacity-100 mix-blend-normal"
+              : CASE_DARK_VARIANTS.has(index)
+                ? "opacity-100 mix-blend-screen"
+                : "opacity-78 mix-blend-multiply",
           )}
         >
           <CaseVisualGraphic
@@ -2709,31 +2849,34 @@ export default function LabW26PageV3() {
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className="absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-300 group-hover:opacity-0" />
-            <div className="absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-300 group-hover:opacity-0" />
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200 group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200 group-hover:opacity-0")} />
           </>
         ) : null}
       </div>
 
-      <h4 className="mb-1.5 max-w-[10.6rem] text-[14px] font-black uppercase leading-[0.94] tracking-[-0.04em] text-black transition-colors duration-300 group-hover:text-white md:text-[15px]">
+      <h4 className="mb-1.5 max-w-[10.6rem] text-[14px] font-black uppercase leading-[0.94] tracking-[-0.04em] text-black transition-none group-hover:text-white md:text-[15px]">
         {card.title}
       </h4>
 
       <p className={cn(
-        "mb-2 text-[12px] font-normal leading-[1.34] text-black/78 transition-colors duration-300 group-hover:text-white/90",
+        "mb-2 text-[12px] font-normal leading-[1.34] text-black/78 transition-none group-hover:text-white/90",
         options?.descriptionLines === 3 ? "line-clamp-3" : "line-clamp-2",
       )}>
         {card.details}
       </p>
 
-      <div className="mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] text-black/46 transition-colors duration-300 group-hover:text-white/72 md:text-[10px]">
+      <div className="mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] text-black/60 transition-none group-hover:text-white/72 md:text-[10px]">
         {card.author}, {card.role.toLowerCase()}
       </div>
 
       {options?.showTools ? (
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {getCaseTools(card).map((tool) => (
-            <span key={`${keyPrefix}-tool-${card.title}-${tool}`} className="rounded-[2px] border border-black/10 bg-black/[0.03] px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] text-black/56 transition-colors duration-300 group-hover:border-black/15 group-hover:bg-white/55 group-hover:font-bold group-hover:text-black md:text-[9px]">
+            <span
+              key={`${keyPrefix}-tool-${card.title}-${tool}`}
+              className="rounded-[2px] border border-black/10 bg-black/[0.03] px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] text-black/70 transition-none group-hover:border-white/50 group-hover:bg-white/20 group-hover:font-bold group-hover:text-white md:text-[9px]"
+            >
               {tool}
             </span>
           ))}
@@ -2755,6 +2898,7 @@ export default function LabW26PageV3() {
       sectionHashSyncLockRef.current = window.setTimeout(() => {
         sectionHashSyncLockRef.current = null;
       }, 900);
+      setActivePageSectionId(id.replace(/^#/, ''));
       lastSyncedHashRef.current = id;
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${id}`);
       el.scrollIntoView({ behavior: 'smooth' });
@@ -2763,13 +2907,11 @@ export default function LabW26PageV3() {
   };
 
   const scrollToProgramFromPricing = () => {
-    setShowReturnToPricing(true);
     setProgramFocusNonce((prev) => (prev ?? 0) + 1);
     scrollTo('#program');
   };
 
-  const returnToPricing = () => {
-    setShowReturnToPricing(false);
+  const scrollToPricingWithCue = () => {
     scrollTo('#pricing');
   };
 
@@ -2804,45 +2946,83 @@ export default function LabW26PageV3() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#f9f9f7] font-mono text-[#181616] selection:bg-black selection:text-white">
+    <div className="relative min-h-screen bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
       
       {/* Sidebar (Desktop) */}
-      <aside className={`fixed top-0 left-0 w-full md:w-[18%] h-screen border-r border-black/10 p-10 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-full'}`}>
-        <div className="flex items-center gap-4 mb-20 cursor-pointer" onClick={() => scrollTo('#hero')}>
+      <aside className={`fixed top-0 left-0 w-full md:w-[18%] h-screen border-r border-black/10 px-10 pt-10 pb-8 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-full'}`}>
+        <div className="mb-16 flex cursor-pointer items-center gap-2" onClick={() => scrollTo('#hero')}>
           <div className="relative w-8 h-8">
-             <img src={LOGO_SRC} className="absolute inset-0 w-full h-full object-contain" alt="LOGO" />
+             <img src={LOGO_TRANSPARENT_SRC} className="absolute inset-0 h-full w-full object-contain brightness-0" alt="" />
           </div>
           <div className="font-black text-xs tracking-tighter uppercase">AI MINDSET</div>
         </div>
-        <nav className="flex flex-col gap-6 text-[11px] font-bold uppercase tracking-widest">
+        <div className="mb-6 text-[10px] uppercase tracking-[0.28em] text-black/30 text-left">разделы сайта</div>
+        <nav className="flex flex-col gap-4 text-[11px] font-bold uppercase tracking-widest">
           <button
             type="button"
             onClick={() => scrollTo('#hero')}
-            className="group flex w-fit items-center gap-2 text-left opacity-60 transition-opacity hover:text-black hover:opacity-100"
+            className="group flex w-fit items-center gap-2 text-left opacity-50 whitespace-nowrap transition-opacity hover:text-black hover:opacity-100"
           >
-            <MenuStrikeText>главная</MenuStrikeText> <span className="opacity-30">|</span>
+            <MenuStrikeText>Описание</MenuStrikeText>
           </button>
           <div className="relative flex items-center gap-2 w-fit" onMouseEnter={openLabsDropdown} onMouseLeave={closeLabsDropdown}>
-            <div className="group flex items-center gap-2 opacity-60 hover:text-black hover:opacity-100 transition-opacity cursor-pointer">
-              <MenuStrikeText>{`{labs}`}</MenuStrikeText> <span className="opacity-30">|</span>
+            <div className="group flex items-center gap-2 opacity-50 whitespace-nowrap hover:text-black hover:opacity-100 transition-opacity cursor-pointer">
+              <MenuStrikeText>{`{labs}`}</MenuStrikeText>
             </div>
             <AnimatePresence>
               {labsDropdownOpen && <LabsHoverMenu />}
             </AnimatePresence>
           </div>
           {PRIMARY_MENU_LINKS.map((link) => (
-            <a key={link.label} href={link.href} target="_blank" className="group flex items-center gap-2 opacity-60 hover:text-black hover:opacity-100 transition-opacity w-fit">
-              <MenuStrikeText>{link.label}</MenuStrikeText> <span className="opacity-30">|</span>
+            <a key={link.label} href={link.href} target="_blank" className="group flex items-center gap-2 opacity-50 whitespace-nowrap hover:text-black hover:opacity-100 transition-opacity w-fit">
+              <MenuStrikeText>{link.label}</MenuStrikeText>
             </a>
           ))}
         </nav>
+        <div className="mt-24 flex flex-col items-end text-right">
+          <div className="mb-6 text-[10px] uppercase tracking-[0.28em] text-black/30">разделы страницы</div>
+          <div className="relative flex flex-col items-end gap-[0.95rem]">
+            {/* Vertical path line centered exactly behind 3.5px dots */}
+            <div className="absolute right-[1.75px] top-[6px] bottom-[6px] w-[0.5px] bg-black/10 pointer-events-none" />
+            {PAGE_SECTION_LINKS.map((link) => (
+              <div key={link.label} className="flex w-full items-center justify-end">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "mr-2.5 h-px w-6 translate-y-[0.02rem] self-center transition-colors",
+                    activePageSectionId === link.href.slice(1) ? "bg-[#8DC63F]" : "bg-transparent",
+                  )}
+                />
+                <button
+                  type="button"
+                  onClick={() => scrollTo(link.href)}
+                  className={cn(
+                    "group inline-flex items-center justify-end gap-[0.22rem] text-right font-mono text-[12px] font-medium lowercase tracking-[0.09em] leading-none transition-colors",
+                    activePageSectionId === link.href.slice(1) ? "text-[#7eb335]" : "text-black/60 hover:text-black",
+                  )}
+                >
+                  <span>{link.label}</span>
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "ml-[3px] inline-flex h-[3.5px] w-[3.5px] translate-y-[0.08em] self-center rounded-full transition-colors duration-150",
+                      activePageSectionId === link.href.slice(1)
+                        ? "bg-current"
+                        : "bg-current group-hover:opacity-100",
+                    )}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
         <div className="mt-auto">
           <a
             href="#pricing"
-            onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
+            onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
             className={`${DARK_CTA_BUTTON_CLASS} box-border mx-[calc(-10px-1vw)] w-[calc(100%+20px+2vw)] max-w-none whitespace-nowrap px-4 py-[15px] text-center`}
           >
-            хочу на лабораторию
+            /хочу на лабу
           </a>
         </div>
       </aside>
@@ -2868,7 +3048,7 @@ export default function LabW26PageV3() {
               <div>
                 <div className="text-[10px] opacity-40 uppercase tracking-widest mb-6 border-b border-current/10 pb-2">разделы текущей страницы</div>
                 <div className="flex flex-col gap-4">
-                  {SIDEBAR_NAV.map((link) => (
+                  {PAGE_SECTION_LINKS.map((link) => (
                     <button
                       key={link.label}
                       onClick={() => { scrollTo(link.href); setIsMenuOpen(false); }}
@@ -2888,7 +3068,7 @@ export default function LabW26PageV3() {
                     onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
                     className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
                   >
-                    главная
+                    Описание
                   </a>
 
                   <a
@@ -2942,9 +3122,9 @@ export default function LabW26PageV3() {
           style={{ backgroundColor: colors.bg, color: colors.text }}
         >
            <div className="flex gap-4 items-center">
-              <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="font-bold leading-none flex items-center gap-2">
-                <img src={LOGO_SRC} className="h-6 w-6 object-contain" alt="LOGO" />
-                <span className="text-[10px] tracking-[0.4em] font-light border-l border-current pl-4">MINDSET</span>
+              <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="font-bold leading-none flex items-center gap-2.5">
+                <img src={LOGO_SRC} className="h-6 w-6 shrink-0 object-contain invert" alt="AI Mindset logo" />
+                <span className="text-[9px] font-light uppercase tracking-[0.3em]">AI MINDSET</span>
               </a>
            </div>
            <div className="flex gap-4 items-center">
@@ -2979,8 +3159,8 @@ export default function LabW26PageV3() {
                   </h1>
                   
                   {/* MODAL ORDER FOR MOBILE: LOGO BETWEEN TITLE AND DESCRIPTION */}
-                  <div className="lg:hidden mb-12">
-                     <InvertedVoxelLogoFace className="w-full max-w-[392px] mx-auto -translate-x-4" scale={1.4} />
+                  <div className="lg:hidden mb-12 flex justify-center">
+                     <InvertedVoxelLogoFace className="w-full max-w-[392px] mx-auto" scale={1.4} />
                   </div>
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
@@ -2989,10 +3169,10 @@ export default function LabW26PageV3() {
                   <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6">
                      <a
                        href="#pricing"
-                       onClick={(e) => { e.preventDefault(); scrollTo('#pricing'); }}
+                       onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
                        className={`${DARK_CTA_BUTTON_CLASS} min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6`}
                      >
-                       хочу на лабораторию
+                       /хочу на лабу
                      </a>
                   </div>
                </div>
@@ -3079,7 +3259,10 @@ export default function LabW26PageV3() {
                 </div>
 
                 <div className="hidden md:block">
-                  <DesktopTechUiV5 />
+                  <DesktopTechUiV5
+                    forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
+                    forcedOpenNonce={programFocusNonce}
+                  />
                 </div>
 
 
@@ -3119,7 +3302,7 @@ export default function LabW26PageV3() {
                   type="button"
                   onClick={() => setActiveCaseFilter(filter.id)}
                   className={cn(
-                    "rounded-sm px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
+                    "rounded-[2px] px-3 py-2 text-left text-[9px] md:text-[10px] font-black uppercase leading-[1.15] tracking-[0.18em] transition-colors",
                     isActive
                       ? "bg-black text-white"
                       : "border border-black/10 bg-white/60 text-black/55 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
@@ -3233,25 +3416,26 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="hidden md:grid md:grid-cols-2 md:justify-items-center md:gap-x-6 md:gap-y-8 lg:grid-cols-3 xl:grid-cols-4">
-            {TEAM_MEMBERS.map((member) => (
-              <article key={member.name} className="group relative flex h-full w-full max-w-[286px] flex-col p-3">
-                <SpeakerCornerFrame />
-
-                <div className="mx-auto mb-6 w-full">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[10px] bg-black/6">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
-                      referrerPolicy="no-referrer"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(0,0,0,0.08)_100%)]" />
+          <div className="hidden md:grid md:grid-cols-2 md:justify-items-center md:gap-x-10 md:gap-y-8 lg:grid-cols-3 lg:gap-x-10 xl:grid-cols-4 xl:gap-x-10">
+            {TEAM_MEMBERS.map((member, index) => (
+              <article key={member.name} className="group relative flex h-full w-full flex-col pb-3 pt-0">
+                <div className={cn("mx-auto mb-6 w-full relative aspect-[4/5]", SPEAKER_FRAME_WIDTH_CLASS)}>
+                  <SpeakerCornerFrame corners={SPEAKER_CORNER_VARIANTS[index % SPEAKER_CORNER_VARIANTS.length]} />
+                  <div className="flex items-center justify-center h-full p-[12px]">
+                    <div className={cn("relative overflow-hidden bg-black/10 shadow-sm aspect-[4/5]", SPEAKER_PHOTO_WIDTH_CLASS, SPEAKER_PHOTO_RADIUS_CLASS)}>
+                      <img
+                        src={member.image}
+                        alt={member.name}
+                        className={cn("h-full w-full object-cover grayscale transition duration-500 group-hover:scale-[1.05] group-hover:grayscale-0", SPEAKER_PHOTO_RADIUS_CLASS)}
+                        referrerPolicy="no-referrer"
+                        loading="lazy"
+                      />
+                      <div className={cn("pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(0,0,0,0.08)_100%)]", SPEAKER_PHOTO_RADIUS_CLASS)} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-1 flex-col">
+                <div className={cn("mx-auto flex w-full flex-1 flex-col", SPEAKER_FRAME_WIDTH_CLASS)}>
                   <div className="mb-1 min-h-[3rem]">
                     <h3 className="mb-1 text-[16px] font-bold uppercase tracking-tight leading-tight text-black/92">
                       {member.name.toUpperCase()}
@@ -3275,10 +3459,10 @@ export default function LabW26PageV3() {
       <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
         <Container>
           <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3">
+          <div className="mt-10 grid grid-cols-1 gap-6 md:mt-[100px] md:grid-cols-3 md:gap-3">
             {PHILOSOPHY_PILLARS.map((item) => (
               <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                <div className="flex h-[152px] w-full max-w-[10rem] flex-none items-center justify-center py-6 md:h-[112px] md:max-w-[9rem] md:py-0">
+                <div className="flex h-[198px] w-full max-w-[13rem] flex-none items-end justify-center py-6 md:h-[146px] md:max-w-[11.7rem] md:py-0">
                   <PhilosophyPillarArt art={item.art} />
                 </div>
                 <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
@@ -3322,7 +3506,7 @@ export default function LabW26PageV3() {
                   </motion.h2>
                 </div>
 
-                <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 grid grid-cols-[6.25rem_minmax(14rem,1fr)] items-center gap-4 h-[4.5rem]">
+                <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 flex h-[4.5rem] items-center">
                   <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
                     <button
                       type="button"
@@ -3341,12 +3525,6 @@ export default function LabW26PageV3() {
                       <span className="font-normal text-[22px] leading-[0.8] translate-x-[1px] -translate-y-[1px]">{'›'}</span>
                     </button>
                   </div>
-                  <div className={`flex min-h-[2.65rem] min-w-[14rem] flex-col justify-center text-[10px] uppercase tracking-[0.18em] ${MINDSET_QUOTES[activeMindsetQuote].author ? 'text-black/40' : 'invisible'} text-left`}>
-                    <div className="font-bold tracking-[0.2em]">{MINDSET_QUOTES[activeMindsetQuote].author || 'placeholder'}</div>
-                    <span className="block mt-1 normal-case tracking-normal text-[11px] text-black/55">
-                      {MINDSET_QUOTES[activeMindsetQuote].role || 'placeholder'}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -3361,7 +3539,21 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="pricing" className="py-20 md:py-32">
         <Container>
-          <EditorialSectionHeader eyebrow="Форматы участия" title="Тарифы" className="mb-16" />
+          <EditorialSectionHeader
+            eyebrow="Форматы участия"
+            title="Тарифы"
+            className="mb-16"
+            titleAddon={
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full border border-[#8DC63F]/50 bg-[#8DC63F]/10 text-[#56771f] transition-all duration-500 md:h-11 md:w-11 ${
+                  showPricingCue ? 'translate-y-0 scale-100 opacity-100' : '-translate-y-1 scale-90 opacity-0'
+                }`}
+                aria-hidden={!showPricingCue}
+              >
+                <ChevronDown size={18} strokeWidth={2.4} className="md:h-6 md:w-6" />
+              </span>
+            }
+          />
 
           <div className="pb-3 md:pb-0">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -3443,9 +3635,9 @@ export default function LabW26PageV3() {
                     <button
                       type="button"
                       onClick={() => setActivePaymentPlan({ name: plan.name, price: plan.price })}
-                      className={`${GREEN_SOLID_CTA_BUTTON_CLASS} h-12 w-full px-6 !text-white`}
+                      className={`${PRICING_CTA_BUTTON_CLASS} h-12 w-full px-6`}
                     >
-                      присоединиться
+                      /присоединиться
                     </button>
                   </div>
                 </div>
@@ -3454,55 +3646,19 @@ export default function LabW26PageV3() {
             </div>
           </div>
 
-          <motion.a
-            href="https://aimindset.org/ai-mindset-consulting"
-            target="_blank"
-            rel="noreferrer"
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.35, delay: 0.16 }}
-            className="mt-8 md:mt-10 flex w-full md:w-[58%] items-center justify-between gap-6 border border-black/10 bg-white/60 px-6 py-5 md:px-8 md:py-6 hover:bg-white/82 transition-colors rounded-[0.4rem]"
-          >
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 min-w-0">
-              <div className="text-[10px] md:text-xs font-black uppercase tracking-widest text-black">
-                Для компаний
-              </div>
-              <div className="hidden md:block h-2.5 w-2.5 rounded-full bg-[#8DC63F]/60 shrink-0" />
-              <div className="text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] text-black/40">
-                персональные планы
-              </div>
-            </div>
-
-            <div className="shrink-0 flex items-center justify-center text-black/70">
-              <ChevronRight size={22} />
-            </div>
-          </motion.a>
-
           <div className="mt-8 max-w-3xl">
             <p className="text-[11px] md:text-[13px] leading-[1.45] text-black/46">
               скидки: Alumni (-20%), Bring a Friend (-10% каждому). возврат после первой недели — без вопросов. возможна оплата в рублях.
             </p>
           </div>
 
-          {showReturnToPricing ? (
-            <div className="fixed bottom-[5.85rem] md:bottom-5 left-1/2 z-[380] -translate-x-1/2">
-              <button
-                type="button"
-                onClick={returnToPricing}
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f9f9f7]/96 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-black/70 shadow-[0_10px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm hover:text-black"
-              >
-                <span className="text-[12px] leading-none">↓</span>
-                <span>назад к тарифам</span>
-              </button>
-            </div>
-          ) : null}
+
         </Container>
       </section>
 
       <SlashDivider />
       <section id="reviews">
-        <ReviewsSection />
+        <ReviewsSection mode="live" />
       </section>
 
       <section id="manifesto" className="py-24 md:py-32 overflow-hidden">
@@ -3528,15 +3684,7 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="faq" className="bg-[#f3f3f5] py-10 md:py-14">
         <Container>
-          <div className="space-y-10 md:space-y-14">
-            <FooterFaqBlock title="вопросы и ответы" versionLabel={null} />
-            <div className="py-1 md:py-2">
-              <SlashDivider />
-            </div>
-            <div id="labs">
-              <FooterLabsNavigatorBlock />
-            </div>
-          </div>
+          <FooterFaqBlock title="вопросы и ответы" versionLabel={null} mode="live" />
         </Container>
       </section>
 
@@ -3606,7 +3754,7 @@ export default function LabW26PageV3() {
 
       {/* Footer */}
       <footer className="py-24 relative overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.045]">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.09]">
           <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
             AI MINDSET
           </div>
@@ -3642,6 +3790,15 @@ export default function LabW26PageV3() {
           </div>
         </Container>
       </footer>
+
+      <a
+        href={CONTACT_FORM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-3 left-4 z-[390] rounded-full border border-black/10 bg-white/72 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/55 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-colors hover:bg-white hover:text-black md:hidden"
+      >
+        Связаться с нами
+      </a>
 
       <AnimatePresence>
         {isCasesOverlayOpen ? (
@@ -3844,7 +4001,7 @@ export default function LabW26PageV3() {
 
                     <section>
                       <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">инструменты</div>
-                      <div className="rounded-[18px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
+                      <div className="rounded-[4px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
                         {activeCase.tools}
                       </div>
                     </section>
@@ -3891,7 +4048,7 @@ const CookieConsent = () => {
     setShow(false);
   };
   return (
-    <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
+    <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
         <button
           type="button"
           onClick={dismissConsent}

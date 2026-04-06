@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
 
+const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
+
 interface Review {
   id: string;
   name: string;
   role: string;
   quote: string;
   tg: string;
+}
+
+interface ReviewsSectionProps {
+  mode?: 'default' | 'live';
 }
 
 const reviews: Review[] = [
@@ -97,10 +103,11 @@ const reviews: Review[] = [
   }
 ];
 
-export const ReviewsSection = () => {
+export const ReviewsSection = ({ mode = 'default' }: ReviewsSectionProps) => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const sectionRef = React.useRef<HTMLElement>(null);
+  const isLiveMode = mode === 'live';
 
   const toggleExpanded = () => {
     if (isExpanded) {
@@ -133,6 +140,7 @@ export const ReviewsSection = () => {
 
   const previewCount = isMobile ? 2 : 3;
   const visibleReviews = isExpanded ? reviews : reviews.slice(0, previewCount);
+  const renderLiveRole = (role: string) => role;
 
   return (
     <section id="reviews" ref={sectionRef} className="py-20 px-6 md:px-24 bg-[#f9f9f7] overflow-hidden">
@@ -169,11 +177,15 @@ export const ReviewsSection = () => {
               {visibleReviews.map((review) => (
                 <div
                   key={review.id}
-                  className={`group relative flex flex-col justify-between bg-white px-5 py-5 md:px-6 md:pt-6 md:pb-5 lg:px-8 lg:pt-8 lg:pb-6 transition-all border border-black/5 hover:border-black/10 hover:shadow-sm ${
-                    isExpanded ? 'break-inside-avoid mb-4 md:mb-5 h-auto' : 'h-full'
+                  className={`group relative flex flex-col justify-between transition-all ${
+                    isExpanded
+                      ? isLiveMode
+                        ? 'break-inside-avoid mb-3 md:mb-4 h-auto border border-transparent bg-transparent px-3 py-3 md:px-4 md:py-4 lg:px-5 lg:py-5 hover:border-black/10 hover:bg-white hover:shadow-[0_14px_32px_rgba(0,0,0,0.04)]'
+                        : 'break-inside-avoid mb-4 md:mb-5 h-auto bg-white px-5 py-5 md:px-6 md:pt-6 md:pb-5 lg:px-8 lg:pt-8 lg:pb-6 border border-black/5 hover:border-black/10 hover:shadow-sm'
+                      : 'h-full bg-white px-5 py-5 md:px-6 md:pt-6 md:pb-5 lg:px-8 lg:pt-8 lg:pb-6 border border-black/5 hover:border-black/10 hover:shadow-sm'
                   }`}
                 >
-                  <div className={`flex justify-between items-start gap-4 ${isExpanded ? 'mb-3' : 'mb-2'}`}>
+                  <div className={`flex justify-between items-start gap-3 ${isExpanded ? (isLiveMode ? 'mb-2.5' : 'mb-3') : 'mb-2'}`}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/5 overflow-hidden relative">
                         <img 
@@ -194,23 +206,37 @@ export const ReviewsSection = () => {
                   </div>
 
                   <div className="flex-grow">
-                    <p className={`font-mono ${isExpanded ? 'text-[12px] md:text-[14px]' : isMobile ? 'text-[11px]' : 'text-[12px] md:text-[13px]'} leading-relaxed mb-4 opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
+                    <p className={`font-mono ${isExpanded ? 'text-[12px] md:text-[14px]' : isMobile ? 'text-[11px]' : 'text-[12px] md:text-[13px]'} ${isExpanded && isLiveMode ? 'mb-3' : 'mb-4'} leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
                       <span className="text-[#8DC63F] mr-1">{'»'}</span>
                       {review.quote}
                     </p>
                   </div>
                   
-                  <div className="mt-auto pt-4 border-t border-dashed border-black/10">
-                    <div className="flex justify-between items-end gap-4 text-left">
-                      <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-mono text-[9px] md:text-[10px] opacity-40 uppercase tracking-tight leading-relaxed">
+                  <div className={`mt-auto border-t border-dashed border-black/10 ${isExpanded && isLiveMode ? 'pt-3' : 'pt-4'}`}>
+                    <div className={isExpanded && isLiveMode ? 'flex flex-col items-start gap-1 text-left' : 'flex justify-between items-end gap-3 text-left'}>
+                      <div className="min-w-0 flex-1">
+                        <p className={cn(
+                          "font-mono text-[9px] md:text-[10px] uppercase tracking-[0.02em] leading-tight text-black/40 line-clamp-2",
+                          isExpanded && isLiveMode && "text-[10px] text-black/50"
+                        )}>
                           {`[ ${review.role} ]`}
                         </p>
                       </div>
                       {review.tg && (
-                        <span className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter">
-                          {review.tg}
-                        </span>
+                        isLiveMode ? (
+                          <a
+                            href="https://t.me/ai_mind_set"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex w-fit items-center self-end rounded-[999px] border border-transparent bg-transparent px-2 py-1 font-mono text-[10px] font-black uppercase tracking-tighter text-[#8DC63F] transition-colors group-hover:bg-[#dfffaa]/70 group-hover:text-[#5d831f] hover:text-[#5d831f]"
+                          >
+                            <span>{review.tg}</span>
+                          </a>
+                        ) : (
+                          <span className="shrink-0 font-mono text-[10px] font-black text-[#8DC63F] uppercase tracking-tighter">
+                            {review.tg}
+                          </span>
+                        )
                       )}
                     </div>
                   </div>
