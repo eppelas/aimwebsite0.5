@@ -125,18 +125,25 @@ const CASE_VISUAL_ASSET_BY_INDEX: Record<number, string> = {
   1: 'case-1.svg',
   2: 'case-2.svg',
   3: 'case-3.svg',
-  4: 'case-4.svg',
-  5: 'case-5.svg',
-  6: 'case-6.svg',
-  7: 'case-7.svg',
+  4: 'case-0.svg',
+  5: 'case-1.svg',
+  6: 'case-2.svg',
+  7: 'case-3.svg',
   8: 'case-8.svg',
   9: 'case-9.svg',
+  10: 'case-6.svg',
+  11: 'case-3.svg',
+  12: 'case-8.svg',
+  13: 'case-2.svg',
+  14: 'case-5.svg',
+  15: 'case-4.svg',
 };
 
-const getCaseVisualSrc = (index: number) => `${BASE_URL}assets/cases/${CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`}`;
-const CASE_SVG_CACHE = new Map<string, { staticMarkup: string; animatedMarkup: string; hoverMarkup: string }>();
-const CASE_SVG_REQUESTS = new Map<string, Promise<{ staticMarkup: string; animatedMarkup: string; hoverMarkup: string }>>();
-const CASE_HOVER_START_TIME = 0; // Start from absolute beginning to ensure the full sequence is visible immediately
+const getCaseVisualSrcByAssetName = (assetName: string) => `${BASE_URL}assets/cases/${assetName}`;
+const CASE_STATIC_SVG_CACHE = new Map<string, string>();
+const CASE_STATIC_SVG_REQUESTS = new Map<string, Promise<string>>();
+const CASE_ANIMATED_SVG_CACHE = new Map<string, string>();
+const CASE_ANIMATED_SVG_REQUESTS = new Map<string, Promise<string>>();
 
 const getCaseVisualFrameClassName = (index: number) => {
   if (index === 0) return "inset-[0%] -translate-x-[2%] translate-y-[6%] scale-[2.2]";
@@ -164,6 +171,8 @@ const getCaseVisualToneClassName = (index: number) => {
   return "";
 };
 
+const CASE_MEDIA_BASE_BACKGROUND_CLASS = "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]";
+
 const normalizeCaseSvgMarkup = (svgMarkup: string) =>
   svgMarkup
     .replace(/<\?xml[\s\S]*?\?>\s*/g, '')
@@ -179,19 +188,11 @@ const stripCaseSvgAnimation = (svgMarkup: string) =>
     .replace(/<set\b[\s\S]*?\/>/gi, '')
     .replace(/<set\b[\s\S]*?<\/set>/gi, '');
 
-const createCaseHoverSvgMarkup = (svgMarkup: string) =>
-  normalizeCaseSvgMarkup(svgMarkup)
-    .replace(/stroke="(?!none)([^"]+)"/gi, 'stroke="#ffffff"')
-    .replace(/fill="(?!none)(?!url\()([^"]+)"/gi, 'fill="#ffffff"')
-    .replace(/stop-color="([^"]+)"/gi, 'stop-color="#ffffff"');
+const loadStaticCaseSvgMarkup = async (assetName: string) => {
+  const cachedMarkup = CASE_STATIC_SVG_CACHE.get(assetName);
+  if (cachedMarkup) return cachedMarkup;
 
-const loadCaseSvgMarkup = async (assetName: string, animated: boolean) => {
-  const cachedMarkup = CASE_SVG_CACHE.get(assetName);
-  if (cachedMarkup) {
-    return animated ? cachedMarkup.animatedMarkup : cachedMarkup.staticMarkup;
-  }
-
-  const pendingRequest = CASE_SVG_REQUESTS.get(assetName);
+  const pendingRequest = CASE_STATIC_SVG_REQUESTS.get(assetName);
   if (pendingRequest) return pendingRequest;
 
   const request = fetch(`${BASE_URL}assets/cases/${assetName}`)
@@ -201,98 +202,101 @@ const loadCaseSvgMarkup = async (assetName: string, animated: boolean) => {
       }
 
       const rawMarkup = await response.text();
-      const animatedMarkup = normalizeCaseSvgMarkup(rawMarkup);
       const staticMarkup = normalizeCaseSvgMarkup(stripCaseSvgAnimation(rawMarkup));
-      const hoverMarkup = animatedMarkup;
-      const cachedVariants = { staticMarkup, animatedMarkup, hoverMarkup };
-      CASE_SVG_CACHE.set(assetName, cachedVariants);
-      return cachedVariants;
+      CASE_STATIC_SVG_CACHE.set(assetName, staticMarkup);
+      return staticMarkup;
     })
     .finally(() => {
-      CASE_SVG_REQUESTS.delete(assetName);
+      CASE_STATIC_SVG_REQUESTS.delete(assetName);
     });
 
-  CASE_SVG_REQUESTS.set(assetName, request);
-  const cachedVariants = await request;
-  return animated ? cachedVariants.animatedMarkup : cachedVariants.staticMarkup;
+  CASE_STATIC_SVG_REQUESTS.set(assetName, request);
+  return request;
 };
 
-const primeCaseSvgMarkup = async (assetName: string) => {
-  const cachedMarkup = CASE_SVG_CACHE.get(assetName);
+const loadAnimatedCaseSvgMarkup = async (assetName: string) => {
+  const cachedMarkup = CASE_ANIMATED_SVG_CACHE.get(assetName);
   if (cachedMarkup) return cachedMarkup;
 
-  const pendingRequest = CASE_SVG_REQUESTS.get(assetName);
+  const pendingRequest = CASE_ANIMATED_SVG_REQUESTS.get(assetName);
   if (pendingRequest) return pendingRequest;
 
-  await loadCaseSvgMarkup(assetName, false);
-  return CASE_SVG_CACHE.get(assetName) ?? null;
+  const request = fetch(getCaseVisualSrcByAssetName(assetName))
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load ${assetName}`);
+      }
+
+      const rawMarkup = await response.text();
+      const animatedMarkup = normalizeCaseSvgMarkup(rawMarkup);
+      CASE_ANIMATED_SVG_CACHE.set(assetName, animatedMarkup);
+      return animatedMarkup;
+    })
+    .finally(() => {
+      CASE_ANIMATED_SVG_REQUESTS.delete(assetName);
+    });
+
+  CASE_ANIMATED_SVG_REQUESTS.set(assetName, request);
+  return request;
 };
 
-function CaseVisualGraphic({ index, className, animate = false }: { index: number; className: string; animate?: boolean }) {
+function CaseVisualGraphic({
+  index,
+  className,
+  animate = false,
+  animateNonce = 0,
+}: {
+  index: number;
+  className: string;
+  animate?: boolean;
+  animateNonce?: number;
+}) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
-  const [markup, setMarkup] = useState<{ static: string; animated: string } | null>(null);
-  const animatedRef = useRef<HTMLDivElement>(null);
+  const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
+  const [animatedMarkup, setAnimatedMarkup] = useState<string | null>(() => CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
 
   useEffect(() => {
     let disposed = false;
-    loadCaseSvgMarkup(assetName, true).then(() => {
-      if (disposed) return;
-      const cached = CASE_SVG_CACHE.get(assetName);
-      if (cached) {
-        setMarkup({ static: cached.staticMarkup, animated: cached.animatedMarkup });
-      }
-    });
-    return () => { disposed = true; };
+
+    loadStaticCaseSvgMarkup(assetName)
+      .then((markup) => {
+        if (!disposed) setStaticMarkup(markup);
+      })
+      .catch(() => {
+        if (!disposed) setStaticMarkup(null);
+      });
+
+    loadAnimatedCaseSvgMarkup(assetName)
+      .then((markup) => {
+        if (!disposed) setAnimatedMarkup(markup);
+      })
+      .catch(() => {
+        if (!disposed) setAnimatedMarkup(null);
+      });
+
+    return () => {
+      disposed = true;
+    };
   }, [assetName]);
 
-  // Precise sync with hover state
-  React.useLayoutEffect(() => {
-    if (!markup) return;
-    const svg = animatedRef.current?.querySelector('svg');
-    if (!svg || typeof svg.pauseAnimations !== 'function') return;
-
-    if (animate) {
-      svg.unpauseAnimations();
-      try {
-        svg.setCurrentTime(CASE_HOVER_START_TIME);
-      } catch(e) {}
-    } else {
-      svg.pauseAnimations();
-      try {
-        svg.setCurrentTime(0);
-      } catch(e) {}
-    }
-  }, [animate, markup]);
+  const renderedMarkup = animate ? animatedMarkup ?? staticMarkup : staticMarkup;
 
   return (
-    <div className={cn("relative h-full w-full overflow-hidden transition-transform duration-300 group-hover:scale-[1.1]", className)}>
-      {/* Static layer: always here, zero CPU */}
-      <div 
-        className={cn(
-          "absolute inset-0 transition-[filter,opacity] duration-300",
-          animate ? "opacity-0" : "opacity-100",
-          "[filter:none] group-hover:[filter:brightness(0)_invert(1)]"
-        )}
-        dangerouslySetInnerHTML={markup ? { __html: markup.static } : undefined}
-      />
-      
-      {/* Animated layer: fades in and unpauses on hover */}
-      <div 
-        ref={animatedRef}
-        className={cn(
-          "absolute inset-0 transition-opacity duration-300 pointer-events-none",
-          animate ? "opacity-100" : "opacity-0",
-          "[filter:brightness(0)_invert(1)]"
-        )}
-        dangerouslySetInnerHTML={markup ? { __html: markup.animated } : undefined}
-      />
-    </div>
+    <div
+      key={animate ? `case-animated-${index}-${animateNonce}` : `case-static-${index}`}
+      aria-hidden
+      className={cn(
+        "flex h-full w-full origin-center items-center justify-center group-hover:brightness-0 group-hover:invert [&_svg]:h-full [&_svg]:w-full",
+        className,
+      )}
+      dangerouslySetInnerHTML={renderedMarkup ? { __html: renderedMarkup } : undefined}
+    />
   );
 }
 
 // --- CONSTANTS ---
 const PAGE_SECTION_LINKS: NavItem[] = [
-  { label: 'Описание', href: '#hero' },
+  { label: 'ОПИСАНИЕ', href: '#hero' },
   { label: 'ПРОГРАММА', href: '#program' },
   { label: 'КЕЙСЫ', href: '#cases' },
   { label: 'СПИКЕРЫ', href: '#speakers' },
@@ -2620,8 +2624,8 @@ export default function LabW26PageV3() {
   const [activeCaseToolFilter, setActiveCaseToolFilter] = useState('all');
   const [isCasesOverlayOpen, setIsCasesOverlayOpen] = useState(false);
   const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
-  const [hoveredCaseIndex, setHoveredCaseIndex] = useState<number | null>(null);
-  const [hoveredOverlayCaseIndex, setHoveredOverlayCaseIndex] = useState<number | null>(null);
+  const [hoveredCaseState, setHoveredCaseState] = useState<{ index: number; nonce: number } | null>(null);
+  const [hoveredOverlayCaseState, setHoveredOverlayCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
@@ -2646,12 +2650,6 @@ export default function LabW26PageV3() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    Object.values(CASE_VISUAL_ASSET_BY_INDEX).forEach((assetName) => {
-      primeCaseSvgMarkup(assetName).catch(() => null);
-    });
   }, []);
 
   useEffect(() => {
@@ -2787,7 +2785,13 @@ export default function LabW26PageV3() {
     card: CaseCard,
     index: number,
     hovered: boolean,
-    setHovered: (value: number | null | ((current: number | null) => number | null)) => void,
+    hoverNonce: number,
+    setHovered: (
+      value:
+        | { index: number; nonce: number }
+        | null
+        | ((current: { index: number; nonce: number } | null) => { index: number; nonce: number } | null)
+    ) => void,
     keyPrefix: string,
     options?: { showTools?: boolean; descriptionLines?: 2 | 3 },
   ) => (
@@ -2798,10 +2802,10 @@ export default function LabW26PageV3() {
         event.stopPropagation();
         setActiveCaseIndex(index);
       }}
-      onPointerEnter={() => setHovered(index)}
-      onPointerLeave={() => setHovered((current) => (current === index ? null : current))}
-      onFocus={() => setHovered(index)}
-      onBlur={() => setHovered((current) => (current === index ? null : current))}
+      onPointerEnter={() => setHovered((current) => ({ index, nonce: current?.index === index ? current.nonce + 1 : 0 }))}
+      onPointerLeave={() => setHovered((current) => (current?.index === index ? null : current))}
+      onFocus={() => setHovered((current) => ({ index, nonce: current?.index === index ? current.nonce + 1 : 0 }))}
+      onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
       className={cn(
         "group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[2px] border border-black/10 px-3 pb-3 pt-2 text-left bg-white hover:bg-[#8DC63F] hover:border-[#8DC63F]",
       )}
@@ -2809,15 +2813,13 @@ export default function LabW26PageV3() {
       <div
         className={cn(
           "relative mb-2.5 h-[92px] overflow-hidden md:h-[100px] rounded-[2px]",
-          CASE_DARK_VARIANTS.has(index) ? "bg-[#111411] group-hover:bg-[#111411]" : "bg-[#f4f4ef] group-hover:bg-[#8DC63F]",
+          "bg-[#111411] group-hover:bg-[#8DC63F]",
         )}
       >
         <div
           className={cn(
             "absolute inset-0 transition-opacity duration-150 group-hover:opacity-0",
-            CASE_DARK_VARIANTS.has(index)
-              ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
-              : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
+            CASE_MEDIA_BASE_BACKGROUND_CLASS,
           )}
         />
 
@@ -2831,19 +2833,18 @@ export default function LabW26PageV3() {
 
         <div
           className={cn(
-            "absolute transition-[transform,filter,opacity] duration-150 group-hover:mix-blend-normal group-hover:opacity-100",
+            "absolute transition-[transform,filter,opacity] duration-150 group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
             hovered
-              ? "opacity-100 mix-blend-normal"
-              : CASE_DARK_VARIANTS.has(index)
-                ? "opacity-100 mix-blend-screen"
-                : "opacity-78 mix-blend-multiply",
+              ? "opacity-100 mix-blend-screen"
+              : "opacity-100 mix-blend-screen",
           )}
         >
           <CaseVisualGraphic
             index={index}
             className={getCaseVisualToneClassName(index)}
             animate={hovered}
+            animateNonce={hoverNonce}
           />
         </div>
 
@@ -2861,7 +2862,7 @@ export default function LabW26PageV3() {
 
       <p className={cn(
         "mb-2 text-[12px] font-normal leading-[1.34] text-black/78 transition-none group-hover:text-white/90",
-        options?.descriptionLines === 3 ? "line-clamp-3" : "line-clamp-2",
+        options?.descriptionLines === 3 ? "min-h-[4.15rem]" : "min-h-[2.7rem]",
       )}>
         {card.details}
       </p>
@@ -2915,6 +2916,18 @@ export default function LabW26PageV3() {
     scrollTo('#pricing');
   };
 
+  const openMobileMenu = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    setIsMenuOpen(true);
+  };
+
+  const closeMobileMenu = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    setIsMenuOpen(false);
+  };
+
   const openLabsDropdown = () => {
     if (labsCloseTimeoutRef.current !== null) {
       window.clearTimeout(labsCloseTimeoutRef.current);
@@ -2963,7 +2976,7 @@ export default function LabW26PageV3() {
             onClick={() => scrollTo('#hero')}
             className="group flex w-fit items-center gap-2 text-left opacity-50 whitespace-nowrap transition-opacity hover:text-black hover:opacity-100"
           >
-            <MenuStrikeText>Описание</MenuStrikeText>
+            <MenuStrikeText>ГЛАВНАЯ</MenuStrikeText>
           </button>
           <div className="relative flex items-center gap-2 w-fit" onMouseEnter={openLabsDropdown} onMouseLeave={closeLabsDropdown}>
             <div className="group flex items-center gap-2 opacity-50 whitespace-nowrap hover:text-black hover:opacity-100 transition-opacity cursor-pointer">
@@ -3039,7 +3052,11 @@ export default function LabW26PageV3() {
           >
             <div className="flex justify-between items-center mb-12">
               <div className="text-xl font-bold uppercase tracking-widest">НАВИГАЦИЯ //</div>
-              <button onClick={() => setIsMenuOpen(false)} className="p-2 hover:bg-current/5 rounded-full border border-current">
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                className="p-2 hover:bg-current/5 rounded-full border border-current"
+              >
                 <X size={24} />
               </button>
             </div>
@@ -3051,7 +3068,8 @@ export default function LabW26PageV3() {
                   {PAGE_SECTION_LINKS.map((link) => (
                     <button
                       key={link.label}
-                      onClick={() => { scrollTo(link.href); setIsMenuOpen(false); }}
+                      type="button"
+                      onClick={() => { scrollTo(link.href); closeMobileMenu(); }}
                       className="text-4xl font-black uppercase tracking-tighter hover:line-through text-left"
                     >
                       {link.label}
@@ -3068,7 +3086,7 @@ export default function LabW26PageV3() {
                     onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
                     className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
                   >
-                    Описание
+                    Главная
                   </a>
 
                   <a
@@ -3123,14 +3141,15 @@ export default function LabW26PageV3() {
         >
            <div className="flex gap-4 items-center">
               <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="font-bold leading-none flex items-center gap-2.5">
-                <img src={LOGO_SRC} className="h-6 w-6 shrink-0 object-contain invert" alt="AI Mindset logo" />
+                <img src={LOGO_TRANSPARENT_SRC} className="h-6 w-6 shrink-0 object-contain brightness-0" alt="AI Mindset logo" />
                 <span className="text-[9px] font-light uppercase tracking-[0.3em]">AI MINDSET</span>
               </a>
            </div>
            <div className="flex gap-4 items-center">
              <button
-               onClick={() => setIsMenuOpen(true)}
-               className="p-2 hover:bg-current/5 transition-colors"
+               type="button"
+               onClick={openMobileMenu}
+               className="z-10 pointer-events-auto p-2 hover:bg-current/5 transition-colors"
              >
                <Menu size={20} />
              </button>
@@ -3315,12 +3334,14 @@ export default function LabW26PageV3() {
           </div>
 
           <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {visibleCases.map(({ card, index }) =>
-              renderCaseCard(card, index, hoveredCaseIndex === index, setHoveredCaseIndex, 'main', {
-                showTools: true,
-                descriptionLines: 3,
-              })
-            )}
+            {visibleCases.map(({ card, index }, visibleIndex) => (
+              <div key={`main-case-slot-${index}`} className={visibleIndex >= 4 ? "hidden md:block" : ""}>
+                {renderCaseCard(card, index, hoveredCaseState?.index === index, hoveredCaseState?.index === index ? hoveredCaseState.nonce : 0, setHoveredCaseState, 'main', {
+                  showTools: true,
+                  descriptionLines: 3,
+                })}
+              </div>
+            ))}
           </div>
 
           {filteredCases.length > 0 ? (
@@ -3792,12 +3813,11 @@ export default function LabW26PageV3() {
       </footer>
 
       <a
-        href={CONTACT_FORM_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-3 left-4 z-[390] rounded-full border border-black/10 bg-white/72 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/55 shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-colors hover:bg-white hover:text-black md:hidden"
+        href="#pricing"
+        onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
+        className={`${DARK_CTA_BUTTON_CLASS} fixed bottom-3 left-4 right-4 z-[390] text-center md:hidden`}
       >
-        Связаться с нами
+        /хочу на лабу
       </a>
 
       <AnimatePresence>
@@ -3898,7 +3918,7 @@ export default function LabW26PageV3() {
                 <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
                   <div className="mx-auto grid max-w-[88rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                     {filteredCases.map(({ card, index }) =>
-                      renderCaseCard(card, index, hoveredOverlayCaseIndex === index, setHoveredOverlayCaseIndex, 'overlay', {
+                      renderCaseCard(card, index, hoveredOverlayCaseState?.index === index, hoveredOverlayCaseState?.index === index ? hoveredOverlayCaseState.nonce : 0, setHoveredOverlayCaseState, 'overlay', {
                         showTools: true,
                         descriptionLines: 2,
                       })
@@ -4047,19 +4067,24 @@ const CookieConsent = () => {
     localStorage.setItem('cookie-consent', 'true');
     setShow(false);
   };
+  const handleDismissConsent = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    dismissConsent();
+  };
   return (
     <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
         <button
           type="button"
-          onClick={dismissConsent}
-          className="absolute top-3 right-3 p-1 text-black/50 hover:text-black transition-colors"
+          onClick={handleDismissConsent}
+          className="absolute top-3 right-3 z-10 pointer-events-auto p-1 text-black/50 hover:text-black transition-colors"
           aria-label="Закрыть уведомление о cookies"
         >
           <X size={14} />
         </button>
         <div className="text-[8px] md:text-[9px] font-black opacity-30 mb-2 md:mb-3 uppercase tracking-widest">SYSTEM NOTICE</div>
         <p className="text-[9px] md:text-[10px] font-bold leading-relaxed mb-4 md:mb-4 uppercase text-black">МЫ ИСПОЛЬЗУЕМ КУКИ ДЛЯ ВАШЕЙ AI-СИНХРОНИЗАЦИИ.</p>
-        <button onClick={dismissConsent} className={`${DARK_CTA_BUTTON_CLASS} w-full px-4 py-3 text-[12px]`}>понятно</button>
+        <button type="button" onClick={handleDismissConsent} className={`${DARK_CTA_BUTTON_CLASS} w-full px-4 py-3 text-[12px]`}>понятно</button>
     </div>
   );
 };
