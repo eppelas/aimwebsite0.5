@@ -120,7 +120,7 @@ export default function PricingPaymentPopupNeon({
 
   return (
     <div
-      className="fixed inset-y-0 left-0 right-0 z-[160] flex items-center justify-center bg-black/80 p-2 backdrop-blur-md sm:p-4 md:left-[18%]"
+      className="fixed inset-y-0 left-0 right-0 z-[160] flex items-end justify-center bg-black/80 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] pt-3 backdrop-blur-md sm:p-4 md:left-[18%] md:items-center md:p-4"
       onClick={handleClose}
     >
       <motion.div
@@ -129,7 +129,7 @@ export default function PricingPaymentPopupNeon({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative flex max-h-[100dvh] w-full max-w-[500px] flex-col overflow-y-auto rounded-lg border border-white/10 bg-[#0a0a0a]/95 p-5 pt-8 text-left font-sans text-[#f5f4ef] shadow-[0_0_50px_rgba(141,198,63,0.15)] backdrop-blur-3xl md:-translate-y-3 md:p-8"
+        className="relative flex max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] w-full max-w-[500px] flex-col overflow-y-auto rounded-lg border border-white/10 bg-[#0a0a0a]/95 p-5 pt-8 text-left font-sans text-[#f5f4ef] shadow-[0_0_50px_rgba(141,198,63,0.15)] backdrop-blur-3xl md:max-h-[100dvh] md:-translate-y-3 md:p-8"
         style={{ color: '#f5f4ef' }}
       >
         <button

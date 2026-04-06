@@ -2,6 +2,60 @@
 
 ## User Requests
 
+- Task: На mobile payment popup по кнопке `присоединиться` не должен обрезаться сверху при открытом системном нижнем меню iPhone, а верхний mobile header нужно уменьшить ещё примерно на 10 процентов
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `PricingPaymentPopupNeon` mobile overlay переведён с вертикального центрирования на нижнюю посадку с safe-area (`items-end`, `pb-[calc(env(safe-area-inset-bottom)+12px)]`), а высота самого popup ограничена через `max-h: calc(100dvh - safe-area - 1.5rem)`, чтобы верхушка не обрезалась при системной панели iPhone. В `LabW26PageV3` mobile header дополнительно ужат с `py-[0.85rem]` до `py-[0.75rem]`; desktop-ветки не менялись.
+
+- Task: На mobile уменьшить примерно вдвое разрыв между большим mindset-цитатным блоком и тарифами, а в `Отзывы` поднять слишком мелкий текст до нормального мобильного кегля
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` mobile-gap между `mindset` и `pricing` уменьшен через `pb-20 -> pb-10` у mindset и `py-20 -> pt-10 pb-20` у pricing, без изменений desktop. В `ReviewsSection` мобильный кегль отзыва поднят до `13px` и role-line до `11px`, чтобы текст не падал ниже комфортного диапазона для телефонов.
+
+- Task: На mobile `Cases` сделать карточки заметно шире, ближе к ширине экрана, и вернуть визуальному блоку кейса вес desktop-версии: SVG, тёмный media-shell и общую читаемость
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` mobile case-card расширены до `min(80vw, 20rem)` вместо прежнего `max-w-[16.1rem]`, увеличена минимальная высота карточки и поднята высота media-shell (`92 -> 118` на mobile), чтобы SVG снова читались как полноценные desktop-style visual, а не как узкие превью. Desktop `max-w-[16.1rem]` сохранён через `md:*`.
+
+- Task: В mobile footer сделать полупрозрачную надпись `AI MINDSET` заметно прозрачнее и опустить/увеличить её так, чтобы она сильнее жила внизу и немного заходила на зону `ОФЕРТА / ПОЛИТИКА`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` фоновая footer-надпись переведена на mobile-only lower placement: контейнер теперь выравнивается к низу, opacity снижена с `0.09` до `0.07`, а сама надпись увеличена на mobile и сдвинута вниз через `translate-y-[1.2rem]`, чтобы она мягче перекрывала нижнюю инфо-зону. Desktop-вид оставлен прежним через `md:*`.
+
+- Task: На mobile в `Недельном ритме` выровнять подписи мероприятий, чтобы текст не прыгал, не вылезал и не обрезался, и сделать `ЧТ` и `ВС` примерно вдвое уже остальных дней
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `ProgramIntegratedTimeline` mobile ритм больше не опирается на бесполезные `flex-[0.7]` внутри grid. Сетка переведена на явные 7 колонок с половинной шириной у `ЧТ` и `ВС`, а day-card собраны как стабильные трёхрядные блоки: отдельная фиксированная строка под time, увеличенная зона под label и более мягкий перенос текста через `overflow-wrap:anywhere`. Desktop-ветка `DesktopTechUiV5` не тронута.
+
+- Task: Убрать оставшийся mobile горизонтальный скролл с бежевой полосой справа и в блоке `Философия` сильно приблизить анимации к тексту
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` root страницы переведён в `overflow-x-hidden`, а мобильный oversized art-wrapper у `MindsetDynamicArt` дополнительно зажат через локальный `overflow-hidden`, потому что именно масштабируемые арт-блоки были главным кандидатом на правый вылет за viewport. В `Философии` mobile-gap между art и текстом резко уменьшен: art-shell стал ниже (`198 -> 168`), его внутренний `py` снижен (`6 -> 2`), а верхний отступ текстового блока уменьшен с `mt-5` до `mt-1.5`. Нужна проверка на телефоне, что полоса исчезла и art действительно подошёл к заголовку примерно в 3 раза ближе.
+
+- Task: На mobile в блоке `Cases` активная карточка должна вести себя почти как desktop hover: выделяться зелёным, переводить SVG в белое animated-состояние и переключаться по карточке, которая ближе всего к середине экрана
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` добавлен mobile-only viewport activation для первых четырёх case-card: через `mobileCaseCardRefs` и scroll/resize pass выбирается карточка, ближайшая к вертикальному центру экрана. Для неё включаются те же visual states, что у desktop hover: зелёная карточка, белый animated SVG, белая типографика и активные tool-tags. Desktop hover не менялся.
+
+- Task: На mobile убрать зазор между верхним header и бегущей строкой, уменьшить высоту header примерно на 15 процентов и устранить горизонтальный скролл с бежевым фоном
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` mobile header сдвинут вплотную к ticker через `top-[18px]`, вертикальный padding уменьшен до `py-[0.85rem]`, а горизонтальный overflow убран у источника: header переведён в `box-border`, чтобы `w-full + px-4` больше не раздували ширину шире viewport и не открывали боковой бежевый фон. Нужна мобильная визуальная проверка.
+
+- Task: На mobile fixed-кнопка `/хочу на лабу` должна появляться только после того, как пользователь реально доскроллил до исходной hero-кнопки, и не дублироваться, пока она ещё видна
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: После пользовательского фидбэка single-element fixed-схема признана нестабильной: на возврате к hero CTA мельтешил. Текущий проход перевёл mobile CTA в устойчивый docked-режим: после первого попадания в зону просмотра активируется fixed-кнопка того же дизайна, а hero-версия на mobile скрывается и оставляет только placeholder высоты, чтобы убрать мигание. Fixed CTA дополнительно поднят выше края экрана через `bottom: calc(env(safe-area-inset-bottom) + 32px)`, чтобы не упираться в скругления iPhone.
+
 - Task: Довести desktop-блок `программа` на живой странице до реально видимого состояния: правый full-height black panel с glow-art и двумя glass-карточками, плюс заметно более узкие `ЧТ` и `ВС`
   Status: implemented
   Owner: assistant
@@ -37,6 +91,18 @@
   Owner: assistant
   Last Checked: 2026-04-06
   Note: В `LabW26PageV3` live-мэппинг возвращён на основной набор `case-0..9.svg`; четыре dark-signal SVG сняты с live-страницы. Вне hover в DOM теперь монтируется статичный SVG без `<animate>`, а живой animated markup подгружается только на hover, поэтому анимация не должна крутиться постоянно.
+
+- Task: На мобильной версии `Cases` оставить на главной только первые 4 карточки, а остальные открывать через кнопку `Посмотреть все`
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: В `LabW26PageV3` для основной mobile-сетки `Cases` карточки с 5-й по 8-ю скрыты только на `< md`, при этом desktop-раскладка и существующий overlay `Посмотреть все` не менялись. Ждёт визуальной проверки пользователя.
+
+- Task: В `Cases` не анимировать все карточки подряд и зафиксировать одинаковую высоту всех карточек без скачков
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-06
+  Note: Последняя попытка с отдельным hover-мэппингом для нижней четвёрки была отклонена пользователем как визуально тупая подмена предмета. Текущий проход заменил сами базовые visual-ассеты у карточек `4..7` на уже существующие animated SVG из верхнего ряда, так что у них теперь один и тот же visual до hover и на hover. Выравнивание по высоте по-прежнему делается только через `description`-зону. Ждёт пользовательской проверки.
 
 - Task: Перенести снятые с live dark-signal кейсы в `experimental blogs`, чтобы смотреть их отдельно от live-сайта
   Status: self-checked

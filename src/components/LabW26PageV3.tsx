@@ -1641,13 +1641,12 @@ const ProgramIntegratedTimeline = ({
 
                             <div className="mt-3.5 relative">
                               <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 md:gap-1.5">
+                              <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1 md:gap-1.5">
                                 {PROGRAM_WEEKLY_RHYTHM.map((day) => (
                                   <div
                                     key={`${track.id}-${day.day}`}
                                     className={cn(
-                                      "relative border px-1.5 md:px-2 pt-1.5 pb-2.5 md:pt-2 md:pb-2 text-[8px] md:text-[8.5px] uppercase tracking-[0.04em] h-[54px] md:h-[46px] flex flex-col",
-                                      (day.day === 'ЧТ' || day.day === 'ВС') ? "flex-[0.7]" : "flex-1",
+                                      "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em] md:h-[46px] md:px-2 md:pt-2 md:pb-2 md:text-[8.5px]",
                                       day.type === 'advanced'
                                         ? 'bg-black border-black text-white'
                                         : day.type === 'off'
@@ -1665,13 +1664,11 @@ const ProgramIntegratedTimeline = ({
                                         <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
                                       )}
                                     </div>
-                                    {'time' in day && day.time ? (
-                                      <div className={`mt-[2px] font-mono text-[6.5px] font-bold tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
-                                        {day.time}
-                                      </div>
-                                    ) : null}
-                                    <div className="mt-auto flex min-h-[1.55rem] md:min-h-[1.5rem] items-end">
-                                      <div className={`font-bold leading-[1.02] [word-break:keep-all] [overflow-wrap:normal] ${
+                                    <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] md:text-[6.5px] md:tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
+                                      {'time' in day && day.time ? day.time : ' '}
+                                    </div>
+                                    <div className="mt-auto flex min-h-[1.7rem] items-end md:min-h-[1.5rem]">
+                                      <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
                                         day.type === 'advanced' || day.type === 'workshop'
                                           ? 'text-white'
                                           : day.type === 'off'
@@ -2615,6 +2612,8 @@ export default function LabW26PageV3() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hasActivatedHeroMobileCta, setHasActivatedHeroMobileCta] = useState(false);
+  const [activeMobileCaseIndex, setActiveMobileCaseIndex] = useState<number | null>(null);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
   const [activePaymentPlan, setActivePaymentPlan] = useState<{ name: string; price: string } | null>(null);
@@ -2629,6 +2628,8 @@ export default function LabW26PageV3() {
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
+  const heroMobileCtaSentinelRef = useRef<HTMLDivElement | null>(null);
+  const mobileCaseCardRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const labsCloseTimeoutRef = useRef<number | null>(null);
   const sectionHashSyncLockRef = useRef<number | null>(null);
   const lastSyncedHashRef = useRef<string>('');
@@ -2643,6 +2644,18 @@ export default function LabW26PageV3() {
       document.body.style.overflow = 'auto';
     };
   }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
+
+  useEffect(() => {
+    const previousHtmlOverflowX = document.documentElement.style.overflowX;
+    const previousBodyOverflowX = document.body.style.overflowX;
+    document.documentElement.style.overflowX = 'hidden';
+    document.body.style.overflowX = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflowX = previousHtmlOverflowX;
+      document.body.style.overflowX = previousBodyOverflowX;
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2670,6 +2683,25 @@ export default function LabW26PageV3() {
     }, 2200);
     return () => window.clearTimeout(timeout);
   }, [showPricingCue]);
+
+  useEffect(() => {
+    const target = heroMobileCtaSentinelRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasActivatedHeroMobileCta(true);
+        }
+      },
+      {
+        threshold: 0.2,
+      },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const lockSectionHashSync = (duration = 900) => {
@@ -2781,6 +2813,55 @@ export default function LabW26PageV3() {
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
   const activeCaseVisualIndex = activeCaseIndex ?? 0;
 
+  useEffect(() => {
+    let ticking = false;
+
+    const updateActiveMobileCase = () => {
+      ticking = false;
+
+      if (window.innerWidth >= 768) {
+        setActiveMobileCaseIndex(null);
+        return;
+      }
+
+      const viewportCenter = window.innerHeight / 2;
+      let closestIndex: number | null = null;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      visibleCases.slice(0, 4).forEach(({ index }) => {
+        const element = mobileCaseCardRefs.current[index];
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const isVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+        if (!isVisible) return;
+
+        const center = rect.top + rect.height / 2;
+        const distance = Math.abs(center - viewportCenter);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      setActiveMobileCaseIndex((current) => (current === closestIndex ? current : closestIndex));
+    };
+
+    const handleViewportChange = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(updateActiveMobileCase);
+    };
+
+    updateActiveMobileCase();
+    window.addEventListener('scroll', handleViewportChange, { passive: true });
+    window.addEventListener('resize', handleViewportChange);
+    return () => {
+      window.removeEventListener('scroll', handleViewportChange);
+      window.removeEventListener('resize', handleViewportChange);
+    };
+  }, [visibleCases]);
+
   const renderCaseCard = (
     card: CaseCard,
     index: number,
@@ -2794,7 +2875,10 @@ export default function LabW26PageV3() {
     ) => void,
     keyPrefix: string,
     options?: { showTools?: boolean; descriptionLines?: 2 | 3 },
-  ) => (
+  ) => {
+    const isActivated = hovered || activeMobileCaseIndex === index;
+
+    return (
     <button
       key={`${keyPrefix}-${card.title}-${index}`}
       type="button"
@@ -2807,27 +2891,29 @@ export default function LabW26PageV3() {
       onFocus={() => setHovered((current) => ({ index, nonce: current?.index === index ? current.nonce + 1 : 0 }))}
       onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
       className={cn(
-        "group relative mx-auto flex min-h-[226px] w-full max-w-[16.1rem] flex-col overflow-hidden rounded-[2px] border border-black/10 px-3 pb-3 pt-2 text-left bg-white hover:bg-[#8DC63F] hover:border-[#8DC63F]",
+        "group relative mx-auto flex min-h-[248px] w-[min(80vw,20rem)] max-w-none flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left md:min-h-[226px] md:w-full md:max-w-[16.1rem]",
+        isActivated ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/10 bg-white hover:border-[#8DC63F] hover:bg-[#8DC63F]",
       )}
     >
       <div
         className={cn(
-          "relative mb-2.5 h-[92px] overflow-hidden md:h-[100px] rounded-[2px]",
-          "bg-[#111411] group-hover:bg-[#8DC63F]",
+          "relative mb-3 h-[118px] overflow-hidden rounded-[2px] md:mb-2.5 md:h-[100px]",
+          isActivated ? "bg-[#8DC63F]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
         )}
       >
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-150 group-hover:opacity-0",
+            "absolute inset-0 transition-opacity duration-150",
+            isActivated ? "opacity-0" : "group-hover:opacity-0",
             CASE_MEDIA_BASE_BACKGROUND_CLASS,
           )}
         />
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className="absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 group-hover:opacity-0" />
-            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100 group-hover:opacity-0")} />
-            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100 group-hover:opacity-0")} />
+            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
 
@@ -2835,7 +2921,7 @@ export default function LabW26PageV3() {
           className={cn(
             "absolute transition-[transform,filter,opacity] duration-150 group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
-            hovered
+            isActivated
               ? "opacity-100 mix-blend-screen"
               : "opacity-100 mix-blend-screen",
           )}
@@ -2843,31 +2929,32 @@ export default function LabW26PageV3() {
           <CaseVisualGraphic
             index={index}
             className={getCaseVisualToneClassName(index)}
-            animate={hovered}
+            animate={isActivated}
             animateNonce={hoverNonce}
           />
         </div>
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200 group-hover:opacity-0")} />
-            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200 group-hover:opacity-0")} />
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200", isActivated ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
       </div>
 
-      <h4 className="mb-1.5 max-w-[10.6rem] text-[14px] font-black uppercase leading-[0.94] tracking-[-0.04em] text-black transition-none group-hover:text-white md:text-[15px]">
+      <h4 className={cn("mb-1.5 max-w-none text-[15px] font-black uppercase leading-[0.94] tracking-[-0.04em] transition-none md:max-w-[10.6rem] md:text-[15px]", isActivated ? "text-white" : "text-black group-hover:text-white")}>
         {card.title}
       </h4>
 
       <p className={cn(
-        "mb-2 text-[12px] font-normal leading-[1.34] text-black/78 transition-none group-hover:text-white/90",
-        options?.descriptionLines === 3 ? "min-h-[4.15rem]" : "min-h-[2.7rem]",
+        "mb-2 text-[12px] font-normal leading-[1.34] transition-none md:text-[12px]",
+        isActivated ? "text-white/90" : "text-black/78 group-hover:text-white/90",
+        options?.descriptionLines === 3 ? "min-h-[4.45rem] md:min-h-[4.15rem]" : "min-h-[2.9rem] md:min-h-[2.7rem]",
       )}>
         {card.details}
       </p>
 
-      <div className="mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] text-black/60 transition-none group-hover:text-white/72 md:text-[10px]">
+      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isActivated ? "text-white/72" : "text-black/60 group-hover:text-white/72")}>
         {card.author}, {card.role.toLowerCase()}
       </div>
 
@@ -2876,7 +2963,12 @@ export default function LabW26PageV3() {
           {getCaseTools(card).map((tool) => (
             <span
               key={`${keyPrefix}-tool-${card.title}-${tool}`}
-              className="rounded-[2px] border border-black/10 bg-black/[0.03] px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] text-black/70 transition-none group-hover:border-white/50 group-hover:bg-white/20 group-hover:font-bold group-hover:text-white md:text-[9px]"
+              className={cn(
+                "rounded-[2px] border px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] transition-none md:text-[9px]",
+                isActivated
+                  ? "border-white/50 bg-white/20 font-bold text-white"
+                  : "border-black/10 bg-black/[0.03] text-black/70 group-hover:border-white/50 group-hover:bg-white/20 group-hover:font-bold group-hover:text-white",
+              )}
             >
               {tool}
             </span>
@@ -2884,7 +2976,8 @@ export default function LabW26PageV3() {
         </div>
       ) : null}
     </button>
-  );
+    );
+  };
 
   const cycleMindsetQuote = (direction: -1 | 1) => {
     setActiveMindsetQuote((prev) => (prev + direction + MINDSET_QUOTES.length) % MINDSET_QUOTES.length);
@@ -2958,8 +3051,10 @@ export default function LabW26PageV3() {
     setActiveMobileSpeakerRowIndex(rowIndex);
   };
 
+  const showDockedMobileCta = hasActivatedHeroMobileCta;
+
   return (
-    <div className="relative min-h-screen bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
+    <div className="relative min-h-screen overflow-x-hidden bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
       
       {/* Sidebar (Desktop) */}
       <aside className={`fixed top-0 left-0 w-full md:w-[18%] h-screen border-r border-black/10 px-10 pt-10 pb-8 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-full'}`}>
@@ -3136,7 +3231,7 @@ export default function LabW26PageV3() {
       <main className="w-full min-h-screen relative">
         {/* Mobile Header */}
         <header
-          className={`md:hidden fixed top-6 left-0 w-full z-[350] px-4 py-4 flex justify-between items-center border-b border-current/10 transition-transform duration-500 ${isMenuOpen ? '-translate-y-24' : 'translate-y-0'}`}
+          className={`md:hidden fixed left-0 top-[18px] z-[350] box-border flex w-full items-center justify-between border-b border-current/10 px-4 py-[0.75rem] transition-transform duration-500 ${isMenuOpen ? '-translate-y-24' : 'translate-y-0'}`}
           style={{ backgroundColor: colors.bg, color: colors.text }}
         >
            <div className="flex gap-4 items-center">
@@ -3185,11 +3280,21 @@ export default function LabW26PageV3() {
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
                      Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
-                  <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6">
+                  <div
+                    ref={heroMobileCtaSentinelRef}
+                    className={cn(
+                      "flex flex-col sm:flex-row justify-center lg:justify-start gap-6",
+                      showDockedMobileCta ? "min-h-[3.75rem] md:min-h-0" : "",
+                    )}
+                  >
                      <a
                        href="#pricing"
                        onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
-                       className={`${DARK_CTA_BUTTON_CLASS} min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6`}
+                       className={cn(
+                         DARK_CTA_BUTTON_CLASS,
+                          "min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6",
+                         showDockedMobileCta ? "invisible pointer-events-none md:visible md:pointer-events-auto" : "",
+                       )}
                      >
                        /хочу на лабу
                      </a>
@@ -3335,7 +3440,13 @@ export default function LabW26PageV3() {
 
           <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {visibleCases.map(({ card, index }, visibleIndex) => (
-              <div key={`main-case-slot-${index}`} className={visibleIndex >= 4 ? "hidden md:block" : ""}>
+              <div
+                key={`main-case-slot-${index}`}
+                ref={(node) => {
+                  mobileCaseCardRefs.current[index] = node;
+                }}
+                className={visibleIndex >= 4 ? "hidden md:block" : ""}
+              >
                 {renderCaseCard(card, index, hoveredCaseState?.index === index, hoveredCaseState?.index === index ? hoveredCaseState.nonce : 0, setHoveredCaseState, 'main', {
                   showTools: true,
                   descriptionLines: 3,
@@ -3483,10 +3594,10 @@ export default function LabW26PageV3() {
           <div className="mt-10 grid grid-cols-1 gap-6 md:mt-[100px] md:grid-cols-3 md:gap-3">
             {PHILOSOPHY_PILLARS.map((item) => (
               <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                <div className="flex h-[198px] w-full max-w-[13rem] flex-none items-end justify-center py-6 md:h-[146px] md:max-w-[11.7rem] md:py-0">
+                <div className="flex h-[168px] w-full max-w-[13rem] flex-none items-end justify-center py-2 md:h-[146px] md:max-w-[11.7rem] md:py-0">
                   <PhilosophyPillarArt art={item.art} />
                 </div>
-                <div className="mt-5 md:mt-7 flex w-full flex-col items-center gap-2">
+                <div className="mt-1.5 md:mt-7 flex w-full flex-col items-center gap-1 md:gap-2">
                   <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
                     {item.title}
                   </h3>
@@ -3506,11 +3617,11 @@ export default function LabW26PageV3() {
         </Container>
       </div>
 
-      <section id="mindset" className="pt-0 pb-20 md:pt-0 md:pb-32">
+      <section id="mindset" className="pt-0 pb-10 md:pt-0 md:pb-32">
         <Container>
           <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
-            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0">
-              <div className="w-[16rem] h-[16rem] md:w-[18rem] md:h-[18rem] lg:w-[20rem] lg:h-[20rem] relative flex items-center justify-center">
+            <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-0 overflow-hidden">
+              <div className="relative flex h-[16rem] w-[16rem] items-center justify-center overflow-hidden md:h-[18rem] md:w-[18rem] lg:h-[20rem] lg:w-[20rem]">
                 <MindsetDynamicArt className="scale-[1.45] md:scale-100" />
               </div>
             </div>
@@ -3558,7 +3669,7 @@ export default function LabW26PageV3() {
 
       {/* Pricing Section */}
       <SlashDivider />
-      <section id="pricing" className="py-20 md:py-32">
+      <section id="pricing" className="pt-10 pb-20 md:py-32">
         <Container>
           <EditorialSectionHeader
             eyebrow="Форматы участия"
@@ -3775,8 +3886,8 @@ export default function LabW26PageV3() {
 
       {/* Footer */}
       <footer className="py-24 relative overflow-hidden bg-black text-white">
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.09]">
-          <div className="whitespace-nowrap text-[clamp(88px,16vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white">
+        <div className="absolute inset-0 pointer-events-none flex items-end justify-center overflow-hidden opacity-[0.07] md:items-center md:opacity-[0.09]">
+          <div className="translate-y-[1.2rem] whitespace-nowrap text-[clamp(118px,31vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white md:translate-y-0 md:text-[clamp(88px,16vw,240px)]">
             AI MINDSET
           </div>
         </div>
@@ -3811,14 +3922,16 @@ export default function LabW26PageV3() {
           </div>
         </Container>
       </footer>
-
-      <a
-        href="#pricing"
-        onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
-        className={`${DARK_CTA_BUTTON_CLASS} fixed bottom-3 left-4 right-4 z-[390] text-center md:hidden`}
-      >
-        /хочу на лабу
-      </a>
+      {showDockedMobileCta ? (
+        <a
+          href="#pricing"
+          onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
+          className={`${DARK_CTA_BUTTON_CLASS} fixed left-4 right-4 z-[390] text-center md:hidden`}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
+        >
+          /хочу на лабу
+        </a>
+      ) : null}
 
       <AnimatePresence>
         {isCasesOverlayOpen ? (

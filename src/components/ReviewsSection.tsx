@@ -206,7 +206,7 @@ export const ReviewsSection = ({ mode = 'default' }: ReviewsSectionProps) => {
                   </div>
 
                   <div className="flex-grow">
-                    <p className={`font-mono ${isExpanded ? 'text-[12px] md:text-[14px]' : isMobile ? 'text-[11px]' : 'text-[12px] md:text-[13px]'} ${isExpanded && isLiveMode ? 'mb-3' : 'mb-4'} leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
+                    <p className={`font-mono ${isExpanded ? 'text-[13px] md:text-[14px]' : isMobile ? 'text-[13px]' : 'text-[12px] md:text-[13px]'} ${isExpanded && isLiveMode ? 'mb-3' : 'mb-4'} leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity whitespace-pre-line`}>
                       <span className="text-[#8DC63F] mr-1">{'»'}</span>
                       {review.quote}
                     </p>
@@ -216,8 +216,8 @@ export const ReviewsSection = ({ mode = 'default' }: ReviewsSectionProps) => {
                     <div className={isExpanded && isLiveMode ? 'flex flex-col items-start gap-1 text-left' : 'flex justify-between items-end gap-3 text-left'}>
                       <div className="min-w-0 flex-1">
                         <p className={cn(
-                          "font-mono text-[9px] md:text-[10px] uppercase tracking-[0.02em] leading-tight text-black/40 line-clamp-2",
-                          isExpanded && isLiveMode && "text-[10px] text-black/50"
+                          "font-mono text-[11px] md:text-[10px] uppercase tracking-[0.02em] leading-tight text-black/40 line-clamp-2",
+                          isExpanded && isLiveMode && "text-[11px] md:text-[10px] text-black/50"
                         )}>
                           {`[ ${review.role} ]`}
                         </p>
