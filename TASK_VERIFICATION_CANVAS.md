@@ -2,11 +2,76 @@
 
 ## User Requests
 
+- Task: В разделе "Философия" (Mindset) на desktop чуть-чуть опустить вниз круглые кнопки навигации (влево-вправо), чтобы они не налезали на текст. Только для desktop, на mobile оставить как есть. Сохранить логику фиксации кнопок.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: В `LabW26PageV3.tsx` уменьшены значения `bottom` для контейнера кнопок на desktop (`md:bottom-8 -> md:bottom-6`, `lg:bottom-9 -> lg:bottom-7`), что опустило их ниже примерно на 8-10 пикселей. Mobile-значение `bottom-[4.25rem]` не менялось. Проверка в браузере подтвердила отсутствие наезда на текст при сохранении фиксированной позиции.
+
+- Task: На mobile в первом блоке `Программа` разложить `Недельный ритм` в две строки, убрать зазоры между ячейками и выровнять размеры дней так, чтобы кроме `ЧТ` и `ВС` они были одинаковыми
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: После скриншотного фидбэка mobile `wrap` убран полностью. Вместо него сделаны две явные строки с немного более широкими ячейками и переносом `ПТ` во второй ряд: `ПН ВТ СР ЧТ` и `ПТ СБ ВС`. Внутренний рендер ячейки унифицирован с desktop-версией через общий helper, так что логика нижней посадки текста и типографика теперь одинаковые; внешнего box вокруг всего ритма нет, border остаётся только у самих ячеек.
+- Task: Убрать новый бежевый blank-screen после refresh на live-странице, когда сайт на секунду появляется, а потом пропадает
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Причина найдена и исправлена в `DesktopTechUiV5`: приложение падало в рантайме на `TypeError: Cannot read properties of null (reading 'rafId')` внутри новой scroll-lock логики, после чего `DevErrorBoundary` гасил весь React tree и оставлял только фоновую подложку. Null-bug в `clearAutoScrollLock` исправлен, `main.tsx` усилен так, чтобы dev-overlay теперь показывал и React render errors, а не только `window error`. После фикса `npm run build` прошёл, а headless-check на `http://127.0.0.1:3001/#hero` и `http://127.0.0.1:3001/lab-w26/v3#hero` больше не видит пропажи `main/#hero`.
+
+- Task: На mobile убрать лаги и белые экраны при `Смотреть детали` и переходе из меню в `Философию`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: После дополнительного прохода визуальный rollback снят: boxer в hero и анимированная `Философия` возвращены. Технические mobile-фиксы сохранены: touch-mobile переходы идут через `auto`, scroll-driven hash-sync отключён именно для touch-mobile, `Смотреть детали` больше не делает delayed mobile scroll и не анимирует height на touch-mobile, mobile menu сначала закрывается и только потом скроллит к секции, boxer-canvas ставит на паузу RAF вне viewport/background tab, тяжёлые блоки ниже первого экрана подгружаются ближе к viewport, а новый lock-path больше не трогает `document.documentElement.style.overflow` и работает только через `body` с восстановлением предыдущего значения. `npm run lint` и `npm run build` прошли; живая проверка в Arc/на телефоне ещё нужна.
+
+- Task: На mobile повторно добить правый горизонтальный скролл и жёлтую пустую полосу справа после неудачного прошлого прохода
+  Status: user-approved
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Пользователь подтвердил 2026-04-07, что горизонтального скролла больше нет. После возврата boxer/анимаций сохранены именно технические overflow-фиксы: mobile-only x-clamp на корне, bounded mobile layout, безопасная ширина cookie popup и отсутствие лишнего CSS-hidden case-хвоста на touch-mobile.
+
+- Task: На больших desktop-экранах ограничить максимальную ширину `Недельного ритма`, чтобы блок не расползался шире нужного
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: В `LabW26PageV3` максимальная ширина desktop-календаря снижена ещё примерно на 5 процентов: `max-w-[668px] -> max-w-[636px]`. Внутренние пропорции дней и сужение `ЧТ/ВС` не менялись; изменён только верхний предел общей ширины, чтобы на больших экранах блок не выглядел растянутым.
+
+- Task: В desktop `Программе` сделать переключение недель дискретным: короткий scroll должен двигать только на одну неделю, а клик по неделе не должен прогонять blur-переходы через промежуточные недели
+  Status: user-approved
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Пользователь подтвердил 2026-04-07, что desktop-переключение недель теперь работает нормально. Финальный фикс: единый progress-мэппинг для click-target и scroll-sync плюс wheel-step от фактической недели по текущему rect.
+
+- Task: В desktop `Философии` увеличить три pillar-анимации ещё примерно на 10 процентов и выровнять их визуально по центру, особенно опустив `Практику` и немного `Персонализацию`
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Последний проход переведён на per-image alignment вместо shell-alignment: общий desktop art-slot снова увеличен примерно на 10%, shell почти нейтрализован, а `Практика` и `Персонализация` опускаются уже внутри общего слота через image-level `translate-y`, чтобы визуальный центр самих анимаций совпал с `Сообществом`. `npm run lint` и `npm run build` прошли; нужна живая desktop-проверка в Arc.
+
+- Task: В desktop-блоке `Философия / Mindset` чуть развести вертикально верхний текст, большую цитату и нижние стрелки, чтобы элементы перестали наезжать друг на друга
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: В `LabW26PageV3` divider между `Философией` и `Mindset` слегка увеличен (`py-2 -> py-3/4`), секции `mindset` добавлен небольшой верхний отступ, высота quote-area на desktop увеличена на `1rem`, а нижний control-row со стрелками опущен чуть ниже (`md:bottom-10 -> md:bottom-8`, `lg:bottom-9`). Правка намеренно минимальная, только чтобы снять налезание без изменения общей композиции.
+
+- Task: В desktop `Программе` сделать hover/active-поле недельного rail менее скруглённым и заметно шире, а сам main-card пододвинуть ближе к неделям без лишнего зазора
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: В `LabW26PageV3` у week-rail радиус hover-плашки снижен до `2px`, сама rail-колонка расширена (`120 -> 146`), hit-area недели вытянута вправо через `pr-5`, а gap до основного белого полотна уменьшен до `6px`. Одновременно `FINAL DEMO DAY` приведён к тому же радиусу, а max-width main-card слегка расширен (`940 -> 960`), чтобы на узких desktop-экранах контентное полотно начиналось ближе к rail и занимало больше полезной ширины. Нужна живая desktop-проверка по фактическому ощущению расстояния и плотности.
+
+- Task: В desktop `Cases` убрать задержку первого hover-цикла, чтобы SVG сразу становился белым и анимация начиналась мгновенно и плавно с первого кадра
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: После нового пользовательского фидбэка поведение разделено: статичный SVG снова остаётся в исходных цветах, а animated desktop-hover markup переводится в `currentColor`, поэтому на hover должен снова становиться белым без постоянного tint в покое. Одновременно visual-state карточки теперь завязан на тот же `shouldAnimate`, что и сам hover-animation, чтобы уменьшить баг с двумя зелёными карточками при быстром переходе мышью. Сборка прошла; нужна живая desktop-проверка в Arc.
+
 - Task: На mobile payment popup по кнопке `присоединиться` не должен обрезаться сверху при открытом системном нижнем меню iPhone, а верхний mobile header нужно уменьшить ещё примерно на 10 процентов
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `PricingPaymentPopupNeon` mobile overlay переведён с вертикального центрирования на нижнюю посадку с safe-area (`items-end`, `pb-[calc(env(safe-area-inset-bottom)+12px)]`), а высота самого popup ограничена через `max-h: calc(100dvh - safe-area - 1.5rem)`, чтобы верхушка не обрезалась при системной панели iPhone. В `LabW26PageV3` mobile header дополнительно ужат с `py-[0.85rem]` до `py-[0.75rem]`; desktop-ветки не менялись.
+  Last Checked: 2026-04-07
+  Note: В `PricingPaymentPopupNeon` mobile overlay переведён с вертикального центрирования на нижнюю посадку с safe-area (`items-end`, `pb-[calc(env(safe-area-inset-bottom)+32px)]`), а высота самого popup ограничена через `max-h: calc(100dvh - safe-area - 1.5rem)`, чтобы верхушка не обрезалась при системной панели iPhone. После нового пользовательского фидбэка popup дополнительно поднят ещё на `20px` относительно прошлого варианта. В `LabW26PageV3` mobile header дополнительно ужат с `py-[0.85rem]` до `py-[0.75rem]`; desktop-ветки не менялись.
 
 - Task: На mobile уменьшить примерно вдвое разрыв между большим mindset-цитатным блоком и тарифами, а в `Отзывы` поднять слишком мелкий текст до нормального мобильного кегля
   Status: implemented
@@ -27,22 +92,28 @@
   Note: В `LabW26PageV3` фоновая footer-надпись переведена на mobile-only lower placement: контейнер теперь выравнивается к низу, opacity снижена с `0.09` до `0.07`, а сама надпись увеличена на mobile и сдвинута вниз через `translate-y-[1.2rem]`, чтобы она мягче перекрывала нижнюю инфо-зону. Desktop-вид оставлен прежним через `md:*`.
 
 - Task: На mobile в `Недельном ритме` выровнять подписи мероприятий, чтобы текст не прыгал, не вылезал и не обрезался, и сделать `ЧТ` и `ВС` примерно вдвое уже остальных дней
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: После пользовательского фидбэка откатан ошибочный mobile one-line layout. В `ProgramIntegratedTimeline` mobile `Недельный ритм` снова собран в две строки: верхний ряд `ПН/ВТ/СР/ЧТ`, нижний `ПТ/СБ/ВС`. Сужение сохранено только у `ЧТ` и `ВС`, остальные дни не менялись по концепции. Внутренние подписи оставлены в стабильной трёхрядной структуре с мягким переносом, чтобы текст не прыгал и не вылезал. Desktop-сетка не менялась.
-
-- Task: Убрать оставшийся mobile горизонтальный скролл с бежевой полосой справа и в блоке `Философия` сильно приблизить анимации к тексту
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` root страницы переведён в `overflow-x-hidden`, а мобильный oversized art-wrapper у `MindsetDynamicArt` дополнительно зажат через локальный `overflow-hidden`, потому что именно масштабируемые арт-блоки были главным кандидатом на правый вылет за viewport. В `Философии` mobile-gap между art и текстом резко уменьшен: art-shell стал ниже (`198 -> 168`), его внутренний `py` снижен (`6 -> 2`), а верхний отступ текстового блока уменьшен с `mt-5` до `mt-1.5`. Нужна проверка на телефоне, что полоса исчезла и art действительно подошёл к заголовку примерно в 3 раза ближе.
+  Last Checked: 2026-04-07
+  Note: После нового фидбэка mobile `ProgramIntegratedTimeline` локально возвращён именно к состоянию из `5c7ceef`, где секция `Program` ещё работала вместе с full-height desktop right panel. Спорный split-layout снят, forced-open логика сохранена. `npm run lint` прошёл, но mobile календарь всё ещё требует живой визуальной проверки.
+
+- Task: Убрать оставшийся mobile горизонтальный скролл с бежевой полосой справа и в блоке `Философия` сильно приблизить анимации к тексту
+  Status: requested
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Пользователь сообщил 2026-04-07, что правый вылет и жёлтая полоса всё ещё есть, значит предыдущий `overflow-x-hidden`-проход нельзя считать закрытым. Исторический пункт оставлен открытым; актуальный follow-up зафиксирован отдельной задачей выше.
 
 - Task: На mobile в блоке `Cases` активная карточка должна вести себя почти как desktop hover: выделяться зелёным, переводить SVG в белое animated-состояние и переключаться по карточке, которая ближе всего к середине экрана
-  Status: self-checked
+  Status: requested
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` mobile activation доведён в два слоя. Сначала для первых четырёх case-card добавлен viewport-selection по ближайшей карточке к центру экрана. После нового отрицательного фидбэка найден и исправлен сам trigger-path: refs переведены с внешнего wrapper на реальную кнопку-карточку, mobile check переведён на `matchMedia('(min-width: 768px)')`, зона видимости сужена до центральной части экрана, и добавлен fallback на первую видимую карточку, чтобы на mobile никогда не было состояния без активного кейса. Параллельно activated SVG принудительно тинтуется в `currentColor`/white с glow, а media-shell сохраняет тёмный фон. Desktop hover не менялся.
+  Last Checked: 2026-04-07
+  Note: Пользователь 2026-04-07 явно снял эту механику с текущего прохода и хочет делать `Cases` отдельным агентом. Исторический пункт оставлен в canvas как отложенный, но из активной очереди текущего прохода исключён.
+
+- Task: Убрать тёплый/yellow background вокруг секции `Cases`, который всплывает на mobile при попытке скроллить вверх/вниз около контейнера кейсов
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Первичная гипотеза про внешний фон секции оказалась неверной и пользователь её отклонил; визуальный background `Cases` возвращён без изменения дизайна. Текущий follow-up перенесён в техническую плоскость: на touch-mobile статичный visual кейса больше не монтируется как тяжёлый inline SVG-DOM, а рендерится как image data URI из уже очищенного static SVG. Это должно снизить repaint/jank именно при быстром проскролле вокруг секции `Cases`, не меняя её вид.
 
 - Task: На mobile убрать зазор между верхним header и бегущей строкой, уменьшить высоту header примерно на 15 процентов и устранить горизонтальный скролл с бежевым фоном
   Status: implemented
@@ -53,14 +124,14 @@
 - Task: На mobile fixed-кнопка `/хочу на лабу` должна появляться только после того, как пользователь реально доскроллил до исходной hero-кнопки, и не дублироваться, пока она ещё видна
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: После нового фидбэка hero CTA возвращён в mobile hero и больше не скрывается. Docked-версия оставлена отдельной fixed-кнопкой того же дизайна, но выровнена по высоте под hero CTA (`py-5`) и сужена по ширине до `min(calc(100vw - 3rem), 18rem)`, чтобы не растягиваться на весь экран. Подъём от нижнего края через `bottom: calc(env(safe-area-inset-bottom) + 32px)` сохранён.
+  Last Checked: 2026-04-07
+  Note: После нового фидбэка отдельная mobile fixed-кнопка снята. Вместо неё сам hero CTA на mobile сделан шире и переведён в sticky-вариант внутри секции `hero`: это та же кнопка того же дизайна, которая прилипает к нижнему safe-area во время scroll внутри hero и исчезает вместе с выходом из секции. Desktop-поведение не менялось.
 
 - Task: Довести desktop-блок `программа` на живой странице до реально видимого состояния: правый full-height black panel с glow-art и двумя glass-карточками, плюс заметно более узкие `ЧТ` и `ВС`
-  Status: self-checked
+  Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Найдена причина расхождения: live `/` использовал desktop `ProgramIntegratedTimeline` со stacked-карточками, хотя в коде рядом уже существовал более старый detailed V5-layout. Текущий проход вернул в `LabW26PageV3` desktop-рендер через `DesktopTechUiV5` с левой вертикальной шкалой недель, `DEMO DAY`, большой main-track canvas и правой full-height black advanced-panel. После нового фидбэка отдельно откатан regression в desktop scroll-shell: из `DesktopTechUiV5` убран принудительный `forcedOpen` sync, который менял active week через state без реального перемещения sticky-scroll. Mobile программа не менялась.
+  Last Checked: 2026-04-07
+  Note: После дополнительной сверки выяснилось, что сам desktop `Program` уже был одинаковым в `a25be2e` и `333ca35`, а значит часть регрессии пришла не из него, а из более позднего page-level mobile-layer. Локально сняты docked mobile CTA-observers и global `overflow-x-hidden`, добавленные после рабочей точки и не относящиеся к desktop `Program`. `npm run lint` прошёл, preview на `:3001` отвечает `200 OK`; нужна живая пользовательская проверка desktop-scroll и пустоты после блока.
 
 - Task: В live FAQ убрать двойную линию под вопросом и увеличить расстояние между верхним label блока, названием раздела и первым `q:`
   Status: self-checked
@@ -534,6 +605,24 @@
   Note: Пагинация `1 / 2` снята, внизу секции оставлена кнопка-стрелка `открыть все отзывы / свернуть отзывы`, expanded-flow работает через единую masonry/grid раскладку. Дополнительно live-версия уже отдельно доточена по белому фону, `tg ->` и логике скобок, поэтому историческую задачу больше не держим в `requested`.
 
 ## Agent Self-Checks
+- Task: Проверить, что mobile-правка `Недельного ритма` в `Программе` не ломает сборку и доступна на локальном preview
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: После правки mobile-раскладки в `ProgramIntegratedTimeline` прошли `npm run lint` и `npm run build`; локальный dev preview на `http://127.0.0.1:3001/#program` отвечает `HTTP 200`. Headless mobile screenshot в этой среде не завершился штатно, поэтому финальная визуальная проверка остаётся за пользователем на живом preview.
+
+- Task: Проверить, что реальный `aimwebsite0.5` собирается после mobile stability-pass и что локальный preview идёт из правильного репо
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: Реальный репозиторий `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AI Mindset` собран через `npm run build` без ошибок; `localhost:3001` подтверждён как dev-server именно из этого каталога. Живая browser-check в Arc остаётся на user-review, потому что OS-level desktop screenshots остановлены по запросу пользователя.
+
+- Task: Подтвердить, что refresh больше не уводит live-страницу в бежевый blank-screen
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: После фикса null-crash в `DesktopTechUiV5` прогнаны `npm run build`, `npm run lint`, `curl` на `/` и `/lab-w26/v3` (`HTTP 200`), а также headless refresh-check на `http://127.0.0.1:3001/#hero` и `http://127.0.0.1:3001/lab-w26/v3#hero`: `main` и `#hero` остаются в DOM, runtime overlay пустой, мгновенного провала в фон больше не наблюдается.
+
 - 2026-04-06: `DesktopTechUiV5` self-check rerun. Fixed desktop overlap by giving the left program column a hard minimum width and reducing the right panel to `320px`; normalized empty-day weekly-rhythm fill back to neutral gray; tightened and enlarged the `разделы страницы` marker so it lives inside the same row with the label. Build passed and both `localhost:3001` and LAN preview returned `HTTP 200`.
 
 - Task: Подтвердить, что правки блока `Спикеры` внесены именно в GitHub-backed repo `eppelas/aimwebsite0.5`, а не в старый локальный клон

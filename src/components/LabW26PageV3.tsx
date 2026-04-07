@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'motion/react';
 import {
   Menu,
   ChevronRight,
@@ -36,6 +36,58 @@ interface CaseCard {
 }
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
+
+const TOUCH_MOBILE_VIEWPORT_QUERY = '(max-width: 767px) and (hover: none) and (pointer: coarse)';
+const MD_VIEWPORT_QUERY = '(min-width: 768px)';
+const LG_VIEWPORT_QUERY = '(min-width: 1024px)';
+
+const getMediaQueryMatch = (query: string) => typeof window !== 'undefined' && window.matchMedia(query).matches;
+
+const useMediaQuery = (query: string) => {
+  const [matches, setMatches] = useState(() => getMediaQueryMatch(query));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQueryList = window.matchMedia(query);
+    const syncMatch = () => setMatches(mediaQueryList.matches);
+    syncMatch();
+
+    if (typeof mediaQueryList.addEventListener === 'function') {
+      mediaQueryList.addEventListener('change', syncMatch);
+      return () => mediaQueryList.removeEventListener('change', syncMatch);
+    }
+
+    mediaQueryList.addListener(syncMatch);
+    return () => mediaQueryList.removeListener(syncMatch);
+  }, [query]);
+
+  return matches;
+};
+
+const useNearViewport = <T extends Element>(rootMargin: string) => {
+  const elementRef = useRef<T | null>(null);
+  const [isNearViewport, setIsNearViewport] = useState(false);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element || isNearViewport) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setIsNearViewport(true);
+        observer.disconnect();
+      },
+      { rootMargin, threshold: 0.01 },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [isNearViewport, rootMargin]);
+
+  return [elementRef, isNearViewport] as const;
+};
 
 const chunkArray = <T,>(items: T[], size: number) =>
   Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
@@ -181,11 +233,12 @@ const normalizeCaseSvgMarkup = (svgMarkup: string) =>
       '<svg$1 class="h-full w-full overflow-visible" preserveAspectRatio="xMidYMid meet">',
     );
 
-const tintCaseSvgMarkupForActivatedState = (svgMarkup: string) =>
+const convertCaseSvgMarkupToCurrentColor = (svgMarkup: string) =>
   svgMarkup
-    .replace(/\sstroke="(?!none)[^"]*"/gi, ' stroke="currentColor"')
-    .replace(/\sfill="(?!none)[^"]*"/gi, ' fill="currentColor"')
-    .replace(/<svg\b([^>]*)class="([^"]*)"/i, '<svg$1class="$2 text-white"');
+    .replace(/stroke="(?!none)[^"]*"/gi, 'stroke="currentColor"')
+    .replace(/fill="(?!none)[^"]*"/gi, 'fill="currentColor"')
+    .replace(/style="([^"]*?)stroke\s*:\s*([^;"]+)(;?)([^"]*?)"/gi, 'style="$1stroke: currentColor$3$4"')
+    .replace(/style="([^"]*?)fill\s*:\s*([^;"]+)(;?)([^"]*?)"/gi, 'style="$1fill: currentColor$3$4"');
 
 const stripCaseSvgAnimation = (svgMarkup: string) =>
   svgMarkup
@@ -234,7 +287,7 @@ const loadAnimatedCaseSvgMarkup = async (assetName: string) => {
       }
 
       const rawMarkup = await response.text();
-      const animatedMarkup = normalizeCaseSvgMarkup(rawMarkup);
+      const animatedMarkup = normalizeCaseSvgMarkup(convertCaseSvgMarkupToCurrentColor(rawMarkup));
       CASE_ANIMATED_SVG_CACHE.set(assetName, animatedMarkup);
       return animatedMarkup;
     })
@@ -260,8 +313,13 @@ function CaseVisualGraphic({
   animateNonce?: number;
 }) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
+  const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
   const [animatedMarkup, setAnimatedMarkup] = useState<string | null>(() => CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
+  const staticDataUri = useMemo(() => {
+    if (!staticMarkup) return null;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(staticMarkup)}`;
+  }, [staticMarkup]);
 
   useEffect(() => {
     let disposed = false;
@@ -274,6 +332,21 @@ function CaseVisualGraphic({
         if (!disposed) setStaticMarkup(null);
       });
 
+    return () => {
+      disposed = true;
+    };
+  }, [assetName]);
+
+  useEffect(() => {
+    let disposed = false;
+
+    if (isTouchMobileViewport && !animate) {
+      setAnimatedMarkup(CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
+      return () => {
+        disposed = true;
+      };
+    }
+
     loadAnimatedCaseSvgMarkup(assetName)
       .then((markup) => {
         if (!disposed) setAnimatedMarkup(markup);
@@ -285,23 +358,45 @@ function CaseVisualGraphic({
     return () => {
       disposed = true;
     };
-  }, [assetName]);
+  }, [animate, assetName, isTouchMobileViewport]);
 
   const renderedMarkup = useMemo(() => {
-    const baseMarkup = animate ? animatedMarkup ?? staticMarkup : staticMarkup;
-    if (!baseMarkup) return null;
-    return activated ? tintCaseSvgMarkupForActivatedState(baseMarkup) : baseMarkup;
-  }, [activated, animate, animatedMarkup, staticMarkup]);
+    return animate ? animatedMarkup ?? staticMarkup : staticMarkup;
+  }, [animate, animatedMarkup, staticMarkup]);
+
+  if (isTouchMobileViewport && !animate && staticDataUri) {
+    return (
+      <div
+        aria-hidden
+        className={cn(
+          "flex h-full w-full origin-center items-center justify-center",
+          activated
+            ? "drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
+            : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)]",
+          className,
+        )}
+      >
+        <img
+          src={staticDataUri}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
       key={animate ? `case-animated-${index}-${animateNonce}` : `case-static-${index}`}
       aria-hidden
       className={cn(
-        "flex h-full w-full origin-center items-center justify-center text-[#65d7ff] [&_svg]:h-full [&_svg]:w-full",
+        "flex h-full w-full origin-center items-center justify-center [&_svg]:h-full [&_svg]:w-full",
         activated
-          ? "text-white drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
-          : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)] group-hover:text-white group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.2)]",
+          ? "drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
+          : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)] group-hover:drop-shadow-[0_0_14px_rgba(255,255,255,0.2)]",
         className,
       )}
       dangerouslySetInnerHTML={renderedMarkup ? { __html: renderedMarkup } : undefined}
@@ -979,7 +1074,27 @@ const PhilosophyActionArt = () => <AsciiShuffler frames={philosophyActionFrames}
 const PhilosophySynergyArt = () => <AsciiShuffler frames={philosophySynergyFrames} interval={2500} />;
 const PhilosophyTrajectoryArt = () => <AsciiShuffler frames={philosophyTrajectoryFrames} interval={900} />;
 
-const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy' | 'trajectory' }) => {
+const getPhilosophyPillarArtShellClassName = (art: 'foundation' | 'action' | 'synergy' | 'trajectory') => {
+  if (art === 'action') return "translate-y-[2%] md:translate-y-[1%]";
+  if (art === 'trajectory') return "translate-y-[1%] md:translate-y-[1%]";
+  if (art === 'synergy') return "translate-y-[1%] md:translate-y-[1%]";
+  return "translate-y-[1%] md:translate-y-[1%]";
+};
+
+const getPhilosophyPillarArtImageClassName = (art: 'foundation' | 'action' | 'synergy' | 'trajectory') => {
+  if (art === 'action') return "h-full w-full origin-center object-contain object-center translate-y-[2%] md:translate-y-[8%] scale-[1.04] md:scale-[1.1]";
+  if (art === 'trajectory') return "h-full w-full origin-center object-contain object-center translate-y-[1%] md:translate-y-[5%] scale-[1.03] md:scale-[1.08]";
+  if (art === 'synergy') return "h-full w-full origin-center object-contain object-center scale-[1.04] md:scale-[1.1]";
+  return "h-full w-full origin-center object-contain object-center scale-[1.02] md:scale-[1.08]";
+};
+
+const PhilosophyPillarArt = ({
+  art,
+  deferHeavyMedia = false,
+}: {
+  art: 'foundation' | 'action' | 'synergy' | 'trajectory';
+  deferHeavyMedia?: boolean;
+}) => {
   const src =
     art === 'synergy'
       ? philosophyAnimation('philosophy-community-morph-0-3.svg')
@@ -989,14 +1104,21 @@ const PhilosophyPillarArt = ({ art }: { art: 'foundation' | 'action' | 'synergy'
           ? philosophyAnimation('philosophy-personalization-morph-0-2.svg')
           : null;
 
-  if (src) {
+  if (src && !deferHeavyMedia) {
     return (
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className="block h-full w-full object-contain object-center"
-      />
+      <div className={cn("flex h-full w-full items-center justify-center overflow-hidden", getPhilosophyPillarArtShellClassName(art))}>
+        <img
+          src={src}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className={cn(
+            "block max-h-full max-w-full transition-transform duration-300",
+            getPhilosophyPillarArtImageClassName(art),
+          )}
+        />
+      </div>
     );
   }
 
@@ -1468,6 +1590,7 @@ const ProgramIntegratedTimeline = ({
   const [expandedIndexes, setExpandedIndexes] = useState<number[]>([]);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const advancedCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const metaTagClass = 'font-mono text-[8px] md:text-[10px] tracking-[0.14em] font-bold text-black/46';
   const metaTrackClass = `${metaTagClass} inline-flex items-center gap-1.5`;
 
@@ -1476,13 +1599,13 @@ const ProgramIntegratedTimeline = ({
       const alreadyOpen = prev.includes(idx);
       let next: number[];
 
-      if (allowMultipleDesktop) {
+      if (allowMultipleDesktop && !isTouchMobileViewport) {
         next = alreadyOpen ? prev.filter((value) => value !== idx) : [...prev, idx];
       } else {
         next = alreadyOpen ? [] : [idx];
       }
 
-      if (next.includes(idx) && !alreadyOpen) {
+      if (next.includes(idx) && !alreadyOpen && !isTouchMobileViewport) {
         window.setTimeout(() => {
           cardRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 120);
@@ -1498,9 +1621,69 @@ const ProgramIntegratedTimeline = ({
       const target = focusAdvancedOnForce
         ? advancedCardRefs.current[forcedOpenIndex]
         : cardRefs.current[forcedOpenIndex];
-      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target?.scrollIntoView({ behavior: isTouchMobileViewport ? 'auto' : 'smooth', block: 'center' });
     }, 220);
-  }, [focusAdvancedOnForce, forcedOpenIndex, forcedOpenNonce]);
+  }, [focusAdvancedOnForce, forcedOpenIndex, forcedOpenNonce, isTouchMobileViewport]);
+
+  const mobileWeeklyRhythmRows = [PROGRAM_WEEKLY_RHYTHM.slice(0, 4), PROGRAM_WEEKLY_RHYTHM.slice(4)];
+
+  const renderWeeklyRhythmCell = (
+    day: (typeof PROGRAM_WEEKLY_RHYTHM)[number],
+    key: string,
+    options?: { mobile?: boolean },
+  ) => {
+    const isWorkshop = day.type === 'workshop';
+    const isAdvanced = day.type === 'advanced';
+    const isOff = day.type === 'off';
+    const labelTone = isWorkshop || isAdvanced ? 'text-[9px] text-white' : isOff ? 'text-[9px] opacity-0' : 'text-[8.5px] text-black/80';
+
+    return (
+      <div
+        key={key}
+        className={cn(
+          "min-w-0 flex flex-col px-1.5 pt-2 pb-[3px] relative transition-colors",
+          options?.mobile ? "h-[68px] -mr-px border last:mr-0" : "h-[46px]",
+          options?.mobile
+            ? isOff
+              ? "w-[1.85rem]"
+              : "w-[4.35rem]"
+            : "",
+          isWorkshop
+            ? "bg-[#8DC63F] border-[#8DC63F] text-white"
+            : isAdvanced
+              ? "bg-black border-black text-white"
+              : isOff
+                ? "bg-black/[0.05] border-black/10 text-black/36"
+                : "bg-white border-black/12 text-black/72"
+        )}
+      >
+        <div className="flex flex-col items-start mb-0">
+          <span className={cn("text-[8.5px] font-mono font-black tracking-widest leading-none", isWorkshop ? "text-white/80" : isAdvanced ? "text-white/60" : "text-black/40")}>
+            {day.day}
+          </span>
+          {day.time ? (
+            <div className={cn("mt-[3px] whitespace-nowrap font-mono text-[7px] font-bold tracking-[0.12em] leading-[1.15]", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>
+              {day.time}
+            </div>
+          ) : null}
+        </div>
+        <div
+          className={cn(
+            "mt-auto flex min-h-[1.9rem] min-w-0 flex-col justify-end text-left font-sans font-black uppercase leading-[0.92] tracking-tight [overflow-wrap:normal] [word-break:normal] [hyphens:none]",
+            labelTone,
+          )}
+        >
+          {day.label.includes(' ')
+            ? day.label.split(' ').map((word, wordIndex) => (
+                <span key={`${key}-${wordIndex}`} className="block whitespace-nowrap">
+                  {word}
+                </span>
+              ))
+            : day.label || ' '}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="relative w-full max-w-none">
@@ -1619,10 +1802,10 @@ const ProgramIntegratedTimeline = ({
                 <AnimatePresence initial={false}>
                   {isExpanded && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
+                      initial={isTouchMobileViewport ? false : { height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.38, ease: 'easeInOut' }}
+                      transition={isTouchMobileViewport ? { duration: 0 } : { duration: 0.38, ease: 'easeInOut' }}
                     >
                       <div className="relative z-30 px-5 md:px-7 pb-5 pt-0.5">
                         <div className="relative grid gap-5 lg:gap-7">
@@ -1656,127 +1839,15 @@ const ProgramIntegratedTimeline = ({
 
                             <div className="mt-3.5 relative">
                               <div className="text-[8px] uppercase font-bold tracking-[0.16em] text-black/28 mb-2">Недельный ритм</div>
-                              <div className="grid gap-1 md:hidden">
-                                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1">
-                                  {PROGRAM_WEEKLY_RHYTHM.slice(0, 4).map((day) => (
-                                    <div
-                                      key={`${track.id}-${day.day}-mobile-top`}
-                                      className={cn(
-                                        "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em]",
-                                        day.type === 'advanced'
-                                          ? 'bg-black border-black text-white'
-                                          : day.type === 'off'
-                                            ? 'bg-black/[0.05] border-black/10 text-black/36'
-                                            : day.type === 'workshop'
-                                              ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
-                                              : day.type === 'qna'
-                                                ? 'bg-[#eff3ea] border-black/12 text-black/70'
-                                                : 'bg-white border-black/12 text-black/72'
-                                      )}
-                                    >
-                                      <div className="flex justify-between items-start">
-                                        <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
-                                        {day.type === 'advanced' ? (
-                                          <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
-                                        ) : null}
-                                      </div>
-                                      <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
-                                        {'time' in day && day.time ? day.time : ' '}
-                                      </div>
-                                      <div className="mt-auto flex min-h-[1.7rem] items-end">
-                                        <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
-                                          day.type === 'advanced' || day.type === 'workshop'
-                                            ? 'text-white'
-                                            : day.type === 'off'
-                                              ? 'text-transparent'
-                                              : 'text-black/70'
-                                        }`}>
-                                          {day.label || ' '}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] gap-1">
-                                  {PROGRAM_WEEKLY_RHYTHM.slice(4).map((day) => (
-                                    <div
-                                      key={`${track.id}-${day.day}-mobile-bottom`}
-                                      className={cn(
-                                        "relative grid h-[56px] grid-rows-[auto_auto_1fr] border px-1 py-1.5 text-[8px] uppercase tracking-[0.04em]",
-                                        day.type === 'advanced'
-                                          ? 'bg-black border-black text-white'
-                                          : day.type === 'off'
-                                            ? 'bg-black/[0.05] border-black/10 text-black/36'
-                                            : day.type === 'workshop'
-                                              ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
-                                              : day.type === 'qna'
-                                                ? 'bg-[#eff3ea] border-black/12 text-black/70'
-                                                : 'bg-white border-black/12 text-black/72'
-                                      )}
-                                    >
-                                      <div className="flex justify-between items-start">
-                                        <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
-                                        {day.type === 'advanced' ? (
-                                          <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
-                                        ) : null}
-                                      </div>
-                                      <div className={`mt-[2px] min-h-[0.65rem] font-mono text-[5.5px] font-bold tracking-[0.1em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
-                                        {'time' in day && day.time ? day.time : ' '}
-                                      </div>
-                                      <div className="mt-auto flex min-h-[1.7rem] items-end">
-                                        <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
-                                          day.type === 'advanced' || day.type === 'workshop'
-                                            ? 'text-white'
-                                            : day.type === 'off'
-                                              ? 'text-transparent'
-                                              : 'text-black/70'
-                                        }`}>
-                                          {day.label || ' '}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] md:gap-1.5">
-                                {PROGRAM_WEEKLY_RHYTHM.map((day) => (
-                                  <div
-                                    key={`${track.id}-${day.day}-desktop`}
-                                    className={cn(
-                                      "relative grid md:h-[46px] grid-rows-[auto_auto_1fr] border md:px-2 md:pt-2 md:pb-2 md:text-[8.5px] uppercase tracking-[0.04em]",
-                                      day.type === 'advanced'
-                                        ? 'bg-black border-black text-white'
-                                        : day.type === 'off'
-                                          ? 'bg-black/[0.05] border-black/10 text-black/36'
-                                          : day.type === 'workshop'
-                                            ? 'bg-[#8DC63F] border-[#8DC63F] text-white'
-                                            : day.type === 'qna'
-                                              ? 'bg-[#eff3ea] border-black/12 text-black/70'
-                                              : 'bg-white border-black/12 text-black/72'
-                                    )}
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div className={`font-black ${day.type === 'advanced' || day.type === 'workshop' ? 'opacity-70' : 'opacity-40'}`}>{day.day}</div>
-                                      {day.type === 'advanced' ? (
-                                        <span className="text-[10px] leading-none font-bold text-[#8DC63F]">*</span>
-                                      ) : null}
-                                    </div>
-                                    <div className={`mt-[2px] min-h-[0.65rem] font-mono md:text-[6.5px] font-bold tracking-[0.14em] ${day.type === 'advanced' || day.type === 'workshop' ? 'text-white/72' : 'text-[#8DC63F]'}`}>
-                                      {'time' in day && day.time ? day.time : ' '}
-                                    </div>
-                                    <div className="mt-auto flex md:min-h-[1.5rem] items-end">
-                                      <div className={`w-full text-left font-bold leading-[1.04] [overflow-wrap:anywhere] ${
-                                        day.type === 'advanced' || day.type === 'workshop'
-                                          ? 'text-white'
-                                          : day.type === 'off'
-                                            ? 'text-transparent'
-                                            : 'text-black/70'
-                                      }`}>
-                                        {day.label || ' '}
-                                      </div>
-                                    </div>
+                              <div className="md:hidden">
+                                {mobileWeeklyRhythmRows.map((row, rowIndex) => (
+                                  <div key={`${track.id}-mobile-rhythm-row-${rowIndex}`} className={cn("flex w-fit max-w-full bg-transparent", rowIndex === 0 ? "-mb-px" : "")}>
+                                    {row.map((day) => renderWeeklyRhythmCell(day, `${track.id}-mobile-${day.day}`, { mobile: true }))}
                                   </div>
                                 ))}
+                              </div>
+                              <div className="hidden md:grid md:w-full md:max-w-[min(100%,28rem)] md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.5fr)] md:gap-1.5">
+                                {PROGRAM_WEEKLY_RHYTHM.map((day) => renderWeeklyRhythmCell(day, `${track.id}-desktop-${day.day}`))}
                               </div>
                             </div>
                           </div>
@@ -2150,9 +2221,24 @@ const ProgramReferenceTechUi = () => {
   );
 };
 
-const DesktopTechUiV5 = () => {
+const DesktopTechUiV5 = ({
+  forcedOpenIndex,
+  forcedOpenNonce,
+}: {
+  forcedOpenIndex?: number;
+  forcedOpenNonce?: number;
+}) => {
   const [activeWeek, setActiveWeek] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const wheelGestureRef = useRef<{
+    accumulatedDelta: number;
+    cooldownUntil: number;
+    resetTimeout: number | null;
+  }>({
+    accumulatedDelta: 0,
+    cooldownUntil: 0,
+    resetTimeout: null,
+  });
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -2162,29 +2248,143 @@ const DesktopTechUiV5 = () => {
   const smoothProgress = useSpring(scrollYProgress, { damping: 40, stiffness: 80, restDelta: 0.001 });
   const svgRotate = useTransform(smoothProgress, [0, 1], [-5, 15]);
   const svgY = useTransform(smoothProgress, [0, 1], [-10, 10]);
+  const lastWeekIndex = PROGRAM_TRACKS.length - 1;
+  const stickyTopOffset = 0.08;
+  const stickyPanelHeight = 580;
 
-  useMotionValueEvent(smoothProgress, "change", (latest) => {
-    let newWeek = Math.min(Math.floor((latest / 0.8) * PROGRAM_TRACKS.length), PROGRAM_TRACKS.length - 1);
-    if (newWeek < 0) newWeek = 0;
+  const resolveWeekIndexFromRect = React.useCallback((rect: DOMRect) => {
+    const stickyTop = window.innerHeight * stickyTopOffset;
+    const stickyBottom = stickyTop + stickyPanelHeight;
 
-    if (newWeek !== activeWeek) {
-      setActiveWeek(newWeek);
-    }
-  });
+    if (rect.top > stickyTop) return 0;
+    if (rect.bottom < stickyBottom) return lastWeekIndex;
+
+    const totalScrollable = Math.max(1, rect.height - window.innerHeight);
+    const progress = Math.max(0, Math.min(1, (stickyTop - rect.top) / totalScrollable));
+    return Math.max(0, Math.min(lastWeekIndex, Math.round(progress * lastWeekIndex)));
+  }, [lastWeekIndex]);
+
+  const getWeekTargetY = React.useCallback((idx: number) => {
+    if (!containerRef.current) return null;
+    const rect = containerRef.current.getBoundingClientRect();
+    const containerTop = window.scrollY + rect.top;
+    const totalScrollable = Math.max(1, rect.height - window.innerHeight);
+    const desiredProgress = lastWeekIndex === 0 ? 0 : Math.max(0, Math.min(1, idx / lastWeekIndex));
+    const desiredRectTop = window.innerHeight * stickyTopOffset - desiredProgress * totalScrollable;
+    return containerTop - desiredRectTop;
+  }, [lastWeekIndex]);
+
+  const syncWeekFromScroll = React.useCallback(() => {
+    if (!containerRef.current) return;
+    const nextWeek = resolveWeekIndexFromRect(containerRef.current.getBoundingClientRect());
+    setActiveWeek((current) => (current === nextWeek ? current : nextWeek));
+  }, [resolveWeekIndexFromRect]);
+
+  const navigateToWeek = React.useCallback((idx: number, behavior: ScrollBehavior = 'auto') => {
+    const clampedIndex = Math.max(0, Math.min(idx, PROGRAM_TRACKS.length - 1));
+    const targetY = getWeekTargetY(clampedIndex);
+
+    setActiveWeek(clampedIndex);
+    if (targetY === null) return;
+
+    window.scrollTo({ top: targetY, behavior });
+    window.requestAnimationFrame(syncWeekFromScroll);
+  }, [getWeekTargetY, syncWeekFromScroll]);
+
+  useEffect(() => {
+    if (forcedOpenNonce === undefined || forcedOpenIndex === undefined) return;
+    navigateToWeek(forcedOpenIndex, 'auto');
+  }, [forcedOpenIndex, forcedOpenNonce, navigateToWeek]);
 
   const handleWeekClick = (idx: number) => {
-    setActiveWeek(idx);
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const totalHeight = rect.height;
-    const targetY =
-      window.scrollY +
-      rect.top +
-      (totalHeight * 0.8 / PROGRAM_TRACKS.length) * idx +
-      (totalHeight * 0.8 / PROGRAM_TRACKS.length / 2) -
-      window.innerHeight / 2;
-    window.scrollTo({ top: targetY, behavior: 'smooth' });
+    navigateToWeek(idx, 'auto');
   };
+
+  useEffect(() => {
+    syncWeekFromScroll();
+
+    const handleScroll = () => {
+      syncWeekFromScroll();
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [syncWeekFromScroll]);
+
+  useEffect(() => {
+    const gestureState = wheelGestureRef.current;
+
+    const clearWheelReset = () => {
+      if (gestureState.resetTimeout !== null) {
+        window.clearTimeout(gestureState.resetTimeout);
+        gestureState.resetTimeout = null;
+      }
+    };
+
+    const resetWheelGesture = () => {
+      gestureState.accumulatedDelta = 0;
+      clearWheelReset();
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      if (!containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const stickyTop = window.innerHeight * stickyTopOffset;
+      const stickyBottom = stickyTop + stickyPanelHeight;
+      const isPinnedSection = rect.top <= stickyTop + 1 && rect.bottom >= stickyBottom - 1;
+
+      if (!isPinnedSection) {
+        resetWheelGesture();
+        return;
+      }
+
+      const direction = Math.sign(event.deltaY);
+      if (direction === 0) return;
+
+      const currentWeek = resolveWeekIndexFromRect(rect);
+      const nextWeek = currentWeek + (direction > 0 ? 1 : -1);
+      const canMoveWithinProgram = nextWeek >= 0 && nextWeek <= lastWeekIndex;
+      if (!canMoveWithinProgram) {
+        resetWheelGesture();
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = performance.now();
+      if (now < gestureState.cooldownUntil) return;
+
+      if (gestureState.accumulatedDelta !== 0 && Math.sign(gestureState.accumulatedDelta) !== direction) {
+        gestureState.accumulatedDelta = 0;
+      }
+
+      gestureState.accumulatedDelta += event.deltaY;
+      clearWheelReset();
+      gestureState.resetTimeout = window.setTimeout(() => {
+        gestureState.accumulatedDelta = 0;
+        gestureState.resetTimeout = null;
+      }, 160);
+
+      if (Math.abs(gestureState.accumulatedDelta) < 24) return;
+
+      gestureState.accumulatedDelta = 0;
+      gestureState.cooldownUntil = now + 360;
+      navigateToWeek(nextWeek, 'auto');
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      clearWheelReset();
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [lastWeekIndex, navigateToWeek, resolveWeekIndexFromRect]);
 
   const track = PROGRAM_TRACKS[activeWeek];
   const weekCopy = PROGRAM_WEEK_COPY[track.id];
@@ -2200,19 +2400,19 @@ const DesktopTechUiV5 = () => {
   ];
 
   return (
-    <div ref={containerRef} className="w-full max-w-[1340px] mx-auto font-sans h-[400vh] relative">
+    <div ref={containerRef} className="w-full max-w-[1340px] mx-auto font-sans h-[200vh] relative">
       <div className="sticky top-[8vh] flex flex-col items-center">
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 items-stretch justify-center h-[580px] w-full pt-12">
-          <div className="w-[120px] shrink-0 flex flex-col relative h-[500px] mt-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-[6px] items-stretch justify-center h-[580px] w-full pt-12">
+          <div className="w-[146px] shrink-0 flex flex-col relative h-[500px] mt-6">
             <div className="absolute left-[11.5px] top-[40px] bottom-[40px] w-[1px] bg-black/20 z-0 pointer-events-none" />
-            <div className="flex-1 flex flex-col w-[120px] gap-2">
+            <div className="flex-1 flex flex-col w-[146px] gap-2">
               {PROGRAM_TRACKS.map((t, idx) => {
                 const isActive = activeWeek === idx;
                 return (
                   <button
                     key={`v5-st-ref-${t.id}`}
                     onClick={() => handleWeekClick(idx)}
-                    className="flex-1 w-full flex items-center gap-4.5 group text-left relative z-10 transition-colors hover:bg-black/[0.04] rounded-[10px] -ml-4 pl-4 cursor-pointer"
+                    className="flex-1 w-full flex items-center gap-4 group text-left relative z-10 transition-colors hover:bg-black/[0.04] rounded-[2px] -ml-3 pl-3 pr-5 cursor-pointer"
                   >
                     <div
                       className={cn(
@@ -2230,7 +2430,7 @@ const DesktopTechUiV5 = () => {
                 );
               })}
             </div>
-            <div className="w-[100px] flex items-center gap-2 p-2 border border-black/10 rounded-[6px] bg-[#f9f9f7] text-left relative z-10 opacity-70 mt-1 mb-8 -ml-1">
+            <div className="w-[118px] flex items-center gap-2 p-2 border border-black/10 rounded-[2px] bg-[#f9f9f7] text-left relative z-10 opacity-70 mt-1 mb-8">
               <div className="flex flex-col">
                 <div className="text-[8.5px] font-mono font-bold uppercase text-black/60 mb-0.5 tracking-wider">FINAL</div>
                 <div className="text-[10px] font-black tracking-widest leading-none text-black/90">DEMO DAY</div>
@@ -2238,7 +2438,7 @@ const DesktopTechUiV5 = () => {
             </div>
           </div>
 
-          <div className="flex-1 border border-black/15 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col pt-12 max-w-[940px] bg-white rounded-none">
+          <div className="flex-1 border border-black/15 shadow-[0_10px_40px_rgba(0,0,0,0.02)] relative overflow-hidden flex flex-col pt-12 max-w-[960px] bg-white rounded-none">
             <div
               className="absolute inset-0 pointer-events-none opacity-[0.03] z-10 bg-white"
               style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }}
@@ -2252,7 +2452,7 @@ const DesktopTechUiV5 = () => {
               <MorphSvg week={activeWeek} />
             </motion.div>
 
-            <div className="absolute inset-y-0 right-0 z-20 hidden w-[320px] border-l border-white/10 bg-black lg:block">
+            <div className="absolute inset-y-0 right-0 z-20 hidden w-[288px] border-l border-white/10 bg-black lg:block">
               <AnimatePresence mode="popLayout">
                 <motion.div
                   key={`v5-restore-adv-crossfade-${activeWeek}`}
@@ -2282,10 +2482,10 @@ const DesktopTechUiV5 = () => {
                   <div className="w-1.5 h-1.5 rounded-[1px] bg-black/80 shadow-sm" />
                   <span className="text-black/80 text-[10px] font-mono font-bold uppercase tracking-[0.25em] leading-none">MAIN TRACK</span>
                 </div>
-                <div className="w-[320px] h-full" />
+                <div className="w-[288px] h-full" />
               </div>
 
-              <div className="relative flex flex-1 flex-col lg:pr-[320px]">
+              <div className="relative flex flex-1 flex-col lg:pr-[288px]">
                 <div className="flex-1 min-w-0 relative pr-10 pb-12 flex flex-col">
                   <AnimatePresence mode="popLayout">
                     <motion.div
@@ -2312,7 +2512,7 @@ const DesktopTechUiV5 = () => {
                             11—17 ноября 2024
                           </span>
                         </div>
-                        <div className="grid w-full max-w-[720px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.6fr)] border border-black/10 bg-black/10 gap-px rounded-[1px] overflow-hidden shadow-none">
+                        <div className="grid w-full max-w-[636px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.42fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,0.42fr)] border border-black/10 bg-black/10 gap-px rounded-[1px] overflow-hidden shadow-none">
                           {weeklyRhythm.map((item, idx) => {
                             const isWorkshop = item.type === 'workshop';
                             const isCore = item.type === 'core';
@@ -2322,22 +2522,24 @@ const DesktopTechUiV5 = () => {
                               <div
                                 key={`cal-redesign-${idx}`}
                                 className={cn(
-                                  "min-w-0 flex flex-col px-2 pt-2 pb-[3px] relative transition-colors h-[68px]",
+                                  "min-w-0 flex flex-col px-1.5 pt-2 pb-[3px] relative transition-colors h-[68px] xl:px-2",
                                   isWorkshop ? "bg-[#8DC63F]" : isCore ? "bg-black" : isEmpty ? "bg-white/80 backdrop-blur-sm" : "bg-white"
                                 )}
                               >
                                 <div className="flex flex-col items-start mb-0">
                                   <span className={cn("text-[8.5px] font-mono font-black tracking-widest leading-none", isWorkshop ? "text-white/80" : isCore ? "text-white/60" : "text-black/40")}>{item.day}</span>
-                                  {item.time && <div className={cn("text-[7.5px] font-mono font-bold tracking-widest leading-[1.15] mt-[3px] whitespace-nowrap", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>{item.time}</div>}
+                                  {item.time && <div className={cn("mt-[3px] whitespace-nowrap font-mono text-[7px] font-bold tracking-[0.12em] leading-[1.15] xl:text-[7.5px] xl:tracking-widest", isWorkshop ? "text-white/80" : "text-[#8DC63F]")}>{item.time}</div>}
                                 </div>
                                 <div
                                   className={cn(
-                                    "font-black uppercase mt-auto leading-[0.95] font-sans text-left flex flex-col tracking-tight",
-                                    isWorkshop || isCore ? "text-white text-[10px] tracking-[0.02em]" :
-                                    isEmpty ? "opacity-0 text-[10px]" : "text-black/80 text-[10px]"
-                                  )}
-                                >
-                                  {displayTask.includes(' ') && (isCore || isWorkshop) ? displayTask.split(' ').map((w, i) => <span key={i}>{w}</span>) : displayTask}
+                                  "mt-auto flex min-h-[1.9rem] min-w-0 flex-col justify-end text-left font-sans font-black uppercase leading-[0.92] tracking-tight [overflow-wrap:normal] [word-break:normal] [hyphens:none]",
+                                  isWorkshop || isCore ? "text-[9px] text-white xl:text-[10px] xl:tracking-[0.02em]" :
+                                  isEmpty ? "text-[9px] opacity-0 xl:text-[10px]" : "text-[8.5px] text-black/80 xl:text-[9.5px]"
+                                )}
+                              >
+                                  {displayTask.includes(' ')
+                                    ? displayTask.split(' ').map((w, i) => <span key={i} className="block whitespace-nowrap">{w}</span>)
+                                    : displayTask}
                                 </div>
                               </div>
                             );
@@ -2698,8 +2900,6 @@ export default function LabW26PageV3() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [labsDropdownOpen, setLabsDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hasActivatedHeroMobileCta, setHasActivatedHeroMobileCta] = useState(false);
-  const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [activeMobileCaseIndex, setActiveMobileCaseIndex] = useState<number | null>(null);
   const [theme, setTheme] = useState<'winter' | 'spring'>('winter');
   const [activeMindsetQuote, setActiveMindsetQuote] = useState(0);
@@ -2715,35 +2915,58 @@ export default function LabW26PageV3() {
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
-  const heroMobileCtaSentinelRef = useRef<HTMLDivElement | null>(null);
-  const footerRef = useRef<HTMLElement | null>(null);
+  const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
+  const isMdViewport = useMediaQuery(MD_VIEWPORT_QUERY);
+  const isLgViewport = useMediaQuery(LG_VIEWPORT_QUERY);
+  const [philosophySectionRef, shouldLoadPhilosophyMedia] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '900px 0px' : '200px 0px');
+  const [mindsetArtRef, shouldLoadMindsetArt] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '700px 0px' : '200px 0px');
   const mobileCaseCardRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const labsCloseTimeoutRef = useRef<number | null>(null);
   const sectionHashSyncLockRef = useRef<number | null>(null);
   const lastSyncedHashRef = useRef<string>('');
+  const pendingMenuScrollTargetRef = useRef<string | null>(null);
+  const bodyOverflowRestoreRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null) {
+      if (bodyOverflowRestoreRef.current === null) {
+        bodyOverflowRestoreRef.current = document.body.style.overflow;
+      }
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'auto';
+      if (bodyOverflowRestoreRef.current !== null) {
+        document.body.style.overflow = bodyOverflowRestoreRef.current;
+        bodyOverflowRestoreRef.current = null;
+      } else {
+        document.body.style.overflow = '';
+      }
     }
     return () => {
-      document.body.style.overflow = 'auto';
+      if (bodyOverflowRestoreRef.current !== null) {
+        document.body.style.overflow = bodyOverflowRestoreRef.current;
+        bodyOverflowRestoreRef.current = null;
+      } else {
+        document.body.style.overflow = '';
+      }
     };
   }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
 
   useEffect(() => {
-    const previousHtmlOverflowX = document.documentElement.style.overflowX;
-    const previousBodyOverflowX = document.body.style.overflowX;
-    document.documentElement.style.overflowX = 'hidden';
-    document.body.style.overflowX = 'hidden';
+    if (isMenuOpen) return;
+    const pendingTarget = pendingMenuScrollTargetRef.current;
+    if (!pendingTarget) return;
+
+    pendingMenuScrollTargetRef.current = null;
+    const timeout = window.setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        scrollTo(pendingTarget);
+      });
+    }, isTouchMobileViewport ? 220 : 0);
 
     return () => {
-      document.documentElement.style.overflowX = previousHtmlOverflowX;
-      document.body.style.overflowX = previousBodyOverflowX;
+      window.clearTimeout(timeout);
     };
-  }, []);
+  }, [isMenuOpen, isTouchMobileViewport]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -2773,40 +2996,6 @@ export default function LabW26PageV3() {
   }, [showPricingCue]);
 
   useEffect(() => {
-    const target = heroMobileCtaSentinelRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasActivatedHeroMobileCta(true);
-        }
-      },
-      {
-        threshold: 0.2,
-      },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const target = footerRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsFooterVisible(entry.isIntersecting);
-      },
-      { threshold: 0.12 },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
     const lockSectionHashSync = (duration = 900) => {
       if (sectionHashSyncLockRef.current !== null) {
         window.clearTimeout(sectionHashSyncLockRef.current);
@@ -2828,15 +3017,17 @@ export default function LabW26PageV3() {
 
     const handleHashChange = () => {
       lockSectionHashSync();
-      scrollToHashTarget('smooth');
+      scrollToHashTarget(isTouchMobileViewport ? 'auto' : 'smooth');
     };
 
     scrollToHashTarget('auto');
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [isTouchMobileViewport]);
 
   useEffect(() => {
+    if (isTouchMobileViewport) return;
+
     let ticking = false;
 
     const syncHashToVisibleSection = () => {
@@ -2888,7 +3079,7 @@ export default function LabW26PageV3() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, []);
+  }, [isTouchMobileViewport]);
 
   // Theme colors
   const colors = {
@@ -2913,57 +3104,13 @@ export default function LabW26PageV3() {
     .filter(({ card }) => activeCaseFilter === 'all' || card.filters.includes(activeCaseFilter))
     .filter(({ card }) => activeCaseToolFilter === 'all' || getCaseTools(card).includes(activeCaseToolFilter));
   const visibleCases = filteredCases.slice(0, 8);
+  const displayedCases = isTouchMobileViewport ? visibleCases.slice(0, 4) : visibleCases;
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
   const activeCaseVisualIndex = activeCaseIndex ?? 0;
 
   useEffect(() => {
-    let ticking = false;
-
-    const updateActiveMobileCase = () => {
-      ticking = false;
-
-      if (window.matchMedia('(min-width: 768px)').matches) {
-        setActiveMobileCaseIndex(null);
-        return;
-      }
-
-      const viewportCenter = window.innerHeight / 2;
-      let closestIndex: number | null = visibleCases[0]?.index ?? null;
-      let closestDistance = Number.POSITIVE_INFINITY;
-
-      visibleCases.slice(0, 4).forEach(({ index }) => {
-        const element = mobileCaseCardRefs.current[index];
-        if (!element) return;
-
-        const rect = element.getBoundingClientRect();
-        const isVisible = rect.bottom > window.innerHeight * 0.08 && rect.top < window.innerHeight * 0.92;
-        if (!isVisible) return;
-
-        const center = rect.top + rect.height / 2;
-        const distance = Math.abs(center - viewportCenter);
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
-        }
-      });
-
-      setActiveMobileCaseIndex((current) => (current === closestIndex ? current : closestIndex));
-    };
-
-    const handleViewportChange = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(updateActiveMobileCase);
-    };
-
-    updateActiveMobileCase();
-    window.addEventListener('scroll', handleViewportChange, { passive: true });
-    window.addEventListener('resize', handleViewportChange);
-    return () => {
-      window.removeEventListener('scroll', handleViewportChange);
-      window.removeEventListener('resize', handleViewportChange);
-    };
-  }, [visibleCases]);
+    setActiveMobileCaseIndex(null);
+  }, [isTouchMobileViewport, visibleCases]);
 
   const renderCaseCard = (
     card: CaseCard,
@@ -2979,12 +3126,9 @@ export default function LabW26PageV3() {
     keyPrefix: string,
     options?: { showTools?: boolean; descriptionLines?: 2 | 3; cardRef?: (node: HTMLButtonElement | null) => void },
   ) => {
-    const mobileFallbackActiveIndex = visibleCases[0]?.index ?? null;
-    const resolvedMobileCaseIndex = activeMobileCaseIndex ?? mobileFallbackActiveIndex;
-    const isMobileViewport =
-      typeof window !== 'undefined' ? !window.matchMedia('(min-width: 768px)').matches : false;
-    const isMobileScrollActivated = isMobileViewport && resolvedMobileCaseIndex === index;
-    const isActivated = hovered || isMobileScrollActivated;
+    const isMobileScrollActivated = false;
+    const shouldAnimate = hovered || isMobileScrollActivated;
+    const isVisualActive = shouldAnimate;
 
     return (
     <button
@@ -3000,71 +3144,69 @@ export default function LabW26PageV3() {
       onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
       ref={options?.cardRef}
       className={cn(
-        "group relative mx-auto flex min-h-[248px] w-[min(80vw,20rem)] max-w-none flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left md:min-h-[226px] md:w-full md:max-w-[16.1rem]",
-        isActivated ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/10 bg-white hover:border-[#8DC63F] hover:bg-[#8DC63F]",
+        "group relative mx-auto flex min-h-[248px] w-full max-w-[18rem] flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left md:min-h-[226px] md:max-w-[16.1rem]",
+        isVisualActive ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/10 bg-white hover:border-[#8DC63F] hover:bg-[#8DC63F]",
       )}
     >
       <div
         className={cn(
           "relative mb-3 h-[118px] overflow-hidden rounded-[2px] md:mb-2.5 md:h-[100px]",
-          isMobileScrollActivated ? "bg-[#111411]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
+          isVisualActive ? "bg-[#8DC63F]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
         )}
       >
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-150",
-            isMobileScrollActivated ? "opacity-100" : "opacity-100 group-hover:opacity-0",
+            "absolute inset-0 transition-opacity duration-75",
+            isVisualActive ? "opacity-0" : "group-hover:opacity-0",
             CASE_MEDIA_BASE_BACKGROUND_CLASS,
           )}
         />
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
-            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-100", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
+            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
 
         <div
           className={cn(
-            "absolute transition-[transform,filter,opacity] duration-150 group-hover:opacity-100",
+            "absolute transition-[transform,filter,opacity,color] duration-75 group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
-            isActivated
-              ? "opacity-100 mix-blend-normal scale-[1.03]"
-              : "opacity-100 mix-blend-screen",
+            isVisualActive ? "opacity-100 mix-blend-screen text-white" : "opacity-100 mix-blend-screen text-inherit",
           )}
         >
           <CaseVisualGraphic
             index={index}
             className={getCaseVisualToneClassName(index)}
-            animate={isActivated}
-            activated={isActivated}
+            animate={shouldAnimate}
+            activated={shouldAnimate}
             animateNonce={hoverNonce}
           />
         </div>
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-200", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-200", isMobileScrollActivated ? "opacity-100" : "group-hover:opacity-0")} />
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
       </div>
 
-      <h4 className={cn("mb-1.5 max-w-none text-[15px] font-black uppercase leading-[0.94] tracking-[-0.04em] transition-none md:max-w-[10.6rem] md:text-[15px]", isActivated ? "text-white" : "text-black group-hover:text-white")}>
+      <h4 className={cn("mb-1.5 max-w-none text-[15px] font-black uppercase leading-[0.94] tracking-[-0.04em] transition-none md:max-w-[10.6rem] md:text-[15px]", isVisualActive ? "text-white" : "text-black group-hover:text-white")}>
         {card.title}
       </h4>
 
       <p className={cn(
         "mb-2 text-[12px] font-normal leading-[1.34] transition-none md:text-[12px]",
-        isActivated ? "text-white/90" : "text-black/78 group-hover:text-white/90",
+        isVisualActive ? "text-white/90" : "text-black/78 group-hover:text-white/90",
         options?.descriptionLines === 3 ? "min-h-[4.45rem] md:min-h-[4.15rem]" : "min-h-[2.9rem] md:min-h-[2.7rem]",
       )}>
         {card.details}
       </p>
 
-      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isActivated ? "text-white/72" : "text-black/60 group-hover:text-white/72")}>
+      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isVisualActive ? "text-white/72" : "text-black/60 group-hover:text-white/72")}>
         {card.author}, {card.role.toLowerCase()}
       </div>
 
@@ -3075,7 +3217,7 @@ export default function LabW26PageV3() {
               key={`${keyPrefix}-tool-${card.title}-${tool}`}
               className={cn(
                 "rounded-[2px] border px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] transition-none md:text-[9px]",
-                isActivated
+                isVisualActive
                   ? "border-white/50 bg-white/20 font-bold text-white"
                   : "border-black/10 bg-black/[0.03] text-black/70 group-hover:border-white/50 group-hover:bg-white/20 group-hover:font-bold group-hover:text-white",
               )}
@@ -3094,6 +3236,7 @@ export default function LabW26PageV3() {
   };
 
   const scrollTo = (id: string) => {
+    setIsMenuOpen(false);
     const el = document.querySelector(id);
     if (el) {
       if (sectionHashSyncLockRef.current !== null) {
@@ -3105,9 +3248,8 @@ export default function LabW26PageV3() {
       setActivePageSectionId(id.replace(/^#/, ''));
       lastSyncedHashRef.current = id;
       window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${id}`);
-      el.scrollIntoView({ behavior: 'smooth' });
+      el.scrollIntoView({ behavior: isTouchMobileViewport ? 'auto' : 'smooth', block: 'start' });
     }
-    setIsMenuOpen(false);
   };
 
   const scrollToProgramFromPricing = () => {
@@ -3117,6 +3259,11 @@ export default function LabW26PageV3() {
 
   const scrollToPricingWithCue = () => {
     scrollTo('#pricing');
+  };
+
+  const queueMobileMenuScroll = (id: string) => {
+    pendingMenuScrollTargetRef.current = id;
+    setIsMenuOpen(false);
   };
 
   const openMobileMenu = (event?: React.MouseEvent<HTMLButtonElement>) => {
@@ -3161,10 +3308,8 @@ export default function LabW26PageV3() {
     setActiveMobileSpeakerRowIndex(rowIndex);
   };
 
-  const showDockedMobileCta = hasActivatedHeroMobileCta && !isFooterVisible;
-
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
+    <div className="relative min-h-screen overflow-x-hidden md:overflow-x-visible bg-[#f9f9f7] font-mono text-[#181616] selection:bg-[#8DC63F] selection:text-white">
       
       {/* Sidebar (Desktop) */}
       <aside className={`fixed top-0 left-0 w-full md:w-[18%] h-screen border-r border-black/10 px-10 pt-10 pb-8 z-[300] hidden md:flex flex-col bg-[#f9f9f7] transition-all duration-700 ease-in-out ${scrolled ? 'opacity-100 pointer-events-auto translate-x-0' : 'opacity-0 pointer-events-none -translate-x-full'}`}>
@@ -3252,6 +3397,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
+            transition={{ duration: isTouchMobileViewport ? 0.18 : 0.26, ease: 'easeOut' }}
             className="fixed inset-0 z-[10005] flex flex-col p-8 overflow-y-auto md:hidden"
             style={{ backgroundColor: colors.bg, color: colors.text }}
           >
@@ -3274,7 +3420,7 @@ export default function LabW26PageV3() {
                     <button
                       key={link.label}
                       type="button"
-                      onClick={() => { scrollTo(link.href); closeMobileMenu(); }}
+                      onClick={() => queueMobileMenuScroll(link.href)}
                       className="text-4xl font-black uppercase tracking-tighter hover:line-through text-left"
                     >
                       {link.label}
@@ -3288,7 +3434,7 @@ export default function LabW26PageV3() {
                 <div className="flex flex-col gap-4">
                   <a
                     href="#hero"
-                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
+                    onClick={(e) => { e.preventDefault(); queueMobileMenuScroll('#hero'); }}
                     className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
                   >
                     Главная
@@ -3296,7 +3442,7 @@ export default function LabW26PageV3() {
 
                   <a
                     href="#hero"
-                    onClick={(e) => { e.preventDefault(); scrollTo('#hero'); setIsMenuOpen(false); }}
+                    onClick={(e) => { e.preventDefault(); queueMobileMenuScroll('#hero'); }}
                     className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
                   >
                     Labs
@@ -3383,34 +3529,39 @@ export default function LabW26PageV3() {
                   </h1>
                   
                   {/* MODAL ORDER FOR MOBILE: LOGO BETWEEN TITLE AND DESCRIPTION */}
-                  <div className="lg:hidden mb-12 flex justify-center">
+                  {!isLgViewport ? (
+                  <div className="lg:hidden mb-12 flex w-full justify-center overflow-hidden">
                      <InvertedVoxelLogoFace className="w-full max-w-[392px] mx-auto" scale={1.4} />
                   </div>
+                  ) : null}
 
                   <p className="max-w-md mx-auto lg:mx-0 text-sm leading-relaxed font-normal md:font-bold opacity-70 mb-7 md:mb-12">
                      Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
-                  <div
-                    ref={heroMobileCtaSentinelRef}
-                    className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6"
-                  >
-                     <a
-                       href="#pricing"
-                       onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
-                       className={cn(
-                         DARK_CTA_BUTTON_CLASS,
-                         "min-w-[18rem] px-10 py-5 text-center md:min-w-[22rem] md:px-14 md:py-6",
-                       )}
-                     >
-                       /хочу на лабу
-                     </a>
+                  <div className="flex w-full flex-col items-center justify-center gap-6 sm:flex-row sm:justify-center lg:items-start lg:justify-start">
+                    <div className="w-full md:w-auto">
+                      <div className="sticky bottom-[calc(env(safe-area-inset-bottom,0px)+32px)] z-[340] flex w-full justify-center md:static">
+                        <a
+                          href="#pricing"
+                          onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
+                          className={cn(
+                            DARK_CTA_BUTTON_CLASS,
+                            "w-full max-w-[22rem] px-10 py-5 text-center sm:w-auto sm:min-w-[18rem] md:min-w-[22rem] md:px-14 md:py-6",
+                          )}
+                        >
+                          /хочу на лабу
+                        </a>
+                      </div>
+                    </div>
                   </div>
                </div>
                
                {/* DESKTOP LOGO */}
+               {isLgViewport ? (
                <div className="hidden lg:block w-full lg:w-2/5">
                   <InvertedVoxelLogoFace className="w-full max-w-md mx-auto" scale={1.2} />
                </div>
+               ) : null}
             </div>
           </Container>
         </section>
@@ -3467,6 +3618,7 @@ export default function LabW26PageV3() {
                   </p>
                 </div>
 
+                {!isMdViewport ? (
                 <div className="md:hidden">
                   <div id="dots-v1">
                     <ProgramIntegratedTimeline
@@ -3487,10 +3639,16 @@ export default function LabW26PageV3() {
                     />
                   </div>
                 </div>
+                ) : null}
 
+                {isMdViewport ? (
                 <div className="hidden md:block">
-                  <DesktopTechUiV5 />
+                  <DesktopTechUiV5
+                    forcedOpenIndex={programFocusNonce === undefined ? undefined : 0}
+                    forcedOpenNonce={programFocusNonce}
+                  />
                 </div>
+                ) : null}
 
 
                 <div className="mt-2 flex justify-end md:hidden">
@@ -3542,7 +3700,7 @@ export default function LabW26PageV3() {
           </div>
 
           <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-            {visibleCases.map(({ card, index }, visibleIndex) => (
+            {displayedCases.map(({ card, index }, visibleIndex) => (
               <div
                 key={`main-case-slot-${index}`}
                 className={visibleIndex >= 4 ? "hidden md:block" : ""}
@@ -3693,12 +3851,13 @@ export default function LabW26PageV3() {
       <SlashDivider />
       <section id="philosophy" className="pt-20 md:pt-28 pb-0 md:pb-0 overflow-hidden">
         <Container>
+          <div ref={philosophySectionRef} />
           <EditorialSectionHeader eyebrow="Что внутри" title="Философия" className="mb-12 text-left" />
           <div className="mt-10 grid grid-cols-1 gap-6 md:mt-[64px] md:grid-cols-3 md:gap-3">
             {PHILOSOPHY_PILLARS.map((item) => (
               <div key={item.title} className="bg-white/10 h-full min-h-[280px] md:min-h-[260px] flex flex-col items-center p-6 lg:p-8">
-                <div className="flex h-[168px] w-full max-w-[13rem] flex-none items-end justify-center py-2 md:h-[176px] md:max-w-[14rem] md:items-center md:py-0">
-                  <PhilosophyPillarArt art={item.art} />
+                <div className="flex h-[176px] w-full max-w-[13.75rem] flex-none items-end justify-center py-2 md:h-[228px] md:max-w-[17rem] md:items-center md:py-0">
+                  <PhilosophyPillarArt art={item.art} deferHeavyMedia={isTouchMobileViewport && !shouldLoadPhilosophyMedia} />
                 </div>
                 <div className="mt-1.5 md:mt-7 flex w-full flex-col items-center gap-1 md:gap-2">
                   <h3 className="text-center text-xl md:text-xl font-black uppercase tracking-tighter leading-tight bg-transparent text-current balance-text md:min-h-[2.6rem] flex items-center justify-center">
@@ -3714,21 +3873,23 @@ export default function LabW26PageV3() {
         </Container>
       </section>
 
-      <div className="py-2 md:py-2">
+      <div className="py-3 md:py-4">
         <Container>
           <div className="mx-auto h-[0.5px] max-w-sm bg-black/5" />
         </Container>
       </div>
 
-      <section id="mindset" className="pt-0 pb-10 md:pt-0 md:pb-24">
+      <section id="mindset" className="pt-1 pb-10 md:pt-2 lg:pt-3 md:pb-24">
         <Container>
           <div className="flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-0 md:gap-16 items-center">
             <div className="w-full lg:w-auto flex justify-center lg:justify-end shrink-0 order-1 lg:order-2 translate-y-10 md:translate-y-[3.5rem] lg:translate-y-[5rem] overflow-hidden">
-              <div className="relative flex h-[16rem] w-[16rem] items-center justify-center overflow-hidden md:h-[20rem] md:w-[20rem] lg:h-[24rem] lg:w-[24rem]">
-                <MindsetDynamicArt className="scale-[1.45] md:scale-[1.12] lg:scale-[1.2]" />
+              <div ref={mindsetArtRef} className="relative flex h-[16rem] w-[16rem] items-center justify-center overflow-hidden md:h-[20rem] md:w-[20rem] lg:h-[24rem] lg:w-[24rem]">
+                {shouldLoadMindsetArt || !isTouchMobileViewport ? (
+                  <MindsetDynamicArt className="scale-[1.45] md:scale-[1.12] lg:scale-[1.2]" />
+                ) : null}
               </div>
             </div>
-            <div className="w-full h-[24rem] md:h-[28rem] lg:h-[32rem] order-2 lg:order-1">
+            <div className="w-full h-[24rem] md:h-[29rem] lg:h-[33rem] order-2 lg:order-1">
               <div className="relative flex flex-col justify-end h-full py-0">
                 <div className="flex-1 flex items-end pb-[8rem] md:pb-24 lg:pb-20">
                   <motion.h2
@@ -3741,7 +3902,7 @@ export default function LabW26PageV3() {
                   </motion.h2>
                 </div>
 
-                <div className="absolute bottom-[5rem] md:bottom-10 left-0 right-0 flex h-[4.5rem] items-center">
+                <div className="absolute bottom-[4.25rem] md:bottom-6 lg:bottom-7 left-0 right-0 flex h-[4.5rem] items-center">
                   <div className="flex w-[6.25rem] shrink-0 items-center gap-3">
                     <button
                       type="button"
@@ -3988,7 +4149,7 @@ export default function LabW26PageV3() {
       )}
 
       {/* Footer */}
-      <footer ref={footerRef} className="py-24 relative overflow-hidden bg-black text-white">
+      <footer className="py-24 relative overflow-hidden bg-black text-white">
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-[0.035] md:items-center md:opacity-[0.045]">
           <div className="translate-y-[0.15rem] whitespace-nowrap text-[clamp(118px,31vw,240px)] font-black leading-none uppercase tracking-[-0.06em] select-none text-white md:translate-y-0 md:text-[clamp(88px,16vw,240px)]">
             AI MINDSET
@@ -4025,16 +4186,6 @@ export default function LabW26PageV3() {
           </div>
         </Container>
       </footer>
-      {showDockedMobileCta ? (
-        <a
-          href="#pricing"
-          onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
-          className={`${DARK_CTA_BUTTON_CLASS} fixed left-1/2 z-[390] w-[min(calc(100vw-3rem),18rem)] -translate-x-1/2 px-10 py-5 text-center md:hidden`}
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}
-        >
-          /хочу на лабу
-        </a>
-      ) : null}
 
       <AnimatePresence>
         {isCasesOverlayOpen ? (
@@ -4289,7 +4440,7 @@ const CookieConsent = () => {
     dismissConsent();
   };
   return (
-    <div className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-[10000] max-w-[320px] md:max-w-[380px] w-[calc(100%-32px)] md:w-[calc(100%-48px)] bg-white border-2 border-black p-5 md:px-7 md:py-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
+    <div className="fixed bottom-4 left-4 right-4 z-[10000] w-auto bg-white border-2 border-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)] md:bottom-6 md:left-auto md:right-6 md:w-[min(380px,calc(100vw-48px))] md:px-7 md:py-5 md:shadow-[10px_10px_0px_0px_rgba(0,0,0,0.1)]">
         <button
           type="button"
           onClick={handleDismissConsent}
