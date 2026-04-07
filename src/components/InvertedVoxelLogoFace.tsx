@@ -93,10 +93,24 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
 
     let frameId = 0;
     let disposed = false;
+    let imageReady = false;
     let introProgress = 0;
     let voxels: VoxelPoint[] = [];
     let lastScrollY = window.scrollY;
     let scrollVelocity = 0;
+    let isCanvasVisible = true;
+
+    const cancelDrawLoop = () => {
+      if (frameId) {
+        window.cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    };
+
+    const scheduleDraw = () => {
+      if (disposed || frameId || !imageReady || !isCanvasVisible || document.hidden) return;
+      frameId = window.requestAnimationFrame(draw);
+    };
 
     const setPointerFromEvent = (event: PointerEvent) => {
       const rect = canvas.getBoundingClientRect();
@@ -435,6 +449,8 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
 
     const draw = () => {
       if (disposed) return;
+      frameId = 0;
+      if (!isCanvasVisible || document.hidden) return;
 
       introProgress = Math.min(1, introProgress + introSpeed);
       context.clearRect(0, 0, internalSize, internalSize);
@@ -503,7 +519,7 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       }
 
       context.shadowBlur = 0;
-      frameId = window.requestAnimationFrame(draw);
+      scheduleDraw();
     };
 
     image.onload = () => {
@@ -513,7 +529,28 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
       const imageData = offscreenContext.getImageData(0, 0, internalSize, internalSize).data;
       buildLeftMask(imageData);
       buildVoxels(imageData);
-      draw();
+      imageReady = true;
+      scheduleDraw();
+    };
+
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        isCanvasVisible = entry?.isIntersecting ?? false;
+        if (!isCanvasVisible) {
+          cancelDrawLoop();
+          return;
+        }
+        scheduleDraw();
+      },
+      { threshold: 0.05 },
+    );
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelDrawLoop();
+        return;
+      }
+      scheduleDraw();
     };
 
     image.src = LOGO_SRC;
@@ -523,17 +560,21 @@ export function InvertedVoxelLogoFace({ scale = 1, opacity = 1, className = '' }
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerUp);
     window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    visibilityObserver.observe(canvas);
 
     return () => {
       disposed = true;
       clearResetTimer();
-      window.cancelAnimationFrame(frameId);
+      cancelDrawLoop();
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
       canvas.removeEventListener('pointerup', onPointerUp);
       canvas.removeEventListener('pointercancel', onPointerUp);
       window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      visibilityObserver.disconnect();
     };
   }, []);
 

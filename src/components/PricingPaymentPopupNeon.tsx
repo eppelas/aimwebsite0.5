@@ -120,7 +120,7 @@ export default function PricingPaymentPopupNeon({
 
   return (
     <div
-      className="fixed inset-y-0 left-0 right-0 z-[160] flex items-end justify-center bg-black/80 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+12px)] pt-3 backdrop-blur-md sm:p-4 md:left-[18%] md:items-center md:p-4"
+      className="fixed inset-y-0 left-0 right-0 z-[160] flex items-end justify-center bg-black/80 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] pt-3 backdrop-blur-md sm:p-4 md:left-[18%] md:items-center md:p-4"
       onClick={handleClose}
     >
       <motion.div

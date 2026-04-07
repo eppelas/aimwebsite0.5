@@ -16,6 +16,13 @@
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background-color: #f9f9f7;
+}
+
 body {
   background-color: var(--color-bg-main);
   color: var(--color-text-main);
@@ -23,6 +30,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-x: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
