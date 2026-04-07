@@ -37,9 +37,11 @@ interface CaseCard {
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
 
-const TOUCH_MOBILE_VIEWPORT_QUERY = '(max-width: 767px) and (hover: none) and (pointer: coarse)';
+const TOUCH_MOBILE_VIEWPORT_QUERY = '(max-width: 767px)';
 const MD_VIEWPORT_QUERY = '(min-width: 768px)';
 const LG_VIEWPORT_QUERY = '(min-width: 1024px)';
+const BASE_URL = import.meta.env.BASE_URL;
+const getCaseStaticVisualSrcByAssetName = (assetName: string) => `${BASE_URL}assets/cases/${assetName}`;
 
 const getMediaQueryMatch = (query: string) => typeof window !== 'undefined' && window.matchMedia(query).matches;
 
@@ -271,7 +273,7 @@ const loadStaticCaseSvgMarkup = async (assetName: string) => {
       }
 
       const rawMarkup = await response.text();
-      const staticMarkup = normalizeCaseSvgMarkup(convertCaseSvgMarkupToCurrentColor(stripCaseSvgAnimation(rawMarkup)));
+      const staticMarkup = normalizeCaseSvgMarkup(stripCaseSvgAnimation(rawMarkup));
       CASE_STATIC_SVG_CACHE.set(assetName, staticMarkup);
       return staticMarkup;
     })
@@ -323,12 +325,12 @@ function CaseVisualGraphic({
   animateNonce?: number;
 }) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
+  const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
   const [animatedMarkup, setAnimatedMarkup] = useState<string | null>(() => CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
 
   useEffect(() => {
     let disposed = false;
-
     loadStaticCaseSvgMarkup(assetName)
       .then((markup) => {
         if (!disposed) setStaticMarkup(markup);
@@ -336,7 +338,6 @@ function CaseVisualGraphic({
       .catch(() => {
         if (!disposed) setStaticMarkup(null);
       });
-
     return () => {
       disposed = true;
     };
@@ -344,7 +345,6 @@ function CaseVisualGraphic({
 
   useEffect(() => {
     let disposed = false;
-
     loadAnimatedCaseSvgMarkup(assetName)
       .then((markup) => {
         if (!disposed) setAnimatedMarkup(markup);
@@ -352,7 +352,6 @@ function CaseVisualGraphic({
       .catch(() => {
         if (!disposed) setAnimatedMarkup(null);
       });
-
     return () => {
       disposed = true;
     };
@@ -361,6 +360,30 @@ function CaseVisualGraphic({
   const renderedMarkup = useMemo(() => {
     return animate ? animatedMarkup ?? staticMarkup : staticMarkup;
   }, [animate, animatedMarkup, staticMarkup]);
+
+  if (isTouchMobileViewport) {
+    return (
+      <div
+        aria-hidden
+        className={cn(
+          "flex h-full w-full origin-center items-center justify-center",
+          activated
+            ? "drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
+            : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)]",
+          className,
+        )}
+      >
+        <img
+          src={getCaseStaticVisualSrcByAssetName(assetName)}
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-contain"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -410,7 +433,6 @@ const PRIMARY_MENU_LINKS = [
   { label: '{For Non-Profit}', href: '/non-profit' },
 ];
 
-const BASE_URL = import.meta.env.BASE_URL;
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
 const LOGO_TRANSPARENT_SRC = `${BASE_URL}assets/ai-mindset-logo-transparent.png`;
 const CONTACT_FORM_URL = 'https://join.aimindset.org/waitlist';
@@ -2203,14 +2225,19 @@ const DesktopTechUiV5 = ({
   forcedOpenNonce?: number;
 }) => {
   const [activeWeek, setActiveWeek] = useState(0);
+  const [stickyPanelHeight, setStickyPanelHeight] = useState(580);
   const containerRef = useRef<HTMLDivElement>(null);
+  const stickyPanelRef = useRef<HTMLDivElement>(null);
   const wheelGestureRef = useRef<{
     gestureLocked: boolean;
     resetTimeout: number | null;
+    lastDirection: number;
   }>({
     gestureLocked: false,
     resetTimeout: null,
+    lastDirection: 0,
   });
+  const pendingSnapRef = useRef<{ week: number; targetY: number } | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -2222,32 +2249,71 @@ const DesktopTechUiV5 = ({
   const svgY = useTransform(smoothProgress, [0, 1], [-10, 10]);
   const lastWeekIndex = PROGRAM_TRACKS.length - 1;
   const stickyTopOffset = 0.08;
-  const stickyPanelHeight = 580;
+  const snapStep = Math.max(180, Math.round(stickyPanelHeight * 0.38));
+  const containerHeight = stickyPanelHeight + snapStep * lastWeekIndex;
+
+  useEffect(() => {
+    if (!stickyPanelRef.current) return;
+
+    const measure = () => {
+      const nextHeight = Math.round(stickyPanelRef.current?.getBoundingClientRect().height ?? 580);
+      if (Number.isFinite(nextHeight) && nextHeight > 0) {
+        setStickyPanelHeight((current) => (current === nextHeight ? current : nextHeight));
+      }
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(() => {
+      measure();
+    });
+
+    observer.observe(stickyPanelRef.current);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  const getStickyMetrics = React.useCallback(() => {
+    const stickyTop = window.innerHeight * stickyTopOffset;
+    const effectivePanelHeight = stickyPanelRef.current?.getBoundingClientRect().height ?? stickyPanelHeight;
+    return {
+      stickyTop,
+      stickyPanelHeight: effectivePanelHeight,
+      stickyBottom: stickyTop + effectivePanelHeight,
+      tolerance: Math.max(12, Math.round(snapStep * 0.12)),
+    };
+  }, [snapStep, stickyPanelHeight]);
 
   const resolveWeekIndexFromRect = React.useCallback((rect: DOMRect) => {
-    const stickyTop = window.innerHeight * stickyTopOffset;
-    const stickyBottom = stickyTop + stickyPanelHeight;
+    const { stickyTop, stickyBottom } = getStickyMetrics();
 
     if (rect.top > stickyTop) return 0;
     if (rect.bottom < stickyBottom) return lastWeekIndex;
 
-    const totalScrollable = Math.max(1, rect.height - window.innerHeight);
-    const progress = Math.max(0, Math.min(1, (stickyTop - rect.top) / totalScrollable));
-    return Math.max(0, Math.min(lastWeekIndex, Math.round(progress * lastWeekIndex)));
-  }, [lastWeekIndex]);
+    const offsetWithinProgram = Math.max(0, stickyTop - rect.top);
+    return Math.max(0, Math.min(lastWeekIndex, Math.round(offsetWithinProgram / snapStep)));
+  }, [getStickyMetrics, lastWeekIndex, snapStep]);
 
   const getWeekTargetY = React.useCallback((idx: number) => {
     if (!containerRef.current) return null;
     const rect = containerRef.current.getBoundingClientRect();
+    const { stickyTop } = getStickyMetrics();
     const containerTop = window.scrollY + rect.top;
-    const totalScrollable = Math.max(1, rect.height - window.innerHeight);
-    const desiredProgress = lastWeekIndex === 0 ? 0 : Math.max(0, Math.min(1, idx / lastWeekIndex));
-    const desiredRectTop = window.innerHeight * stickyTopOffset - desiredProgress * totalScrollable;
+    const desiredRectTop = stickyTop - snapStep * idx;
     return containerTop - desiredRectTop;
-  }, [lastWeekIndex]);
+  }, [getStickyMetrics, snapStep]);
 
   const syncWeekFromScroll = React.useCallback(() => {
     if (!containerRef.current) return;
+    const pendingSnap = pendingSnapRef.current;
+    if (pendingSnap) {
+      if (Math.abs(window.scrollY - pendingSnap.targetY) > 6) return;
+      pendingSnapRef.current = null;
+    }
     const nextWeek = resolveWeekIndexFromRect(containerRef.current.getBoundingClientRect());
     setActiveWeek((current) => (current === nextWeek ? current : nextWeek));
   }, [resolveWeekIndexFromRect]);
@@ -2256,9 +2322,10 @@ const DesktopTechUiV5 = ({
     const clampedIndex = Math.max(0, Math.min(idx, PROGRAM_TRACKS.length - 1));
     const targetY = getWeekTargetY(clampedIndex);
 
-    setActiveWeek(clampedIndex);
     if (targetY === null) return;
 
+    pendingSnapRef.current = { week: clampedIndex, targetY };
+    setActiveWeek(clampedIndex);
     window.scrollTo({ top: targetY, behavior });
     window.requestAnimationFrame(syncWeekFromScroll);
   }, [getWeekTargetY, syncWeekFromScroll]);
@@ -2269,7 +2336,7 @@ const DesktopTechUiV5 = ({
   }, [forcedOpenIndex, forcedOpenNonce, navigateToWeek]);
 
   const handleWeekClick = (idx: number) => {
-    setActiveWeek(idx);
+    navigateToWeek(idx, 'auto');
   };
 
   useEffect(() => {
@@ -2300,6 +2367,7 @@ const DesktopTechUiV5 = ({
 
     const resetWheelGesture = () => {
       gestureState.gestureLocked = false;
+      gestureState.lastDirection = 0;
       clearWheelReset();
     };
 
@@ -2307,9 +2375,8 @@ const DesktopTechUiV5 = ({
       if (!containerRef.current) return;
 
       const rect = containerRef.current.getBoundingClientRect();
-      const stickyTop = window.innerHeight * stickyTopOffset;
-      const stickyBottom = stickyTop + stickyPanelHeight;
-      const isPinnedSection = rect.top <= stickyTop + 1 && rect.bottom >= stickyBottom - 1;
+      const { stickyTop, stickyBottom, tolerance } = getStickyMetrics();
+      const isPinnedSection = rect.top <= stickyTop + tolerance && rect.bottom >= stickyBottom - tolerance;
 
       if (!isPinnedSection) {
         resetWheelGesture();
@@ -2319,6 +2386,12 @@ const DesktopTechUiV5 = ({
       const direction = Math.sign(event.deltaY);
       if (direction === 0) return;
 
+      if (gestureState.lastDirection !== 0 && gestureState.lastDirection !== direction) {
+        gestureState.gestureLocked = false;
+        clearWheelReset();
+      }
+      gestureState.lastDirection = direction;
+
       const currentWeek = resolveWeekIndexFromRect(rect);
       const nextWeek = currentWeek + (direction > 0 ? 1 : -1);
       const canMoveWithinProgram = nextWeek >= 0 && nextWeek <= lastWeekIndex;
@@ -2327,16 +2400,15 @@ const DesktopTechUiV5 = ({
         return;
       }
 
+      if (gestureState.gestureLocked) return;
+
       event.preventDefault();
       clearWheelReset();
+      gestureState.gestureLocked = true;
       gestureState.resetTimeout = window.setTimeout(() => {
         gestureState.gestureLocked = false;
         gestureState.resetTimeout = null;
-      }, 900);
-
-      if (gestureState.gestureLocked) return;
-
-      gestureState.gestureLocked = true;
+      }, 240);
       navigateToWeek(nextWeek, 'auto');
     };
 
@@ -2346,7 +2418,7 @@ const DesktopTechUiV5 = ({
       clearWheelReset();
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [lastWeekIndex, navigateToWeek, resolveWeekIndexFromRect]);
+  }, [getStickyMetrics, lastWeekIndex, navigateToWeek, resolveWeekIndexFromRect]);
 
   const track = PROGRAM_TRACKS[activeWeek];
   const weekCopy = PROGRAM_WEEK_COPY[track.id];
@@ -2362,8 +2434,8 @@ const DesktopTechUiV5 = ({
   ];
 
   return (
-    <div ref={containerRef} className="relative mx-auto h-[calc(100vh+420px)] w-full max-w-[1340px] font-sans">
-      <div className="sticky top-[8vh] flex flex-col items-center">
+    <div ref={containerRef} className="relative mx-auto w-full max-w-[1340px] font-sans" style={{ height: `${containerHeight}px` }}>
+      <div ref={stickyPanelRef} className="sticky top-[8vh] flex flex-col items-center">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-[6px] items-stretch justify-center h-[580px] w-full pt-12">
           <div className="w-[146px] shrink-0 flex flex-col relative h-[500px] mt-6">
             <div className="absolute left-[11.5px] top-[40px] bottom-[40px] w-[1px] bg-black/20 z-0 pointer-events-none" />
@@ -2531,27 +2603,38 @@ const AsciiCaseArt = ({ frames, className = "" }: { frames: string[]; className?
   const frame = frames[0];
 
   return (
-    <div className={`font-mono text-[7px] leading-[1.2] whitespace-pre bg-transparent font-light ${className}`}>
-      {frame.split('\n').map((line, lineIdx) => (
-        <div key={lineIdx} className="leading-[1.2]">
-          {line.split('').map((char, charIdx) => {
-            const isHighlight = /[a-zA-Z0-9*()<>[\]{}_!#+]/.test(char);
-            return (
-              <span
-                key={charIdx}
-                className={
-                  isHighlight
-                    ? "text-[#8DC63F] group-hover:text-white transition-colors duration-300"
-                    : "opacity-40 group-hover:opacity-80 transition-opacity duration-300"
-                }
-              >
-                {char}
-              </span>
-            );
-          })}
-        </div>
-      ))}
-    </div>
+    <>
+      <pre className={cn(
+        "md:hidden font-mono text-[7.5px] leading-[1.2] whitespace-pre bg-transparent font-light transition-opacity duration-300",
+        className
+      )}>
+        {frame}
+      </pre>
+      <div className={cn(
+        "hidden md:block font-mono text-[7px] leading-[1.2] whitespace-pre bg-transparent font-light",
+        className
+      )}>
+        {frame.split('\n').map((line, lineIdx) => (
+          <div key={lineIdx} className="leading-[1.2]">
+            {line.split('').map((char, charIdx) => {
+              const isHighlight = /[a-zA-Z0-9*()<>[\]{}_!#+]/.test(char);
+              return (
+                <span
+                  key={charIdx}
+                  className={
+                    isHighlight
+                      ? "text-[#8DC63F] group-hover:text-white transition-colors duration-300"
+                      : "opacity-40 group-hover:opacity-80 transition-opacity duration-300"
+                  }
+                >
+                  {char}
+                </span>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
 
@@ -2890,27 +2973,31 @@ export default function LabW26PageV3() {
   const bodyOverflowRestoreRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null) {
+    const isModalOpen = isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null;
+    const body = document.body;
+
+    if (isModalOpen) {
       if (bodyOverflowRestoreRef.current === null) {
-        bodyOverflowRestoreRef.current = document.body.style.overflow;
+        const scrollY = window.scrollY;
+        bodyOverflowRestoreRef.current = scrollY.toString();
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.width = '100%';
+        body.style.overflowY = 'scroll'; 
       }
-      document.body.style.overflow = 'hidden';
     } else {
       if (bodyOverflowRestoreRef.current !== null) {
-        document.body.style.overflow = bodyOverflowRestoreRef.current;
+        const scrollY = parseInt(bodyOverflowRestoreRef.current, 10);
+        body.style.position = '';
+        body.style.top = '';
+        body.style.width = '';
+        body.style.overflowY = '';
         bodyOverflowRestoreRef.current = null;
-      } else {
-        document.body.style.overflow = '';
+        window.requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY);
+        });
       }
     }
-    return () => {
-      if (bodyOverflowRestoreRef.current !== null) {
-        document.body.style.overflow = bodyOverflowRestoreRef.current;
-        bodyOverflowRestoreRef.current = null;
-      } else {
-        document.body.style.overflow = '';
-      }
-    };
   }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
 
   useEffect(() => {
@@ -2923,7 +3010,7 @@ export default function LabW26PageV3() {
       window.requestAnimationFrame(() => {
         scrollTo(pendingTarget);
       });
-    }, isTouchMobileViewport ? 220 : 0);
+    }, 0);
 
     return () => {
       window.clearTimeout(timeout);
@@ -3074,6 +3161,112 @@ export default function LabW26PageV3() {
     setActiveMobileCaseIndex(null);
   }, [isTouchMobileViewport, visibleCases]);
 
+  const renderCaseMediaPanel = ({
+    index,
+    mode,
+    animate = false,
+    activated = false,
+    animateNonce = 0,
+  }: {
+    index: number;
+    mode: 'card' | 'modal';
+    animate?: boolean;
+    activated?: boolean;
+    animateNonce?: number;
+  }) => {
+    const isCompact = mode === 'card';
+
+    if (isTouchMobileViewport) {
+      return (
+        <div
+          className={cn(
+            "relative flex items-center justify-center overflow-hidden rounded-[2px] bg-[#111411]",
+            isCompact ? "h-[118px]" : "h-[14rem]",
+          )}
+        >
+          <div className="absolute inset-0 bg-[#111411]" />
+          <div className="absolute inset-[10%] flex items-center justify-center">
+            <CaseVisualGraphic
+              index={index}
+              className={getCaseVisualToneClassName(index)}
+              animate={false}
+              activated
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={cn(
+          "relative flex items-center justify-center overflow-hidden rounded-[2px]",
+          isCompact ? "h-[118px] md:h-[100px]" : "h-[14rem] md:h-full md:min-h-[24rem]",
+          isCompact
+            ? activated
+              ? "bg-[#8DC63F]"
+              : "bg-[#111411] md:group-hover:bg-[#8DC63F]"
+            : CASE_DARK_VARIANTS.has(index)
+              ? "bg-[#111411]"
+              : "bg-white",
+        )}
+      >
+        <div
+          className={cn(
+            "absolute inset-0",
+            isCompact
+              ? activated
+                ? "opacity-0"
+                : "md:group-hover:opacity-0"
+              : "",
+            mode === 'modal'
+              ? CASE_DARK_VARIANTS.has(index)
+                ? CASE_MEDIA_BASE_BACKGROUND_CLASS
+                : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]"
+              : CASE_MEDIA_BASE_BACKGROUND_CLASS,
+          )}
+        />
+
+        {mode === 'card' && CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12", activated ? "opacity-0" : "md:group-hover:opacity-0")} />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px]", activated ? "opacity-0" : "md:group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px]", activated ? "opacity-0" : "md:group-hover:opacity-0")} />
+          </>
+        ) : null}
+
+        <div
+          className={cn(
+            "absolute",
+            getCaseVisualFrameClassName(index),
+            mode === 'modal'
+              ? CASE_DARK_VARIANTS.has(index)
+                ? "mix-blend-screen opacity-100"
+                : "mix-blend-multiply opacity-82"
+              : activated
+                ? "opacity-100 mix-blend-screen text-white"
+                : cn("opacity-100 mix-blend-screen md:group-hover:text-white", getCaseVisualColorClassName(index)),
+          )}
+        >
+          <CaseVisualGraphic
+            index={index}
+            className={getCaseVisualToneClassName(index)}
+            animate={mode === 'card' ? animate : false}
+            activated={mode === 'card' ? activated : false}
+            animateNonce={animateNonce}
+          />
+        </div>
+
+        {mode === 'card' && CASE_DARK_VARIANTS.has(index) ? (
+          <>
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px]", activated ? "opacity-0" : "md:group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px]", activated ? "opacity-0" : "md:group-hover:opacity-0")} />
+          </>
+        ) : null}
+      </div>
+    );
+  };
+
   const renderCaseCard = (
     card: CaseCard,
     index: number,
@@ -3106,71 +3299,27 @@ export default function LabW26PageV3() {
       onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
       ref={options?.cardRef}
       className={cn(
-        "group relative mx-auto flex min-h-[248px] w-full max-w-[18rem] flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left md:min-h-[226px] md:max-w-[16.1rem]",
-        isVisualActive ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/10 bg-white hover:border-[#8DC63F] hover:bg-[#8DC63F]",
+        "group relative mx-auto flex w-full flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left transition-all duration-300 md:min-h-[226px] md:h-auto md:max-w-[16.1rem]",
+        isVisualActive ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/15 bg-white md:border-black/10 md:bg-white md:hover:border-[#8DC63F] md:hover:bg-[#8DC63F]",
       )}
     >
-      <div
-        className={cn(
-          "relative mb-3 h-[118px] overflow-hidden rounded-[2px] md:mb-2.5 md:h-[100px]",
-          isVisualActive ? "bg-[#8DC63F]" : "bg-[#111411] group-hover:bg-[#8DC63F]",
-        )}
-      >
-        <div
-          className={cn(
-            "absolute inset-0",
-            isVisualActive ? "opacity-0" : "group-hover:opacity-0",
-            CASE_MEDIA_BASE_BACKGROUND_CLASS,
-          )}
-        />
-
-        {CASE_DARK_VARIANTS.has(index) ? (
-          <>
-            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-          </>
-        ) : null}
-
-        <div
-          className={cn(
-            "absolute group-hover:opacity-100",
-            getCaseVisualFrameClassName(index),
-            isVisualActive
-              ? "opacity-100 mix-blend-screen text-white"
-              : cn("opacity-100 mix-blend-screen group-hover:text-white", getCaseVisualColorClassName(index)),
-          )}
-        >
-          <CaseVisualGraphic
-            index={index}
-            className={getCaseVisualToneClassName(index)}
-            animate={shouldAnimate}
-            activated={shouldAnimate || isTouchMobileViewport}
-            animateNonce={hoverNonce}
-          />
-        </div>
-
-        {CASE_DARK_VARIANTS.has(index) ? (
-          <>
-            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-          </>
-        ) : null}
+      <div className={cn("mb-4 shrink-0 md:mb-2.5 w-full overflow-hidden", !isMdViewport ? "min-h-[118px] bg-[#111411] rounded-[1px]" : "bg-transparent")}>
+        {renderCaseMediaPanel({ index, mode: 'card', animate: shouldAnimate, activated: isVisualActive, animateNonce: hoverNonce })}
       </div>
 
-      <h4 className={cn("mb-1.5 max-w-none text-[15px] font-black uppercase leading-[0.94] tracking-[-0.04em] transition-none md:max-w-[10.6rem] md:text-[15px]", isVisualActive ? "text-white" : "text-black group-hover:text-white")}>
+      <h4 className={cn("mb-1.5 max-w-none text-[15px] font-black uppercase leading-[0.94] tracking-[-0.04em] transition-none md:max-w-[10.6rem] md:text-[15px]", isVisualActive ? "text-white" : "text-black md:group-hover:text-white")}>
         {card.title}
       </h4>
 
       <p className={cn(
         "mb-2 text-[12px] font-normal leading-[1.34] transition-none md:text-[12px]",
-        isVisualActive ? "text-white/90" : "text-black/78 group-hover:text-white/90",
-        options?.descriptionLines === 3 ? "min-h-[4.45rem] md:min-h-[4.15rem]" : "min-h-[2.9rem] md:min-h-[2.7rem]",
+        isVisualActive ? "text-white/90" : "text-black/78 md:group-hover:text-white/90",
+        options?.descriptionLines === 3 ? "min-h-[4.45rem]" : "min-h-[2.9rem]",
       )}>
         {card.details}
       </p>
 
-      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isVisualActive ? "text-white/72" : "text-black/60 group-hover:text-white/72")}>
+      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isVisualActive ? "text-white/72" : "text-black/60 md:group-hover:text-white/72")}>
         {card.author}, {card.role.toLowerCase()}
       </div>
 
@@ -3183,7 +3332,7 @@ export default function LabW26PageV3() {
                 "rounded-[2px] border px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] transition-none md:text-[9px]",
                 isVisualActive
                   ? "border-white/50 bg-white/20 font-bold text-white"
-                  : "border-black/10 bg-black/[0.03] text-black/70 group-hover:border-white/50 group-hover:bg-white/20 group-hover:font-bold group-hover:text-white",
+                  : "border-black/10 bg-black/[0.03] text-black/70 md:group-hover:border-white/50 md:group-hover:bg-white/20 md:group-hover:font-bold md:group-hover:text-white",
               )}
             >
               {tool}
@@ -3451,22 +3600,22 @@ export default function LabW26PageV3() {
       <main className="w-full min-h-screen relative">
         {/* Mobile Header */}
         <header
-          className={`md:hidden fixed left-0 top-[18px] z-[350] box-border flex w-full items-center justify-between border-b border-current/10 px-4 py-[0.75rem] transition-transform duration-500 ${isMenuOpen ? '-translate-y-24' : 'translate-y-0'}`}
+          className={`md:hidden fixed left-0 top-[16px] z-[350] box-border flex w-full items-center justify-between border-b border-current/10 px-4 py-[0.625rem] transition-transform duration-500 ${isMenuOpen ? '-translate-y-24' : 'translate-y-0'}`}
           style={{ backgroundColor: colors.bg, color: colors.text }}
         >
-           <div className="flex gap-4 items-center">
-              <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="font-bold leading-none flex items-center gap-2.5">
-                <img src={LOGO_TRANSPARENT_SRC} className="h-6 w-6 shrink-0 object-contain brightness-0" alt="AI Mindset logo" />
-                <span className="text-[9px] font-light uppercase tracking-[0.3em]">AI MINDSET</span>
+           <div className="flex items-center">
+              <a href="#hero" onClick={(e) => { e.preventDefault(); scrollTo('#hero'); }} className="flex items-center gap-2">
+                <img src={LOGO_TRANSPARENT_SRC} className="h-[21px] w-[21px] shrink-0 object-contain brightness-0" alt="AI Mindset logo" />
+                <span className="text-[9px] font-medium uppercase tracking-[0.25rem] translate-y-[0.5px]">AI MINDSET</span>
               </a>
            </div>
-           <div className="flex gap-4 items-center">
+           <div className="flex items-center">
              <button
                type="button"
                onClick={openMobileMenu}
-               className="z-10 pointer-events-auto p-2 hover:bg-current/5 transition-colors"
+               className="z-10 pointer-events-auto p-1 hover:bg-current/5 transition-colors flex items-center justify-center"
              >
-               <Menu size={20} />
+               <Menu size={22} strokeWidth={2.2} />
              </button>
            </div>
         </header>
@@ -3503,8 +3652,9 @@ export default function LabW26PageV3() {
                      Лаборатория, которая научит вас работе с ИИ: от сбора контекста до создания персональной ИИ-операционной системы.
                   </p>
                   <div className="flex w-full flex-col items-center justify-center gap-6 sm:flex-row sm:justify-center lg:items-start lg:justify-start">
-                    <div className="w-full md:w-auto">
-                      <div className="sticky bottom-[calc(env(safe-area-inset-bottom,0px)+32px)] z-[340] flex w-full justify-center md:static">
+                    {/* Desktop Button: Restored to original static position */}
+                    <div className="hidden md:block w-full md:w-auto">
+                      <div className="md:static flex w-full justify-center">
                         <a
                           href="#pricing"
                           onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
@@ -3517,6 +3667,8 @@ export default function LabW26PageV3() {
                         </a>
                       </div>
                     </div>
+                    {/* Mobile: Space reserved, floating button handled globally */}
+                    <div className="md:hidden h-4" />
                   </div>
                </div>
                
@@ -3530,7 +3682,21 @@ export default function LabW26PageV3() {
           </Container>
         </section>
 
-         <div className="md:ml-[18%] md:w-[82%] w-full">
+         <div className="md:ml-[18%] md:w-[82%] w-full relative">
+            {/* Mobile Sticky CTA: Naturally scrolls up and catches at the bottom edge */}
+            <div className="md:hidden sticky bottom-[calc(env(safe-area-inset-bottom,0px)+24px)] z-[340] flex w-full justify-center px-4 -mb-8 pointer-events-none">
+              <a
+                href="#pricing"
+                onClick={(e) => { e.preventDefault(); scrollToPricingWithCue(); }}
+                className={cn(
+                  DARK_CTA_BUTTON_CLASS,
+                  "pointer-events-auto w-full max-w-[22rem] px-10 py-5 text-center sm:w-auto sm:min-w-[18rem] md:min-w-[22rem] md:px-14 md:py-6 shadow-2xl",
+                )}
+              >
+                /хочу на лабу
+              </a>
+            </div>
+
 
             <section className="py-20 md:py-24 relative bg-black/[0.03]">
               <Container>
@@ -4157,7 +4323,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/55 p-3 backdrop-blur-md md:items-center md:p-6"
+            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/55 p-3 backdrop-blur-md md:left-[18%] md:items-center md:p-6"
             onClick={() => setIsCasesOverlayOpen(false)}
           >
             <motion.div
@@ -4268,21 +4434,30 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10010] flex items-end justify-center bg-black/80 p-3 backdrop-blur-md md:items-center md:p-6"
+            className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:left-[18%] md:p-6"
             onClick={() => setActiveCaseIndex(null)}
           >
             <motion.div
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 18 }}
+              exit={{ opacity: 0, y: 22 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="flex h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl md:h-[min(46rem,calc(100vh-3rem))]"
-              onClick={(event) => event.stopPropagation()}
+              className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl overscroll-contain md:h-[min(46rem,calc(100vh-3rem))]"
+              // Use onClick to distinguish between tap (to close) and swipe (to scroll)
+              onClick={(event) => {
+                const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches;
+                if (isMobile) {
+                  setActiveCaseIndex(null);
+                } else {
+                  event.stopPropagation();
+                }
+              }}
             >
-              <div className="flex items-start justify-between gap-4 border-b border-black/8 px-5 py-4 md:px-7 md:py-5">
+              {/* Sticky header to ensure close button is ALWAYS at the top of the container */}
+              <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-black/8 bg-white px-5 py-4 md:px-7 md:py-5">
                 <div className="min-w-0">
-                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40">кейс</div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
+                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40 text-black/60">кейс</div>
+                  <h3 className="text-[20px] font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
                   <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
                     <span>{activeCase.author}</span>
                     <span>{activeCase.role}</span>
@@ -4290,44 +4465,25 @@ export default function LabW26PageV3() {
                 </div>
                 <button
                   type="button"
-                  className="shrink-0 rounded-sm p-2 text-black/40 transition-colors hover:bg-black/5 hover:text-black"
-                  onClick={() => setActiveCaseIndex(null)}
+                  className="shrink-0 -mr-2 -mt-2 rounded-full p-4 text-black/40 transition-colors hover:bg-black/5 hover:text-black md:p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCaseIndex(null);
+                  }}
                 >
-                  <X size={20} />
+                  <X size={24} />
                 </button>
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-0 md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)]">
+              <div className="grid min-h-0 flex-1 gap-0 overflow-y-auto md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)] md:overflow-hidden">
                 <div className="border-b border-black/8 bg-[#f5f7f2] p-5 md:border-b-0 md:border-r md:border-black/8 md:p-7">
                   <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">визуал</div>
                   <div
                     className={cn(
-                      "relative flex h-[14rem] items-center justify-center overflow-hidden md:h-full md:min-h-[24rem]",
-                      CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "bg-[#111411]" : "bg-white",
+                      "md:h-full md:min-h-[24rem]",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "absolute inset-0",
-                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex)
-                          ? "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]"
-                          : "bg-[linear-gradient(90deg,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:18px_18px]",
-                      )}
-                    />
-                    <div
-                      className={cn(
-                        "absolute",
-                        getCaseVisualFrameClassName(activeCaseVisualIndex),
-                        CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "mix-blend-screen opacity-100" : "mix-blend-multiply opacity-82",
-                        getCaseVisualColorClassName(activeCaseVisualIndex),
-                      )}
-                    >
-                      <CaseVisualGraphic
-                        index={activeCaseVisualIndex}
-                        className={getCaseVisualToneClassName(activeCaseVisualIndex)}
-                        animate={false}
-                      />
-                    </div>
+                    {renderCaseMediaPanel({ index: activeCaseVisualIndex, mode: 'modal' })}
                   </div>
                   {activeCase.filters.length ? (
                     <div className="mt-4 flex flex-wrap gap-1.5">
@@ -4342,7 +4498,7 @@ export default function LabW26PageV3() {
                     </div>
                   ) : null}
                 </div>
-                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
+                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6 overscroll-behavior-contain">
                   <div className="space-y-5 pb-8">
                     <section>
                       <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
