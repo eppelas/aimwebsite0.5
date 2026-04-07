@@ -3,10 +3,10 @@
 ## User Requests
 
 - Task: На mobile в блоке `Cases` сделать карточки одинакового размера и починить визуал (сейчас они все белые, без картинок), чтобы они максимально походили на десктопные.
-  Status: requested
+  Status: implemented
   Owner: assistant
   Last Checked: 2026-04-07
-  Note: Планируется унификация высоты карточек через `flex-1` и фиксированные `min-h` для зон контента, а также возврат тёмного медиа-шелла и прямая подача SVG (или фикс data-uri), чтобы картинки снова были видны.
+  Note: После phone-specific follow-up `Cases` на mobile переведены на единый visual render-path для main-card и popup: обе ветки используют один `renderCaseMediaPanel`, а phone-gate для `Cases` упрощён до width-based `'(max-width: 767px)'`, чтобы реальный телефон и узкий Arc больше не расходились по логике. На mobile visual-shell сведён к тупому чёрному panel + прямому SVG image без blend-магии; desktop `Cases` не тронуты. `npm run build` прошёл, но живая проверка именно на телефоне ещё нужна.
 
 - Task: В разделе "Философия" (Mindset) на desktop чуть-чуть опустить вниз круглые кнопки навигации (влево-вправо), чтобы они не налезали на текст. Только для desktop, на mobile оставить как есть. Сохранить логику фиксации кнопок.
   Status: self-checked
@@ -88,8 +88,8 @@
 - Task: На mobile `Cases` сделать карточки заметно шире, ближе к ширине экрана, и вернуть визуальному блоку кейса вес desktop-версии: SVG, тёмный media-shell и общую читаемость
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` mobile case-card расширены до `min(80vw, 20rem)` вместо прежнего `max-w-[16.1rem]`, увеличена минимальная высота карточки и поднята высота media-shell (`92 -> 118` на mobile). После нового фидбэка исправлена и логика visual-state: активная mobile-карточка теперь сохраняет тёмный media-shell и grid/glow background, а `CaseVisualGraphic` получает явный `activated`-режим с `brightness-0 invert`, чтобы SVG снова были видны как белый animated visual, ближе к desktop hover.
+  Last Checked: 2026-04-07
+  Note: Mobile follow-up переоткрыт и переведён с asset/data-uri экспериментов на более тупый path: на телефоне main `Cases` и popup теперь делят один общий mobile panel с прямой подачей SVG как обычного image-файла и чёрным media-shell, чтобы исключить разъезд между main-card и popup. Width-only mobile gate тоже синхронизирован с этим path. `npm run build` прошёл; нужна живая phone-проверка.
 
 - Task: В mobile footer сделать полупрозрачную надпись `AI MINDSET` заметно прозрачнее и опустить/увеличить её так, чтобы она сильнее жила внизу и немного заходила на зону `ОФЕРТА / ПОЛИТИКА`
   Status: implemented
@@ -119,7 +119,7 @@
   Status: implemented
   Owner: assistant
   Last Checked: 2026-04-07
-  Note: Первичная гипотеза про внешний фон секции оказалась неверной и пользователь её отклонил; визуальный background `Cases` возвращён без изменения дизайна. Текущий follow-up перенесён в техническую плоскость: на touch-mobile статичный visual кейса больше не монтируется как тяжёлый inline SVG-DOM, а рендерится как image data URI из уже очищенного static SVG. Это должно снизить repaint/jank именно при быстром проскролле вокруг секции `Cases`, не меняя её вид.
+  Note: Первичная гипотеза про внешний фон секции оказалась неверной и пользователь её отклонил; follow-up переведён в техническую плоскость. На mobile `Cases` убран разъезд main/popup render-path, а visual-shell сведён к чёрному panel + обычному SVG image без data-uri и без тяжёлого inline SVG DOM. Это должно уменьшить repaint/jank именно на телефонах, не трогая desktop.
 
 - Task: На mobile убрать зазор между верхним header и бегущей строкой, уменьшить высоту header примерно на 15 процентов и устранить горизонтальный скролл с бежевым фоном
   Status: implemented
@@ -198,6 +198,12 @@
   Owner: assistant
   Last Checked: 2026-04-06
   Note: В `DesktopTechUiV5` правая колонка expanded-программы переведена в full-height чёрный модуль с green glow-art и двумя event-card; `speaker/slot` убраны, вместо них оставлены только `инструменты`. Нужна визуальная проверка пользователя, что карточки действительно совпадают по логике с нужным референсом, а не выглядят как новая интерпретация.
+
+- Task: Починить desktop-scroll в блоке `Программа`, чтобы pinned section не залипала, не глотала wheel без перехода и не перескакивала недели
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-04-07
+  Note: В `DesktopTechUiV5` wheel-trap переписан: `preventDefault` больше не вызывается в lock-state, lock сокращён и сбрасывается при смене направления. Логика недели переведена с rounded-progress на явные snap-step позиции, завязанные на реальную высоту sticky-panel, а клик по левой rail теперь идёт через тот же navigation path, что и wheel. `npm run build` в этой среде не вернул финальный stdout, но локальный preview на `:3001` продолжает отвечать `HTTP 200`; требуется ручная desktop-проверка реальным touchpad.
 
 - Task: Заменить CTA `хочу на лабораторию` на `/хочу на лабу` и привести pricing CTA `присоединиться` к той же стилистике без лишней жирности и разрядки
   Status: self-checked

@@ -2575,32 +2575,35 @@ export default function LabW26PageV3Alt() {
             })}
           </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleCases.map((card, i) => (
               <button
                 key={card.title}
                 type="button"
                 onClick={() => setActiveCase(card)}
-                className="relative overflow-hidden min-h-[172px] bg-black/5 p-5 text-left transition-all duration-300 group border border-black/10 hover:bg-[#8DC63F] flex flex-col justify-between"
+                className="relative overflow-hidden h-[180px] md:min-h-[172px] md:h-full bg-white md:bg-black/5 p-5 text-left transition-all duration-300 group border border-black/15 md:border-black/10 hover:bg-[#8DC63F] flex flex-col justify-between"
               >
-                <div className="pointer-events-none absolute right-5 bottom-4 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1">
-                  <AsciiCaseArt frames={card.artFrames} className="origin-bottom-right scale-[4] text-current opacity-[0.22] group-hover:opacity-100 group-hover:text-black/25" />
+                <div className="pointer-events-none absolute right-4 bottom-3 transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1">
+                  <AsciiCaseArt 
+                    frames={card.artFrames} 
+                    className="origin-bottom-right scale-[3.5] md:scale-[4] text-current opacity-70 md:opacity-[0.22] group-hover:opacity-100 group-hover:text-black/25" 
+                  />
                 </div>
-                <div className="relative z-10 mb-6 flex items-start justify-end">
+                <div className="relative z-10 mb-4 md:mb-6 flex items-start justify-end">
                   <div className="ml-auto text-right">
-                    <div className="text-[11px] font-bold uppercase tracking-[0.1em] text-black/80 group-hover:text-black">
+                    <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.1em] text-black/80 group-hover:text-black">
                       {card.author}
                     </div>
-                    <div className="text-[9px] font-bold uppercase tracking-[0.05em] text-black/40 group-hover:text-black/60">
+                    <div className="text-[8px] md:text-[9px] font-bold uppercase tracking-[0.05em] text-black/40 group-hover:text-black/60">
                       {card.role}
                     </div>
                   </div>
                 </div>
-                <div className="relative z-10 max-w-[13.5rem]">
-                  <h4 className="mb-1.5 text-[14px] font-black uppercase tracking-[0.12em] leading-tight text-black group-hover:text-black">
+                <div className="relative z-10 max-w-[13.5rem] md:max-w-none">
+                  <h4 className="mb-1 text-[13px] md:text-[14px] font-black uppercase tracking-[0.12em] leading-tight text-black group-hover:text-black">
                     {card.title}
                   </h4>
-                  <p className="text-[11px] font-bold leading-relaxed text-black/60 group-hover:text-black/80 line-clamp-2">
+                  <p className="text-[10px] md:text-[11px] font-bold leading-relaxed text-black/60 group-hover:text-black/80 line-clamp-2">
                     {card.desc}
                   </p>
                 </div>

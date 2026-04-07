@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import LabW26PageV3 from './components/LabW26PageV3';
 
+const LabW26PageV3 = lazy(() => import('./components/LabW26PageV3'));
 const LabW26PageV3Alt = lazy(() => import('./components/LabW26PageV3Alt'));
 const LabW26PageV3Switcher = lazy(() => import('./components/LabW26PageV3Switcher'));
 const LabW26PageV4 = lazy(() => import('./components/LabW26PageV4'));

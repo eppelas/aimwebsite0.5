@@ -3176,16 +3176,17 @@ export default function LabW26PageV3() {
   }) => {
     const isCompact = mode === 'card';
 
-    if (isTouchMobileViewport) {
+    if (!isMdViewport || isTouchMobileViewport) {
       return (
         <div
           className={cn(
-            "relative flex items-center justify-center overflow-hidden rounded-[2px] bg-[#111411]",
+            "relative flex items-center justify-center overflow-hidden rounded-[2px] z-0",
             isCompact ? "h-[118px]" : "h-[14rem]",
+            CASE_MEDIA_BASE_BACKGROUND_CLASS
           )}
         >
-          <div className="absolute inset-0 bg-[#111411]" />
-          <div className="absolute inset-[10%] flex items-center justify-center">
+          {/* Grid mesh and green glows are inside the above class */}
+          <div className="absolute inset-[10%] flex items-center justify-center z-10 scale-[2.0]">
             <CaseVisualGraphic
               index={index}
               className={getCaseVisualToneClassName(index)}
@@ -3205,9 +3206,9 @@ export default function LabW26PageV3() {
           isCompact
             ? activated
               ? "bg-[#8DC63F]"
-              : "bg-[#111411] md:group-hover:bg-[#8DC63F]"
+              : cn(CASE_MEDIA_BASE_BACKGROUND_CLASS, "md:group-hover:bg-[#8DC63F]")
             : CASE_DARK_VARIANTS.has(index)
-              ? "bg-[#111411]"
+              ? CASE_MEDIA_BASE_BACKGROUND_CLASS
               : "bg-white",
         )}
       >
@@ -3319,7 +3320,7 @@ export default function LabW26PageV3() {
         {card.details}
       </p>
 
-      <div className={cn("mt-auto truncate font-mono text-[9px] leading-[1.1] tracking-[0.02em] transition-none md:text-[10px]", isVisualActive ? "text-white/72" : "text-black/60 md:group-hover:text-white/72")}>
+      <div className={cn("mt-auto truncate font-mono text-[11px] md:text-[10px] leading-[1.1] tracking-[0.02em] transition-none whitespace-nowrap overflow-hidden", isVisualActive ? "text-white/72" : "text-black/60 md:group-hover:text-white/72")}>
         {card.author}, {card.role.toLowerCase()}
       </div>
 
