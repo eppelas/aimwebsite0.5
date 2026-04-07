@@ -223,6 +223,16 @@ const getCaseVisualToneClassName = (index: number) => {
   return "";
 };
 
+const getCaseVisualColorClassName = (index: number) => {
+  if (index === 0 || index === 4) return "text-[#38bdf8]";
+  if (index === 1 || index === 5) return "text-[#7BFF36]";
+  if (index === 2 || index === 6) return "text-[#4FF6FF]";
+  if (index === 3 || index === 7) return "text-[#FF5A4A]";
+  if (index === 8) return "text-[#F6AEFF]";
+  if (index === 9) return "text-[#FFF7FF]";
+  return "text-[#8DC63F]";
+};
+
 const CASE_MEDIA_BASE_BACKGROUND_CLASS = "bg-[linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),radial-gradient(circle_at_22%_78%,rgba(145,212,69,0.22),transparent_34%),radial-gradient(circle_at_78%_24%,rgba(210,255,150,0.12),transparent_28%),linear-gradient(145deg,#171a16_0%,#0f120f_60%,#131713_100%)] bg-[size:18px_18px,18px_18px,auto,auto,auto]";
 
 const normalizeCaseSvgMarkup = (svgMarkup: string) =>
@@ -261,7 +271,7 @@ const loadStaticCaseSvgMarkup = async (assetName: string) => {
       }
 
       const rawMarkup = await response.text();
-      const staticMarkup = normalizeCaseSvgMarkup(stripCaseSvgAnimation(rawMarkup));
+      const staticMarkup = normalizeCaseSvgMarkup(convertCaseSvgMarkupToCurrentColor(stripCaseSvgAnimation(rawMarkup)));
       CASE_STATIC_SVG_CACHE.set(assetName, staticMarkup);
       return staticMarkup;
     })
@@ -313,13 +323,8 @@ function CaseVisualGraphic({
   animateNonce?: number;
 }) {
   const assetName = CASE_VISUAL_ASSET_BY_INDEX[index] ?? `case-${index}.svg`;
-  const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const [staticMarkup, setStaticMarkup] = useState<string | null>(() => CASE_STATIC_SVG_CACHE.get(assetName) ?? null);
   const [animatedMarkup, setAnimatedMarkup] = useState<string | null>(() => CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
-  const staticDataUri = useMemo(() => {
-    if (!staticMarkup) return null;
-    return `data:image/svg+xml;utf8,${encodeURIComponent(staticMarkup)}`;
-  }, [staticMarkup]);
 
   useEffect(() => {
     let disposed = false;
@@ -340,13 +345,6 @@ function CaseVisualGraphic({
   useEffect(() => {
     let disposed = false;
 
-    if (isTouchMobileViewport && !animate) {
-      setAnimatedMarkup(CASE_ANIMATED_SVG_CACHE.get(assetName) ?? null);
-      return () => {
-        disposed = true;
-      };
-    }
-
     loadAnimatedCaseSvgMarkup(assetName)
       .then((markup) => {
         if (!disposed) setAnimatedMarkup(markup);
@@ -358,35 +356,11 @@ function CaseVisualGraphic({
     return () => {
       disposed = true;
     };
-  }, [animate, assetName, isTouchMobileViewport]);
+  }, [assetName]);
 
   const renderedMarkup = useMemo(() => {
     return animate ? animatedMarkup ?? staticMarkup : staticMarkup;
   }, [animate, animatedMarkup, staticMarkup]);
-
-  if (isTouchMobileViewport && !animate && staticDataUri) {
-    return (
-      <div
-        aria-hidden
-        className={cn(
-          "flex h-full w-full origin-center items-center justify-center",
-          activated
-            ? "drop-shadow-[0_0_14px_rgba(255,255,255,0.22)]"
-            : "drop-shadow-[0_0_10px_rgba(111,255,204,0.08)]",
-          className,
-        )}
-      >
-        <img
-          src={staticDataUri}
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full"
-          loading="eager"
-          decoding="async"
-        />
-      </div>
-    );
-  }
 
   return (
     <div
@@ -2231,12 +2205,10 @@ const DesktopTechUiV5 = ({
   const [activeWeek, setActiveWeek] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const wheelGestureRef = useRef<{
-    accumulatedDelta: number;
-    cooldownUntil: number;
+    gestureLocked: boolean;
     resetTimeout: number | null;
   }>({
-    accumulatedDelta: 0,
-    cooldownUntil: 0,
+    gestureLocked: false,
     resetTimeout: null,
   });
 
@@ -2297,7 +2269,7 @@ const DesktopTechUiV5 = ({
   }, [forcedOpenIndex, forcedOpenNonce, navigateToWeek]);
 
   const handleWeekClick = (idx: number) => {
-    navigateToWeek(idx, 'auto');
+    setActiveWeek(idx);
   };
 
   useEffect(() => {
@@ -2327,7 +2299,7 @@ const DesktopTechUiV5 = ({
     };
 
     const resetWheelGesture = () => {
-      gestureState.accumulatedDelta = 0;
+      gestureState.gestureLocked = false;
       clearWheelReset();
     };
 
@@ -2356,25 +2328,15 @@ const DesktopTechUiV5 = ({
       }
 
       event.preventDefault();
-
-      const now = performance.now();
-      if (now < gestureState.cooldownUntil) return;
-
-      if (gestureState.accumulatedDelta !== 0 && Math.sign(gestureState.accumulatedDelta) !== direction) {
-        gestureState.accumulatedDelta = 0;
-      }
-
-      gestureState.accumulatedDelta += event.deltaY;
       clearWheelReset();
       gestureState.resetTimeout = window.setTimeout(() => {
-        gestureState.accumulatedDelta = 0;
+        gestureState.gestureLocked = false;
         gestureState.resetTimeout = null;
-      }, 160);
+      }, 900);
 
-      if (Math.abs(gestureState.accumulatedDelta) < 24) return;
+      if (gestureState.gestureLocked) return;
 
-      gestureState.accumulatedDelta = 0;
-      gestureState.cooldownUntil = now + 360;
+      gestureState.gestureLocked = true;
       navigateToWeek(nextWeek, 'auto');
     };
 
@@ -2400,7 +2362,7 @@ const DesktopTechUiV5 = ({
   ];
 
   return (
-    <div ref={containerRef} className="w-full max-w-[1340px] mx-auto font-sans h-[200vh] relative">
+    <div ref={containerRef} className="relative mx-auto h-[calc(100vh+420px)] w-full max-w-[1340px] font-sans">
       <div className="sticky top-[8vh] flex flex-col items-center">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-[6px] items-stretch justify-center h-[580px] w-full pt-12">
           <div className="w-[146px] shrink-0 flex flex-col relative h-[500px] mt-6">
@@ -3156,7 +3118,7 @@ export default function LabW26PageV3() {
       >
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-75",
+            "absolute inset-0",
             isVisualActive ? "opacity-0" : "group-hover:opacity-0",
             CASE_MEDIA_BASE_BACKGROUND_CLASS,
           )}
@@ -3164,32 +3126,34 @@ export default function LabW26PageV3() {
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12 transition-opacity duration-100", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute inset-x-3 top-[2rem] h-[0.5px] bg-white/12", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute bottom-1 left-3 h-12 w-20 bg-[#b7ff6a]/18 blur-[28px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-2 top-4 h-10 w-12 bg-[#d7ff9a]/10 blur-[24px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
 
         <div
           className={cn(
-            "absolute transition-[transform,filter,opacity,color] duration-75 group-hover:opacity-100",
+            "absolute group-hover:opacity-100",
             getCaseVisualFrameClassName(index),
-            isVisualActive ? "opacity-100 mix-blend-screen text-white" : "opacity-100 mix-blend-screen text-inherit",
+            isVisualActive
+              ? "opacity-100 mix-blend-screen text-white"
+              : cn("opacity-100 mix-blend-screen group-hover:text-white", getCaseVisualColorClassName(index)),
           )}
         >
           <CaseVisualGraphic
             index={index}
             className={getCaseVisualToneClassName(index)}
             animate={shouldAnimate}
-            activated={shouldAnimate}
+            activated={shouldAnimate || isTouchMobileViewport}
             animateNonce={hoverNonce}
           />
         </div>
 
         {CASE_DARK_VARIANTS.has(index) ? (
           <>
-            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
-            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px] transition-opacity duration-75", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute left-[14%] top-[48%] h-12 w-24 -translate-y-1/2 bg-[#d8ff90]/10 blur-[30px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
+            <div className={cn("absolute right-[12%] top-[24%] h-10 w-16 bg-[#d8ff90]/8 blur-[22px]", isVisualActive ? "opacity-0" : "group-hover:opacity-0")} />
           </>
         ) : null}
       </div>
@@ -4355,6 +4319,7 @@ export default function LabW26PageV3() {
                         "absolute",
                         getCaseVisualFrameClassName(activeCaseVisualIndex),
                         CASE_DARK_VARIANTS.has(activeCaseVisualIndex) ? "mix-blend-screen opacity-100" : "mix-blend-multiply opacity-82",
+                        getCaseVisualColorClassName(activeCaseVisualIndex),
                       )}
                     >
                       <CaseVisualGraphic
