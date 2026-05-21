@@ -413,13 +413,6 @@ const PAGE_SECTION_LINKS: NavItem[] = [
   { label: 'FAQ', href: '#faq' },
 ];
 
-const EXTERNAL_LINKS = [
-  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
-  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
-  { label: '{for-teams}', href: '/ai-mindset-consulting' },
-  { label: 'non-profit', href: '/non-profit' },
-];
-
 const LAB_MENU_LINKS = [
   { label: 'Spring Main Lab', href: 'https://aimindset.org/ai-mindset', status: 'Current' },
   { label: 'AI-Native Orgs', href: 'https://ai-native.aimindset.org/', status: 'Current' },
@@ -427,10 +420,10 @@ const LAB_MENU_LINKS = [
 ];
 
 const PRIMARY_MENU_LINKS = [
-  { label: 'комьюнити {space}', href: '/ai-mindset-community' },
-  { label: '{Special Projects}', href: 'https://aimindset.org/special-projects' },
-  { label: '{For Teams}', href: '/ai-mindset-consulting' },
-  { label: '{For Non-Profit}', href: '/non-profit' },
+  { label: 'комьюнити {space}', href: 'https://aimindset.org/ai-mindset-community' },
+  { label: '{Special Projects}' },
+  { label: '{For Teams}', href: 'https://aimindset.org/ai-mindset-consulting' },
+  { label: '{For Non-Profit}', href: 'https://aimindset.org/non-profit' },
 ];
 
 const LOGO_SRC = `${BASE_URL}assets/ai-mindset-logo.png`;
@@ -2686,7 +2679,7 @@ const LabsHoverMenu = () => (
     <div className="pointer-events-none absolute inset-y-0 -left-4 w-4 bg-transparent" />
     <div className="bg-white border border-black/20 p-6 flex flex-col xl:flex-row gap-4 shadow-2xl">
       {LAB_MENU_LINKS.map((link) => (
-        <a key={link.label} href={link.href} target="_blank" className="group block border border-black/10 px-4 py-3 w-48 hover:border-black transition-colors bg-white">
+        <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="group block border border-black/10 px-4 py-3 w-48 hover:border-black transition-colors bg-white">
           <div className="text-[9px] uppercase tracking-widest opacity-40 mb-3">{link.status}</div>
           <div className="text-xs font-bold uppercase tracking-widest">
             <MenuStrikeText>{link.label}</MenuStrikeText>
@@ -3451,9 +3444,15 @@ export default function LabW26PageV3() {
             </AnimatePresence>
           </div>
           {PRIMARY_MENU_LINKS.map((link) => (
-            <a key={link.label} href={link.href} target="_blank" className="group flex items-center gap-2 opacity-50 whitespace-nowrap hover:text-black hover:opacity-100 transition-opacity w-fit">
-              <MenuStrikeText>{link.label}</MenuStrikeText>
-            </a>
+            link.href ? (
+              <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="group flex items-center gap-2 opacity-50 whitespace-nowrap hover:text-black hover:opacity-100 transition-opacity w-fit">
+                <MenuStrikeText>{link.label}</MenuStrikeText>
+              </a>
+            ) : (
+              <span key={link.label} aria-disabled="true" className="group flex w-fit cursor-default items-center gap-2 whitespace-nowrap opacity-35">
+                <MenuStrikeText>{link.label}</MenuStrikeText>
+              </span>
+            )
           ))}
         </nav>
         <div className="mt-24 flex flex-col items-end text-right">
@@ -3576,16 +3575,26 @@ export default function LabW26PageV3() {
                   ))}
 
                   {PRIMARY_MENU_LINKS.map((link) => (
-                    <a
-                      key={link.label}
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
-                    >
-                      {link.label}
-                    </a>
+                    link.href ? (
+                      <a
+                        key={link.label}
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="text-xl font-bold uppercase tracking-tight text-black hover:line-through"
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <span
+                        key={link.label}
+                        aria-disabled="true"
+                        className="cursor-default text-xl font-bold uppercase tracking-tight text-black/35"
+                      >
+                        {link.label}
+                      </span>
+                    )
                   ))}
                 </div>
               </div>
@@ -4303,8 +4312,8 @@ export default function LabW26PageV3() {
             <div>
               <div className="text-[10px] font-bold opacity-40 uppercase tracking-widest mb-6">ИНФО</div>
               <div className="flex flex-col gap-2 text-xs uppercase">
-                <a href="#" className="hover:line-through">ОФЕРТА</a>
-                <a href="#" className="hover:line-through">ПОЛИТИКА</a>
+                <span aria-disabled="true">ОФЕРТА</span>
+                <span aria-disabled="true">ПОЛИТИКА</span>
               </div>
             </div>
           </div>

@@ -2,6 +2,30 @@
 
 ## User Requests
 
+- Task: Почистить код сайта от лишних локальных версий, неиспользуемых компонентов, старых ассетов, AI Studio/Gemini-заготовок и левых ссылок.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-21
+  Note: Удаление сделано move-only через Trash; файлы перенесены в `/Users/viola/.Trash/aimwebsite_code_cleanup_2026-05-21_19-05`, лог сохранён в `AIM Website/CODE_CLEANUP_LOG_2026-05-21.md`. Убраны старые dev-скрипты/зависимости, мёртвые компоненты и ассеты, AI Studio/Gemini config, `.DS_Store`, опасный `clean`-скрипт и битые/Pages-опасные ссылки меню. `npm run lint`, `npm run build`, `npm audit --audit-level=moderate`, `npm ls --depth=0 --json`, `.DS_Store` scan и targeted stale-reference scan прошли.
+
+- Task: Переделать Pencil дизайн-систему по фактической версии сайта, убрать абстрактные повторы, добавить реальные визуальные части сайта и включить все desktop/mobile состояния платёжного попапа внутрь этого же дизайн-системного файла.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-21
+  Note: Обновлён и вручную сохранён через Pencil UI файл `pencil/site-design-system/ai-mindset-main-site-design-system.pen`. Внутри новый root `AI Mindset site design system v2 - code matched`; предыдущий абстрактный draft заархивирован/выключен внутри документа. V2 построена по живым скриншотам `http://127.0.0.1:3001/`, реальным token/class-паттернам и фактическим компонентам сайта: sidebar/mobile topbar, hero, program, pricing/reviews/FAQ, visual surfaces cases/speakers/philosophy. В секцию `07 Payment popup states inside this design system` добавлены редактируемые desktop и mobile состояния checkout из `PricingPaymentPopupNeon.tsx`: выбор оплаты, USDT QR, card input, success card, success USDT. После ручного Save файл изменился на диске до 565323 bytes, hash `b0dadc128d5f6c069a1267d24fde9b5cad00da89a272a2d33f3588f682942bf2`; targeted `snapshot_layout` для payment-секции вернул `No layout problems`, контрольные PNG-экспорты лежат в `pencil/site-design-system/exports-v2/`.
+
+- Task: Заново вернуть в Pencil все варианты платёжного попапа для desktop и mobile.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-21
+  Note: Обновлён и вручную сохранён через Pencil UI отдельный файл `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen`. Добавлен root-frame `AI Mindset payment popup variants - desktop and mobile` с состояниями из `PricingPaymentPopupNeon.tsx`: payment selection, USDT QR, card input/submethods, card success и USDT success для desktop и mobile. После Save As/Replace файл на диске изменился до 216451 bytes, повторно открыт, `snapshot_layout` по новому root-frame вернул `No layout problems`; PNG-экспорты лежат в `pencil/payment-popup-editable/exports/`.
+
+- Task: Создать новый Pencil-файл в папке сайта AIM Website и положить туда один редактируемый попап оплаты для работы.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-21
+  Note: Создан и сохранён файл `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen`; внутри один editable desktop state `AI Mindset payment popup - one editable desktop state`. После Save As файл на диске изменился с пустого шаблона до сохранённого `.pen`, повторно открыт через Pencil MCP, `snapshot_layout` вернул `No layout problems`. PNG-контроль лежит в `pencil/payment-popup-editable/exports/mQ3Sw.png`.
+
 - Task: На mobile в блоке `Cases` сделать карточки одинакового размера и починить визуал (сейчас они все белые, без картинок), чтобы они максимально походили на десктопные.
   Status: implemented
   Owner: assistant
@@ -617,6 +641,12 @@
   Note: Пагинация `1 / 2` снята, внизу секции оставлена кнопка-стрелка `открыть все отзывы / свернуть отзывы`, expanded-flow работает через единую masonry/grid раскладку. Дополнительно live-версия уже отдельно доточена по белому фону, `tg ->` и логике скобок, поэтому историческую задачу больше не держим в `requested`.
 
 ## Agent Self-Checks
+- Task: Проверить cleanup-проход сайта после удаления лишних компонентов, ассетов, зависимостей и ссылок.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-21
+  Note: `npm run lint` и `npm run build` прошли. Targeted scan не нашёл старых версий/маршрутов, AI Studio/Gemini-хвостов, удалённых ассетов, `href="#"` или destructive `rm -rf`. `.DS_Store` scan пустой, `npm audit --audit-level=moderate` даёт 0 уязвимостей, `npm ls --depth=0 --json` без extraneous пакетов. Осталась только визуальная user-review на локальном preview.
+
 - Task: Проверить, что mobile-правка `Недельного ритма` в `Программе` не ломает сборку и доступна на локальном preview
   Status: self-checked
   Owner: assistant
