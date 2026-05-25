@@ -2,6 +2,12 @@
 
 ## User Requests
 
+- Task: Микро-полировка v7: сдвинуть popup левее и поднять action buttons без изменения высоты.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Для v7 карточка получила desktop margin-right `40px`, что визуально сдвигает сам popup примерно на `20px` левее без конфликта с motion transform. Нижний action-row (`отмена` + `оплатить`) получил `pb-3`, чтобы кнопки поднялись примерно на `12px` внутри той же высоты `640px`. Проверено локально на `127.0.0.1:3001`: popup остаётся в пределах viewport, CTA/cancel выровнены, нижний gap до рамки около `20px`. `npm run lint` прошёл. Пользователь попросил сразу push.
+
 - Task: Микро-полировка v7 перед push: скрыть Telegram discount message без найденной скидки, поднять зачёркнутую цену, сжать `* TELEGRAM`.
   Status: self-checked
   Owner: assistant

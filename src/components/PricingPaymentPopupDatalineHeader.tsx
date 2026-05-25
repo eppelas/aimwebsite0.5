@@ -205,7 +205,7 @@ export default function PricingPaymentPopupDatalineHeader({
         className={cn(
           'relative flex max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] w-full flex-col overflow-y-auto rounded-[4px] border border-black bg-white p-7 pt-8 text-left font-mono text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] md:max-h-[calc(100dvh-2rem)]',
           isCompactWide
-            ? 'max-w-[560px] md:h-[640px] md:p-7'
+            ? 'max-w-[560px] md:mr-10 md:h-[640px] md:p-7'
             : 'max-w-[500px] md:h-[642px] md:p-[30px]',
         )}
       >
@@ -478,7 +478,7 @@ export default function PricingPaymentPopupDatalineHeader({
                 </div>
               </div>
 
-              <div className="mt-auto flex items-center justify-end gap-2 pt-4">
+              <div className={cn('mt-auto flex items-center justify-end gap-2 pt-4', isCompactWide && 'pb-3')}>
                 <a
                   href="https://join.aimindset.org/waitlist"
                   target="_blank"
