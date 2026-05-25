@@ -361,7 +361,7 @@ export default function PricingPaymentPopupDatalineHeader({
                 </div>
                 <div className="relative flex h-[54px] items-center justify-end text-right">
                   {getOriginalPrice() ? (
-                    <div className="absolute right-0 top-0 font-mono text-[10px] font-bold leading-none tracking-[0.16em] text-black/32 line-through">
+                    <div className="absolute right-0 top-[-4px] font-mono text-[10px] font-bold leading-none tracking-[0.16em] text-black/32 line-through">
                       {getOriginalPrice()}
                     </div>
                   ) : null}
@@ -399,7 +399,7 @@ export default function PricingPaymentPopupDatalineHeader({
 
               <div className={cn('flex flex-col gap-5 sm:flex-row', isCompactWide ? 'mb-3 md:mb-3 md:gap-6' : 'mb-4 md:mb-4 md:gap-7')}>
                 <div className="min-w-0 flex-1">
-                  <div className={`mb-2 flex items-start gap-[3px] ${mutedLabelClass}`}>
+                  <div className={`mb-2 flex items-start gap-[1px] ${mutedLabelClass}`}>
                     <span className="-mt-[3px] text-[13px] leading-none text-[#78bd2f]">*</span>
                     <span>telegram</span>
                   </div>
@@ -415,21 +415,15 @@ export default function PricingPaymentPopupDatalineHeader({
                       <motion.div
                         key={telegramDiscountState}
                         initial={{ opacity: 0, y: -3 }}
-                        animate={{ opacity: telegramDiscountState === 'idle' ? 0 : 1, y: 0 }}
+                        animate={{ opacity: telegramDiscountState === 'applied' ? 1 : 0, y: 0 }}
                         exit={{ opacity: 0, y: -3 }}
                         transition={{ duration: 0.16 }}
                         className={cn(
                           'font-mono text-[9px] font-bold uppercase tracking-[0.16em]',
-                          telegramDiscountState === 'applied' ? 'text-[#5f9f20]' : 'text-black/36',
+                          'text-[#5f9f20]',
                         )}
                       >
-                        {telegramDiscountState === 'checking'
-                          ? 'ищу скидку'
-                          : telegramDiscountState === 'applied'
-                            ? 'скидка Alumni 20% применена'
-                            : telegramDiscountState === 'not_applied'
-                              ? 'скидка не применена'
-                              : '\u00a0'}
+                        {telegramDiscountState === 'applied' ? 'скидка Alumni 20% применена' : '\u00a0'}
                       </motion.div>
                     </AnimatePresence>
                   </div>

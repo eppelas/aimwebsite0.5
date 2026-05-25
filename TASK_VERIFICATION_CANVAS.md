@@ -2,6 +2,12 @@
 
 ## User Requests
 
+- Task: Микро-полировка v7 перед push: скрыть Telegram discount message без найденной скидки, поднять зачёркнутую цену, сжать `* TELEGRAM`.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` статусная зона Telegram сохраняет фиксированную высоту, но показывает текст только при найденной Alumni-скидке (`aim`/`@aim`); состояния поиска и `скидка не применена` визуально скрыты. Зачёркнутая старая цена поднята на 4px. Gap между обязательной `*` и `TELEGRAM` уменьшен до 1px. Проверено Playwright на локальном dev server: при `ai` нет `ищу скидку`/`скидка не применена`, при `aim` есть `скидка Alumni 20% применена`, `€590` и `€472`. Пользователь попросил сразу запушить после этой микро-правки.
+
 - Task: Починить пропавшие case screenshots на GitHub Pages после payment deploy.
   Status: self-checked
   Owner: assistant
