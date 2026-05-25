@@ -2,6 +2,12 @@
 
 ## User Requests
 
+- Task: Починить пропавшие case screenshots на GitHub Pages после payment deploy.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: На live case detail вместо product screenshot показывался broken image. Причина: `LabW26PageV3.tsx` уже ссылался на `public/assets/cases/community-night/*.png`, но папка `public/assets/cases/community-night/` осталась untracked и не попала в предыдущий push. Добавлены только три реально используемых PNG: `team-os-darya-product.png`, `meeting-pipeline-natasha-product.png`, `agent-meditation-daniil-product.png`; JPG-дубликаты не тронуты. Запланирован push в `main`, чтобы GitHub Pages пересобрался.
+
 - Task: Поменять местами Telegram и e-mail в v7 и сделать v7 основной версией оплаты на сайте.
   Status: self-checked
   Owner: assistant
