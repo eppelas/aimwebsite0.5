@@ -2,23 +2,131 @@
 
 ## User Requests
 
+- Task: Поменять местами Telegram и e-mail в v7 и сделать v7 основной версией оплаты на сайте.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` порядок contact fields изменён: Telegram теперь слева, e-mail справа. В `LabW26PageV3.tsx` default payment popup без query-параметра переключён на v7 (`PricingPaymentPopupDatalineHeader` с `presentation="v7"`). Старый dataline v3 сохранён через `?payment=v3#pricing`, а compare route обновлён так, чтобы tab `v3 dataline` больше не ссылался на default. Follow-up before push: верхний gap перед `промокод` чуть уменьшен, чтобы нижний gap до action buttons стал больше. Проверено Playwright на обычном `/#pricing`: defaultIsV7=true, left-to-right field order `@user или телефон`, `mail@mail.com`, screenshot `/tmp/aim-payment-v7-main-default-swapped.png`. `npm run lint`, `npm run build`; после микро-правки rerun `npm run lint`. GitHub push authorized by user 2026-05-25.
+
+- Task: Сделать в payment popup compare независимый desktop/mobile переключатель для левой и правой панели.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Глобальный `desktop/mobile` switch заменён на два pane-level переключателя внутри toolbar: `leftDevice` и `rightDevice` хранятся в URL отдельно. Теперь можно сравнивать `v7 desktop` слева с `v7 mobile` справа, либо `v7 mobile` слева с `github dark desktop` справа. Desktop-панель сохраняет полный список вариантов, mobile-панель ограничивает tabs до `v7 compact` и `github dark`; старый query `device=mobile` сохранён как fallback для старых ссылок. Mobile viewport остаётся нативным iframe около `390px`, без transform/zoom. Проверено Playwright: forward case `left=v7/right=v7/leftDevice=desktop/rightDevice=mobile` и reverse case `leftDevice=mobile/rightDevice=desktop`, оба popup открываются, ширины iframe корректные (`720/390`, `390/712`). `npm run lint`, `npm run build`.
+
+- Task: Добавить в payment popup compare переключатель desktop/mobile и мобильное сравнение v7 с исходной чёрной GitHub-версией.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: В `payment-popup-compare.html` добавлен global device switch `desktop/mobile`. Desktop mode сохраняет все варианты, mobile mode ограничивает табы до `v7 compact` и `github dark`, чтобы сравнивать только нужные мобильные версии. Mobile mode рендерит live iframe как настоящий узкий viewport около `390px`, без transform/zoom, поэтому responsive сайта включается нативно. Исходная чёрная версия берётся из уже восстановленного `PricingPaymentPopupDark.tsx` на базе `origin/main`; v7 mobile использует текущий responsive v7. Compare теперь auto-dismisses cookie notice внутри iframe, чтобы оно не перекрывало dark popup. Проверено Playwright: оба active iframe имеют mobile viewport, оба payment popup открываются, tabs ограничены до двух вариантов, screenshot `/tmp/payment-compare-mobile-mode-cookie-recheck.png`; `npm run lint`, `npm run build`.
+
+- Task: Добавить v7 payment popup на базе v6: без зелёной разделительной линии, шире/компактнее, без подписи `MAIN LAB X26 · ADVANCED TRACK`.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Добавлен URL-switch `?payment=v7#pricing` и compare-tab `v7 compact`. V7 использует тот же компонент, что v6, но отдельную presentation-настройку: desktop panel шире (`560px`) и высотой `640px`, верхняя зелёная program-line скрыта, зелёный divider между price-box и способами оплаты убран. Внутри сохранены скидочные demo-состояния: Telegram `aim`/`@aim` → Alumni 20%, промокод `ponchik` → 5%, вместе показывается только максимальная скидка Alumni. Статусы Telegram/промокода зарезервированы фиксированной высотой, поэтому CTA не двигается при `ищу скидку`, applied/not applied и max-discount сообщении. Follow-up: промокодный статус укорочен до `действует Alumni 20%` и выровнен по ширине promo field, обязательная `*` Telegram стала inline-required маркером рядом с label, крестик v7 выровнен по центру заголовка `ОПЛАТА ЗАКАЗА` с measured diff ~1.5px, price block зафиксирован по высоте, а `отмена` и `оплатить` имеют одинаковые `12px / 900 / 2.4px`, `46px` height и одинаковый top. Latest follow-up: gap между `*` и `TELEGRAM` уменьшен до `3px`, promo input привязан к ширине email input (`~239px` vs `241px`), вертикальный интервал между contact row и promo увеличен, `отмена` сужена и придвинута ближе к CTA (`8px` gap). Additional spacing follow-ups: дважды увеличен отступ между `ОПЛАТА ЗАКАЗА` и grey price-box, а также между payment method buttons и `e-mail/telegram`; v7 height увеличена до `640px`, чтобы нижние buttons не обрезались после добавления воздуха. Mobile check: iframe width 388px, no horizontal overflow. Проверено Playwright screenshots/metrics, `npm run lint`, `npm run build`.
+
+- Task: Добавить ещё один payment popup вариант с изменённой верхушкой по референсу `DS aligned`.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Добавлен live-компонент `PricingPaymentPopupDatalineHeader.tsx`, URL-switch `?payment=v6#pricing` и compare-tab `v6 header`. Вариант основан на v5/4light, но верхушка изменена по референсу: крупный заголовок, зелёная строка `MAIN LAB X26 · ADVANCED TRACK`, close в светлом квадрате, сумма в отдельном сером boxed-блоке с `итого к оплате:`, зелёная разделительная линия перед способами оплаты. Follow-up: скидочный бейдж USDT опущен ниже и частично перекрывает кнопку, email placeholder заменён на `mail@mail.com`, `связаться с нами` заменено на `отмена`, обязательная `*` Telegram вынесена над label, валюты нормализованы: euro `€590`, USDT `561 USDT`, ruble `59 000 ₽`. Добавлено demo-состояние проверки Telegram: test handle `aim`/`@aim` даёт Alumni 20% (`скидка Alumni 20% применена`) и пересчитывает цену `€590 -> €472`; остальные ники показывают `скидка не применена`. Добавлено demo-состояние промокода: `ponchik` даёт `промокод ponchik · -5%` и цену `€561`; неверный промокод показывает `промокод не применён`. Follow-up: `отмена` перенесена ближе к CTA `оплатить` в правый action cluster. Follow-up max-discount: Telegram/Alumni и промокод больше не суммируются; UI показывает только максимальную скидку, поэтому `aim + ponchik` оставляет цену `€472`, а под промокодом пишет `промокод найден · действует Alumni 20%`. Follow-up stability: checking copy заменён на `ищу скидку`, статусные зоны Telegram/промокода зарезервированы по высоте, чтобы CTA не прыгал; над discounted price появляется маленькая зачёркнутая исходная цена. Проверено Playwright direct popup + compare screenshot; `npm run lint`, `npm run build`; после stability fix Playwright подтвердил `buttonShiftAim: 0`, `buttonShiftBoth: 0`.
+
+- Task: Добавить в payment popup compare двигаемый разделитель между левым и правым окном.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: `payment-popup-compare.html` получил центральный draggable splitter между панелями. Split можно тянуть мышью/трекпадом, сбрасывать двойным кликом, двигать с клавиатуры при фокусе на разделителе (`←/→`, Shift для крупного шага, Home/End, Enter/Space reset). Позиция сохраняется в URL как `split=...`. Исправлен баг парсинга, при отсутствии `split` страница теперь стартует 50/50, а не 22/78. Follow-up: убран искусственный zoom/transform-scale; live iframe теперь занимает реальную ширину панели `100%`, а responsive поведение остаётся нативным. Webp reference держит натуральные `500px` и уменьшается только если панель физически уже. Проверено Playwright drag pass: `transform: none`, iframe изменился с 720px до 980px при split drag, URL обновился до `split=68`.
+
+- Task: Добавить 5-й payment popup вариант на базе `4light webp`, но жирнее, воздушнее и структурнее.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Добавлен live-компонент `PricingPaymentPopupDatalineBold.tsx` и URL-switch `?payment=v5#pricing`; compare получил вариант `v5 structured`. После пользовательского фидбэка v5 возвращён к композиции именно `4light webp`, а не усиленного v3: `MAIN LAB X26 · ADVANCED TRACK`, зелёная CTA, `СКИДКА 5%` над USDT, `промокод` вместо комментария, мягкие input-поля, чёрная active `EU-КАРТЫ` с белым текстом, Telegram с обязательной зелёной `*`, цена `590 €` с неразрывным пробелом перед евро. Проверено визуально через Playwright на паре `left=v5&right=ref-4light`: popup помещается без внутреннего overflow (`scrollHeight == clientHeight`). Проверено: `npm run lint`, `npm run build`.
+
+- Task: Сделать payment popup compare как систему для любых двух вариантов: слева/справа один и тот же фон, попапы ближе к центру, переключение кнопками и клавиатурой, добавить webp-референс из Downloads.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: `payment-popup-compare.html` переделан из статичной пары iframe в compare-инструмент с независимыми left/right tabs, кнопками назад/вперёд и клавиатурой (`A/D` для левой панели, `←/→` для правой). После пользовательского фидбэка о поломке переключения страница переведена на предзагруженные слои: все варианты монтируются один раз, переключение только меняет active layer и больше не пересоздаёт iframe/страницу. Live iframe рендерится с внутренней шириной `1024px` и масштабируется в колонку, чтобы обе половины оставались в desktop-режиме и попапы были по центру. Webp-референс скопирован из `/Users/viola/Downloads/4light-v2-aim-os-desktop-01-payment-selection-500x642.webp` в `public/assets/payment-popups/`; copy log: `public/assets/payment-popups/COPY_LOG_2026-05-25-payment-popup-reference.md`. Проверено: `npm run lint`, `npm run build`, Playwright click/keyboard pass на `1440x900`.
+
+- Task: Открыть side-by-side сравнение payment popup v3 и v2.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Добавлена локальная compare-страница `payment-popup-compare.html` с двумя iframe: слева v3 dataline, справа v2 light. Страница сама скроллит к pricing и открывает payment popup в каждой колонке. Проверено в in-app browser с wide viewport `1440x900`.
+
+- Task: В side-by-side compare заменить правый v2 light на тёмный исходный checkout-вариант.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-25
+  Note: Предыдущая ручная dark-реконструкция отклонена пользователем как неверная. `PricingPaymentPopupDark.tsx` заменён исходным тёмным neon checkout из `origin/main:src/components/PricingPaymentPopupNeon.tsx` с минимальной заменой имени компонента; `payment-popup-compare.html` теперь показывает слева v3 dataline, справа GitHub dark. V2 light сохранён и доступен через `?payment=v2#pricing`. Проверено: `npm run lint`, `npm run build`, in-app browser compare на `1440x900`; справа виден чёрный neon popup с зелёной ценой, зелёной active-рамкой, зелёным CTA и `СКИДКА 5%`.
+
+- Task: Сделать payment popup v3 для основного сайта в dataline/AIM OS стиле из текущего Pencil-документа, сохранив предыдущую payment-версию для сравнения.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-23
+  Note: Создана локальная ветка `experiment/payment-form-v3-dataline`; предыдущий код `PricingPaymentPopupNeon.tsx` сохранён без удаления/переименования. Новый компонент `PricingPaymentPopupDataline.tsx` скопирован из v2 и переведён в стиль выбранного Pencil frame `LIGHT v2 AIM OS / desktop / 01 payment selection / 500x642`: square white panel, black 1px border, mono dataline labels, large black price, black/white payment method buttons, EU-карты label. `LabW26PageV3.tsx` временно подключает dataline v3. Copy/rollback log: `pencil/payment-popup-current/MOVE_COPY_LOG_2026-05-23-payment-v3.md`. Проверено: `npm run lint`, `npm run build`, desktop preview через in-app browser (`500x642`, no internal overflow), mobile viewport `390x844` через isolated Playwright/Chromium check (`374x808.5`, no horizontal overflow, CTA visible, overlay z-index above mobile header). User approval still pending.
+
+- Task: Дать быстрый способ открыть payment v2 рядом с payment v3 для сравнения.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-23
+  Note: Добавлен URL-switch без смены ветки: обычный `#pricing` открывает v3, а `?payment=v2#pricing` подключает сохранённый `PricingPaymentPopupNeon` v2. Проверено через локальный browser: v3 содержит `[PAY] CHECKOUT_POPUP`, v2 содержит старый `ai mindset / checkout` и label `ЗАРУБЕЖНЫЕ КАРТЫ`.
+
+- Task: Почистить бессмысленные подписи и неправильную иерархию в payment v2/v3.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-23
+  Note: Убраны service labels `checkout`/`[PAY]`, фраза `формат фиксируется после подтверждения`, `(@)` и обязательная звёздочка из Telegram, дублирование `MAIN LAB · MAIN LAB X26`, а также смешанные хвосты `-5%`/`₽`/`€` внутри кнопок способов оплаты. Способы оплаты теперь одного уровня: `USDT`, `РУ-КАРТЫ`, `EU-КАРТЫ`; скидка USDT остаётся только в расчёте цены. Проверено: `npm run lint`, `npm run build`, local browser text scan for v2/v3 found none of the removed bad strings and confirmed the three method labels.
+
+- Task: Проверить, к чему подключён `AIM Payment.app`, и создать новый Pencil-файл с редактируемыми desktop/mobile состояниями payment popup из текущей ветки.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-23
+  Note: `AIM Payment.app` открывает `! AIM Payment.command`; launcher указывает на `V3 Site Repo - aimwebsite0.5`, ветку `experiment/payment-form-v2`, порт `3001`, URL `http://127.0.0.1:3001/#pricing`. First Pencil pass was rejected because it was manually reinterpreted instead of exact browser-faithful. Recovery pass completed in `pencil/payment-popup-current/ai-mindset-payment-popups-current-editable-2026-05-23.pen`: new root `cRm2N` / `EXACT BROWSER TRACE / 2026-05-23 / source screenshots + editable vectors` contains live browser screenshots next to editable vector traces for 5 desktop and 5 mobile states captured from the current site. Reference screenshots/DOM JSON: `pencil/payment-popup-current/live-reference-exact-2026-05-23/`; review export: `pencil/payment-popup-current/exports-exact-browser-2026-05-23/cRm2N.png`. Saved via Pencil backup with rollback copy; final `.pen` sha256 `52d77cdfb5d5061c9f4b3014bc2c9edf482f58824b437d1e8ecca751199c26b3`. User approval still pending.
+
+- Task: Сделать 12-секундное видео/гифку с анимированным AI Mindset split-logo человеком: сборка из мелких деталей плюс разные движения деталей от scroll.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-22
+  Note: Follow-up implemented after user approved the initial start: top label changed to `aim.web` in large mono style, live canvas animation now adds two stronger post-assembly scroll-like burst phases with vertical up/down particle movement, partial breakdown, and re-assembly. Latest user request handled: label moved close to the visible logo start, targeting about 20px in the assembled/exported frame; MP4/GIF rerendered from `scripts/render_logo_assembly.py`; local desktop/mobile preview screenshots and extracted MP4 frame were visually checked. `npm run lint` passed; full production build intentionally not rerun for this small spacing-only follow-up after an already running local preview.
+
+- Task: Добавить первые три кейса из Community Night markdown в секцию `Cases` сайта.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-22
+  Note: Источник: `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md`. После пользовательского фидбэка о рассинхроне старые placeholder-кейсы вроде `AI SUMMARY` убраны из active cases array; видимый набор теперь состоит из 6 кейсов этого markdown: Дарья / Team Operation System, Наташа / Конвейер встреч, Даниил / Медитация агента, Алексей / Кнопка Next, Михаил / Personal OS Майо, Дмитрий / Стратегия + Тактика. Для detail-modal первых трёх кейсов добавлены аккуратно обрезанные product screenshots из релевантных demo-фрагментов YouTube: лишние black side fields, верхние browser/system bars и dock убраны, speaker video tile сохранён как inset. Desktop: слева static screenshot + inline YouTube-fragment player; mobile: screenshot остаётся выше текста, inline player уходит ниже текстовых секций. Follow-up: label `ВИЗУАЛ` убран, product screenshot больше не открывается ни через кнопку, ни по клику на картинку, карточки cases выровнены по высоте, а tools в карточках ограничены одним рядом из 3 featured-инструментов; полный список инструментов остался в detail-modal. Follow-up video: YouTube fragment больше не открывает новую вкладку; play-кнопка внутри preview заменяет блок на lazy iframe с нужным `start` timestamp. Follow-up modal bug: case-modal и all-cases overlay больше не используют `md:left-[18%]`, чтобы слева не оставался кусок страницы вместо нормального затемнения. Follow-up tags: теги внутри кейса теперь используют те же role-filter ids, что и верхние `Кем сделано`, кликаются как фильтры и подсвечиваются синхронно с верхней кнопкой. Follow-up layout: левая колонка detail-modal переведена в `flex`/`overflow-y-auto`, media занимает доступную высоту, а нижние теги больше не обрезаются под границей попапа. Follow-up source fidelity: восстановлены полные роли из markdown для Дарьи (`Data analyst · разработчик · team lead (2 команды)`) и Наташи (`Backend developer · архитектор · портфельный менеджер (30 активных проектов)`) после обнаруженного непредупреждённого сокращения. Follow-up image quality: первые три product screenshots пересобраны из лучшего доступного YouTube video stream `1080p`, сохранены как PNG и подключены вместо старых low-res JPG. Проверено в in-app browser на desktop и mobile viewport; `npm run lint` прошёл после follow-up, предыдущий `npm run build` проходил до точечных UI-правок.
+
+- Task: В отдельной ветке `experiment/payment-form-v2` сделать новую версию формы оплаты в светлой стилистике основного сайта, используя принципы из Pencil design-system.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-22
+  Note: Компонент `PricingPaymentPopupNeon.tsx` переведён с тёмного neon checkout на светлый site-system: `#F9F9F7` overlay, white panel, тонкие black/alpha borders, radius 4/6, IBM Plex Mono labels, Inter inputs, зелёный только как акцент. Использованы переменные и структура из `pencil/site-design-system/ai-mindset-main-site-design-system.pen`: `site-bg`, `site-panel`, `site-ink`, `site-border`, `site-green`, `radius-card`, `radius-tight`. `npm run lint` и `npm run build` прошли; in-app preview проверен на desktop states: initial, card input, card success, USDT QR, USDT success; mobile viewport check подтвердил, что modal panel помещается внутри overlay без горизонтального вылета.
+
 - Task: Почистить код сайта от лишних локальных версий, неиспользуемых компонентов, старых ассетов, AI Studio/Gemini-заготовок и левых ссылок.
   Status: self-checked
   Owner: assistant
   Last Checked: 2026-05-21
   Note: Удаление сделано move-only через Trash; файлы перенесены в `/Users/viola/.Trash/aimwebsite_code_cleanup_2026-05-21_19-05`, лог сохранён в `AIM Website/CODE_CLEANUP_LOG_2026-05-21.md`. Убраны старые dev-скрипты/зависимости, мёртвые компоненты и ассеты, AI Studio/Gemini config, `.DS_Store`, опасный `clean`-скрипт и битые/Pages-опасные ссылки меню. `npm run lint`, `npm run build`, `npm audit --audit-level=moderate`, `npm ls --depth=0 --json`, `.DS_Store` scan и targeted stale-reference scan прошли.
 
-- Task: Переделать Pencil дизайн-систему по фактической версии сайта, убрать абстрактные повторы, добавить реальные визуальные части сайта и включить все desktop/mobile состояния платёжного попапа внутрь этого же дизайн-системного файла.
+- Task: Переделать Pencil дизайн-систему по фактической версии сайта через live DOM/code audit, убрать абстрактные повторы, добавить реальные атомы/ассеты/компонентные specs и разделить payment popup на отдельные exact-size frames для desktop/mobile.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-05-21
-  Note: Обновлён и вручную сохранён через Pencil UI файл `pencil/site-design-system/ai-mindset-main-site-design-system.pen`. Внутри новый root `AI Mindset site design system v2 - code matched`; предыдущий абстрактный draft заархивирован/выключен внутри документа. V2 построена по живым скриншотам `http://127.0.0.1:3001/`, реальным token/class-паттернам и фактическим компонентам сайта: sidebar/mobile topbar, hero, program, pricing/reviews/FAQ, visual surfaces cases/speakers/philosophy. В секцию `07 Payment popup states inside this design system` добавлены редактируемые desktop и mobile состояния checkout из `PricingPaymentPopupNeon.tsx`: выбор оплаты, USDT QR, card input, success card, success USDT. После ручного Save файл изменился на диске до 565323 bytes, hash `b0dadc128d5f6c069a1267d24fde9b5cad00da89a272a2d33f3588f682942bf2`; targeted `snapshot_layout` для payment-секции вернул `No layout problems`, контрольные PNG-экспорты лежат в `pencil/site-design-system/exports-v2/`.
+  Last Checked: 2026-05-22
+  Note: В том же файле `pencil/site-design-system/ai-mindset-main-site-design-system.pen` создан новый root `AI Mindset design system v3 - audited source of truth`; V2 и старый абстрактный draft оставлены внутри как выключенные архивы. V3 построена по live DOM audit (`pencil/site-design-system/audit-v3/live-dom-summary.json`), code review `LabW26PageV3.tsx`/`PricingPaymentPopupNeon.tsx` и GitHub-framework подходу design-extract / extract-design-system / DTCG tokens / Style Dictionary / Primer primitives. Добавлены секции: method/source, primitive colors, computed typography scale, spacing/radius/shadow/motion tokens, individual asset inventory from `public/assets`, real component specs with live screenshots, exact payment modal frames, and responsive mobile source screenshots. Follow-up от 2026-05-22: в цветовые токены добавлены видимые hex/alpha values, в typography добавлена usage map по живым компонентам, мобильные source screenshots пересняты с локального сайта в `pencil/site-design-system/reference-v4/mobile/` и добавлены отдельным разделом `07 Responsive mobile source screenshots`. Payment popup разделён на отдельные frames по фактическим размерам: desktop `500x642`, `500x621`, `500x637`, `500x537`, `500x582`; mobile `374x536`, `374x528`, `374x522`, `374x464`, `374x509`. `snapshot_layout` по root `FnllM` вернул `No layout problems`; контрольные PNG-экспорты V3 лежат в `pencil/site-design-system/exports-v3/`. После ручного `File > Save` файл изменился на диске до 840980 bytes, hash `ba2bcfa0302c4f8ec4c0c32305c6ac19b81f1bd05025d623bc24f92524791e03`.
 
 - Task: Заново вернуть в Pencil все варианты платёжного попапа для desktop и mobile.
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-05-22
+  Note: Reopened after user rejection on 2026-05-22. The screenshot-fill version was not acceptable because it was not properly editable, and the generic checkout/wizard redesign was visually worse than the original. New pass created in `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen` as `REDESIGN v2 premium`: 5 desktop and 5 mobile top-level frames, built as editable Pencil layers, preserving the original modal's large dark premium baseline, big price, calm hierarchy, and green accent while improving method cards, QR/card/success states, and mobile fit. `snapshot_layout` returned `No layout problems`; review PNG exports are in `pencil/payment-popup-editable/exports-redesign-v2-premium/`. User requested one more pass using the poor-outcome recovery skill; v2 remains for comparison and must not be treated as approved.
+
+- Task: Сделать дополнительный Pencil-вариант payment popup через `poor-outcome-recovery` pass и проверить, почему skill не сработал автоматически на «очень плохо».
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-05-21
-  Note: Обновлён и вручную сохранён через Pencil UI отдельный файл `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen`. Добавлен root-frame `AI Mindset payment popup variants - desktop and mobile` с состояниями из `PricingPaymentPopupNeon.tsx`: payment selection, USDT QR, card input/submethods, card success и USDT success для desktop и mobile. После Save As/Replace файл на диске изменился до 216451 bytes, повторно открыт, `snapshot_layout` по новому root-frame вернул `No layout problems`; PNG-экспорты лежат в `pencil/payment-popup-editable/exports/`.
+  Last Checked: 2026-05-22
+  Note: `poor-outcome-recovery` was loaded and followed. Local skill `/Users/viola/.codex/skills/poor-outcome-recovery/SKILL.md` exists and explicitly lists «очень плохо» as a trigger phrase; `/Users/viola/.codex/skills/poor-outcome-recovery/agents/openai.yaml` has `allow_implicit_invocation: true`, so the previous non-use was an agent workflow miss, not a missing installation. Created `RECOVERY v3 / site-faithful` as 10 separate editable top-level Pencil frames: desktop IDs `x41Vb`, `EHrdX`, `HPowy`, `p2lHzK`, `nJK1G`; mobile IDs `o0MYFN`, `awSVO`, `L1iSQ`, `rTIOC`, `JL8Ln`. Frame sizes match the captured black 1.1 CSS modal dimensions: desktop `500x642`, `500x622`, `500x582`, `500x638`, `500x538`; mobile `374x536`, `374x528`, `374x509`, `374x522`, `374x464`. Export PNGs are in `pencil/payment-popup-editable/exports-recovery-v3-site-faithful/`. `snapshot_layout` returned `No layout problems` on checked frames. Manual Cmd+S via AppleScript was blocked by macOS Accessibility, so persistence used Pencil autosave backup `~/.pencil/backup/cc1ccc75da70717ca69902b778a609d45eb391a7`; rollback copy is `pencil/payment-popup-editable/rollback/ai-mindset-payment-popup-editable.before-recovery-v3.2026-05-22-2239.pen`. Saved `.pen` hash is `28b775f099644136052d58d83f83af898a51affbc32867ff5abfa90c14faa4bb`, size `619720` bytes.
 
 - Task: Создать новый Pencil-файл в папке сайта AIM Website и положить туда один редактируемый попап оплаты для работы.
   Status: self-checked

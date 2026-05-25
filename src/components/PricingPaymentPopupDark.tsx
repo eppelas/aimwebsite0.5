@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, CheckCircle2, Copy, X } from 'lucide-react';
-import { GREEN_SOLID_CTA_BUTTON_CLASS } from './ctaButtonStyles';
+import { Copy } from 'lucide-react';
+import { WireframePulse } from './WireframePulse';
+import {
+  GREEN_OUTLINE_CTA_BUTTON_CLASS,
+  GREEN_SOLID_CTA_BUTTON_CLASS,
+  PAYMENT_SELECTOR_ACTIVE_CLASS,
+  PAYMENT_SELECTOR_BASE_CLASS,
+  PAYMENT_SELECTOR_IDLE_CLASS,
+} from './ctaButtonStyles';
 
 interface SelectedPlan {
   name: string;
   price: string;
 }
 
-interface PricingPaymentPopupNeonProps {
+interface PricingPaymentPopupDarkProps {
   isOpen: boolean;
   plan: SelectedPlan | null;
   onClose: () => void;
@@ -24,11 +31,11 @@ const cn = (...classes: Array<string | false | null | undefined>) => classes.fil
 
 const formatRoublePrice = (amount: number) => `${new Intl.NumberFormat('ru-RU').format(amount)} ₽`;
 
-export default function PricingPaymentPopupNeon({
+export default function PricingPaymentPopupDark({
   isOpen,
   plan,
   onClose,
-}: PricingPaymentPopupNeonProps) {
+}: PricingPaymentPopupDarkProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('card_intl');
   const [successState, setSuccessState] = useState<SuccessState>('none');
   const [subMethod, setSubMethod] = useState<CardSubmethodId>('card');
@@ -36,12 +43,12 @@ export default function PricingPaymentPopupNeon({
   const [addressCopied, setAddressCopied] = useState(false);
 
   const basePrice = useMemo(() => Number.parseInt(plan?.price ?? '0', 10), [plan?.price]);
-  const planLabel = 'MAIN LAB X26';
+  const planLabel = plan ? `${plan.name} · MAIN LAB X26` : 'MAIN LAB X26';
 
-  const methods: Array<{ id: PaymentMethodId; label: string; note: string }> = [
-    { id: 'usdt', label: 'USDT', note: '' },
-    { id: 'card_ru', label: 'РУ-КАРТЫ', note: '' },
-    { id: 'card_intl', label: 'EU-КАРТЫ', note: '' },
+  const methods: Array<{ id: PaymentMethodId; label: string }> = [
+    { id: 'usdt', label: 'USDT' },
+    { id: 'card_ru', label: 'РУ-КАРТЫ' },
+    { id: 'card_intl', label: 'ЗАРУБЕЖНЫЕ КАРТЫ' },
   ];
 
   const getPrice = () => {
@@ -111,22 +118,9 @@ export default function PricingPaymentPopupNeon({
 
   if (!isOpen || !plan) return null;
 
-  const selectorClass = (isActive: boolean) => cn(
-    'inline-flex min-h-12 items-center justify-between rounded-[4px] border px-3.5 py-3 text-left font-mono text-[11px] font-black uppercase leading-none tracking-[0.12em] transition-all duration-200 md:min-h-14 md:px-4 md:text-[12px]',
-    isActive
-      ? 'border-[#181616] bg-[#181616] text-white shadow-[0_16px_36px_rgba(24,22,22,0.14)]'
-      : 'border-black/10 bg-white/70 text-black/48 hover:border-black/25 hover:bg-white hover:text-black/78',
-  );
-
-  const fieldClass =
-    'w-full rounded-[4px] border border-black/10 bg-[#f9f9f7] px-3 py-2.5 font-sans text-[12px] text-[#181616] outline-none transition-colors placeholder:text-black/30 focus:border-[#8DC63F] focus:bg-white md:px-4 md:py-3.5 md:text-sm';
-
-  const mutedLabelClass =
-    'font-mono text-[9px] font-black uppercase tracking-[0.16em] text-black/42 md:text-[10px]';
-
   return (
     <div
-      className="fixed inset-y-0 left-0 right-0 z-[10030] flex items-end justify-center bg-[#f9f9f7]/86 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] pt-3 backdrop-blur-md sm:p-4 md:left-[18%] md:items-center md:p-4"
+      className="fixed inset-y-0 left-0 right-0 z-[160] flex items-end justify-center bg-black/80 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+32px)] pt-3 backdrop-blur-md sm:p-4 md:left-[18%] md:items-center md:p-4"
       onClick={handleClose}
     >
       <motion.div
@@ -135,33 +129,32 @@ export default function PricingPaymentPopupNeon({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className="relative flex max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] w-full max-w-[520px] flex-col overflow-y-auto rounded-[6px] border border-black/10 bg-white/96 p-5 pt-7 text-left font-sans text-[#181616] shadow-[0_28px_80px_rgba(24,22,22,0.16)] backdrop-blur-3xl md:max-h-[100dvh] md:-translate-y-3 md:p-8"
+        className="relative flex max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] w-full max-w-[500px] flex-col overflow-y-auto rounded-lg border border-white/10 bg-[#0a0a0a]/95 p-5 pt-8 text-left font-sans text-[#f5f4ef] shadow-[0_0_50px_rgba(141,198,63,0.15)] backdrop-blur-3xl md:max-h-[100dvh] md:-translate-y-3 md:p-8"
+        style={{ color: '#f5f4ef' }}
       >
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-[4px] border border-black/10 bg-white text-black/45 transition-all hover:border-black/25 hover:text-black md:right-5 md:top-5"
+          className="absolute right-3 top-2 z-20 p-2 text-5xl font-light leading-none text-[#bdbdb7] transition-all hover:scale-105 hover:text-white md:right-5 md:top-3"
           aria-label="Закрыть"
         >
-          <X className="h-4 w-4" strokeWidth={2.2} />
+          ×
         </button>
 
         <AnimatePresence mode="wait">
           {successState === 'card' || successState === 'usdt' ? (
             <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-6 text-center md:py-10">
-              <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-[4px] border border-[#8DC63F]/35 bg-[#8DC63F]/8 md:h-36 md:w-36">
-                <CheckCircle2 className="h-16 w-16 text-[#8DC63F]" strokeWidth={1.7} />
-              </div>
-              <h3 className="mt-8 text-xl font-black uppercase tracking-tight text-[#181616] md:text-2xl">
+              <WireframePulse className="mx-auto h-40 w-40 text-[#8DC63F] drop-shadow-[0_0_15px_rgba(141,198,63,0.4)] md:h-44 md:w-44" />
+              <h3 className="mt-8 text-xl font-black uppercase tracking-tight text-[#f5f4ef] md:text-2xl" style={{ color: '#f5f4ef' }}>
                 {successState === 'usdt' ? 'СПАСИБО ЗА ПОКУПКУ!' : 'СПАСИБО ЗА ЗАКАЗ!'}
               </h3>
-              <p className="mx-auto mt-4 max-w-[25rem] text-sm font-normal leading-relaxed text-black/62">
+              <p className="mt-4 text-sm font-normal leading-relaxed text-[#d8d6cf]">
                 {successState === 'usdt' ? (
                   <>
                     Мы свяжемся с вами в Telegram в течение суток с подтверждением оплаты.
                     <br />
                     <br />
-                    <span className="font-mono text-[11px] font-black uppercase tracking-[0.12em] text-black/70">заказ #{plan.price}{plan.name.replace(/\s+/g, '').slice(0, 4)}</span>
+                    <span className="text-[#f5f4ef]">ВАШ ЗАКАЗ ПРИНЯТ, НОМЕР #{plan.price}{plan.name.replace(/\s+/g, '').slice(0, 4)}</span>
                   </>
                 ) : (
                   'Оплата прошла успешно. Мы скоро свяжемся с вами в Telegram с подтверждением и доступом.'
@@ -170,7 +163,7 @@ export default function PricingPaymentPopupNeon({
               <button
                 type="button"
                 onClick={handleClose}
-                className={`${GREEN_SOLID_CTA_BUTTON_CLASS} mt-8 w-full md:mt-10`}
+                className={`${GREEN_OUTLINE_CTA_BUTTON_CLASS} mt-8 w-full md:mt-10`}
               >
                 закрыть
               </button>
@@ -178,16 +171,15 @@ export default function PricingPaymentPopupNeon({
           ) : successState === 'card_input' ? (
             <motion.div key="card-input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
               <div className="mb-5 md:mb-8">
-                <div className={mutedLabelClass}>оплата картой</div>
-                <h2 className="mt-2 text-[26px] font-black uppercase leading-[0.94] tracking-tight text-[#181616] md:text-3xl">БЕЗОПАСНАЯ ОПЛАТА</h2>
-                <div className="mt-2 text-[10px] font-mono font-black uppercase tracking-[0.16em] text-[#8DC63F]">
-                  {selectedMethod === 'card_intl' ? 'EU-КАРТЫ' : 'РУ-КАРТЫ'}
+                <h2 className="text-xl font-black uppercase leading-tight tracking-tight text-[#f5f4ef] md:text-2xl" style={{ color: '#f5f4ef' }}>БЕЗОПАСНАЯ ОПЛАТА</h2>
+                <div className="mt-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#8DC63F]">
+                  {selectedMethod === 'card_intl' ? 'ЗАРУБЕЖНЫЕ КАРТЫ' : 'РУ-КАРТЫ'}
                 </div>
               </div>
 
-              <div className="mb-5 rounded-[4px] border border-black/10 bg-[#f9f9f7] px-4 py-3 md:mb-8 md:px-5 md:py-4">
-                <div className={mutedLabelClass}>к оплате</div>
-                <div className="mt-1 text-3xl font-black tracking-tight text-[#181616] md:text-4xl">{getPrice()}</div>
+              <div className="mb-5 flex items-baseline gap-3 md:mb-8">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#d2d0ca] md:text-[11px]">К ОПЛАТЕ:</div>
+                <div className="text-2xl font-black tracking-tight text-[#8DC63F] drop-shadow-[0_0_15px_rgba(141,198,63,0.3)] md:text-3xl">{getPrice()}</div>
               </div>
 
               <div className="mb-6 grid grid-cols-3 gap-2 md:gap-3">
@@ -207,35 +199,41 @@ export default function PricingPaymentPopupNeon({
                     key={option.id}
                     type="button"
                     onClick={() => setSubMethod(option.id as CardSubmethodId)}
-                    className={selectorClass(subMethod === option.id)}
+                    className={cn(
+                      PAYMENT_SELECTOR_BASE_CLASS,
+                      'flex h-12 uppercase',
+                      subMethod === option.id
+                        ? PAYMENT_SELECTOR_ACTIVE_CLASS
+                        : PAYMENT_SELECTOR_IDLE_CLASS,
+                    )}
                   >
-                    <span>{option.label}</span>
+                    {option.label}
                   </button>
                 ))}
               </div>
 
               {subMethod === 'card' ? (
-                <div className="mb-6 flex flex-col gap-3 rounded-[4px] border border-black/10 bg-white p-4 shadow-[0_14px_40px_rgba(24,22,22,0.04)] md:gap-4 md:p-6">
+                <div className="mb-6 flex flex-col gap-3 rounded-lg border border-white/10 bg-white/5 p-4 md:gap-4 md:p-6">
                   <input
                     type="text"
                     placeholder="Номер карты"
-                    className={fieldClass}
+                    className="w-full rounded-sm border border-white/10 bg-black/50 px-3 py-3 text-xs text-[#f5f4ef] outline-none transition-colors placeholder:text-white/45 focus:border-[#8DC63F] md:px-4 md:py-4 md:text-sm"
                   />
                   <div className="flex gap-3 md:gap-4">
                     <input
                       type="text"
                       placeholder="ММ/ГГ"
-                      className={fieldClass}
+                      className="w-full rounded-sm border border-white/10 bg-black/50 px-3 py-3 text-xs text-[#f5f4ef] outline-none transition-colors placeholder:text-white/45 focus:border-[#8DC63F] md:px-4 md:py-4 md:text-sm"
                     />
                     <input
                       type="text"
                       placeholder="CVC"
-                      className={fieldClass}
+                      className="w-full rounded-sm border border-white/10 bg-black/50 px-3 py-3 text-xs text-[#f5f4ef] outline-none transition-colors placeholder:text-white/45 focus:border-[#8DC63F] md:px-4 md:py-4 md:text-sm"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="mb-6 flex h-[132px] items-center justify-center rounded-[4px] border border-dashed border-black/18 bg-[#f9f9f7] p-4 text-center font-mono text-[10px] font-black uppercase leading-relaxed tracking-[0.16em] text-black/46 md:h-[156px] md:p-6 md:text-[11px]">
+                <div className="mb-6 flex h-[132px] items-center justify-center rounded-lg border border-white/10 bg-white/5 p-4 text-center font-mono text-[10px] font-bold uppercase leading-relaxed tracking-[0.16em] text-white/62 md:h-[156px] md:p-6 md:text-[11px]">
                   {subMethod === 'sbp'
                     ? 'ОТКРЫТЬ ПРИЛОЖЕНИЕ БАНКА'
                     : subMethod === 'qr'
@@ -259,42 +257,47 @@ export default function PricingPaymentPopupNeon({
                 <button
                   type="button"
                   onClick={() => setSuccessState('none')}
-                  className="mx-auto flex items-center gap-2 pb-4 text-[12px] font-mono font-black tracking-[0.12em] text-black/46 transition-colors hover:text-black md:pb-6 md:text-[13px]"
+                  className="mx-auto flex items-center gap-2 pb-4 text-[13px] font-mono font-bold tracking-[0.12em] text-white/70 transition-colors hover:text-white md:pb-6 md:text-[14px]"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5" /> вернуться назад
+                  <span className="text-xs">←</span> вернуться назад
                 </button>
               </div>
             </motion.div>
           ) : !showQR ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
               <div className="mb-5 pr-6 md:mb-8">
-                <h2 className="mt-2 text-[28px] font-black uppercase leading-[0.92] tracking-tight text-[#181616] md:text-4xl">ОПЛАТА ЗАКАЗА</h2>
-                <div className="mt-2 text-[10px] font-mono font-black uppercase tracking-[0.16em] text-black/42">{planLabel}</div>
+                <h2 className="text-xl font-black uppercase leading-tight tracking-tight text-[#f5f4ef] md:text-2xl" style={{ color: '#f5f4ef' }}>ОПЛАТА ЗАКАЗА</h2>
+                <div className="mt-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#8DC63F]">{planLabel}</div>
               </div>
 
-              <div className="mb-5 grid grid-cols-[1fr_auto] items-end gap-4 rounded-[4px] border border-black/10 bg-[#f9f9f7] px-4 py-3 md:mb-8 md:px-5 md:py-4">
-                <div>
-                  <div className={mutedLabelClass}>итого к оплате</div>
-                </div>
-                <div className="text-right text-3xl font-black tracking-tight text-[#181616] md:text-4xl">{getPrice()}</div>
+              <div className="mb-5 flex items-baseline gap-3 md:mb-8">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#d2d0ca] md:text-[11px]">ИТОГО К ОПЛАТЕ:</div>
+                <div className="text-2xl font-black tracking-tight text-[#8DC63F] drop-shadow-[0_0_15px_rgba(141,198,63,0.3)] md:text-3xl">{getPrice()}</div>
               </div>
 
               <div className="mb-5 text-left md:mb-8">
-                <div className={`mb-2 md:mb-3 ${mutedLabelClass}`}>способ оплаты</div>
+                <div className="mb-2 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#d2d0ca] md:mb-3 md:text-[11px]">СПОСОБ ОПЛАТЫ</div>
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
                   {methods.map((method) => (
                     <button
                       key={method.id}
                       type="button"
                       onClick={() => setSelectedMethod(method.id)}
-                      className={cn(selectorClass(selectedMethod === method.id), method.id === 'card_intl' && 'col-span-2')}
+                      className={cn(
+                        PAYMENT_SELECTOR_BASE_CLASS,
+                        'relative flex h-12 uppercase md:h-14 md:p-4',
+                        method.id === 'card_intl' && 'col-span-2',
+                        selectedMethod === method.id
+                          ? PAYMENT_SELECTOR_ACTIVE_CLASS
+                          : PAYMENT_SELECTOR_IDLE_CLASS,
+                      )}
                     >
-                      <span>{method.label}</span>
-                      {method.note ? (
-                        <span className={cn('ml-3 text-[9px]', selectedMethod === method.id ? 'text-[#8DC63F]' : 'text-black/32')}>
-                          {method.note}
-                        </span>
-                      ) : null}
+                      {method.label}
+                      {method.id === 'usdt' && (
+                        <div className="absolute -top-3 left-[-4px] rounded-[2px] bg-[#8DC63F] px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-black md:px-2">
+                          СКИДКА 5%
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -302,29 +305,29 @@ export default function PricingPaymentPopupNeon({
 
               <div className="mb-3 flex flex-row gap-2 md:mb-4 md:gap-4">
                 <div className="min-w-0 flex-1">
-                  <div className={`mb-1.5 truncate md:mb-2 ${mutedLabelClass}`}>e-mail</div>
+                  <div className="mb-1.5 truncate text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-[#d2d0ca] md:mb-2 md:text-[10px]">E-MAIL:</div>
                   <input
                     type="email"
                     placeholder="mail@.com"
-                    className={fieldClass}
+                    className="w-full rounded-sm border border-white/10 bg-white/5 px-3 py-2.5 text-[11px] text-[#f5f4ef] outline-none transition-all placeholder:text-white/45 focus:border-[#8DC63F] focus:bg-[#8DC63F]/5 md:px-4 md:py-3.5 md:text-sm"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className={`mb-1.5 truncate md:mb-2 ${mutedLabelClass}`}>telegram</div>
+                  <div className="mb-1.5 truncate text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-[#8DC63F] md:mb-2 md:text-[10px]">* ТЕЛЕГРАМ (@):</div>
                   <input
                     type="text"
-                    placeholder="username"
-                    className={fieldClass}
+                    placeholder="@user"
+                    className="w-full rounded-sm border border-white/10 bg-white/5 px-3 py-2.5 text-[11px] text-[#f5f4ef] outline-none transition-all placeholder:text-white/45 focus:border-[#8DC63F] focus:bg-[#8DC63F]/5 md:px-4 md:py-3.5 md:text-sm"
                   />
                 </div>
               </div>
 
               <div className="mb-5 mt-4 flex flex-col gap-1.5 md:mb-8 md:mt-2 md:gap-2">
-                <div className={`truncate ${mutedLabelClass}`}>комментарий</div>
+                <div className="truncate text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-[#d2d0ca] md:text-[10px]">КОММЕНТАРИЙ:</div>
                 <input
                   type="text"
                   placeholder="..."
-                  className="w-full border-b border-black/10 bg-transparent pb-2 font-sans text-[12px] text-[#181616] outline-none transition-all placeholder:text-black/25 focus:border-[#8DC63F] md:text-sm"
+                  className="w-full border-b border-white/10 bg-transparent pb-1.5 text-[11px] text-[#f5f4ef] outline-none transition-all placeholder:text-white/45 focus:border-[#8DC63F] focus:border-b-white md:pb-2 md:text-sm"
                 />
               </div>
 
@@ -333,7 +336,7 @@ export default function PricingPaymentPopupNeon({
                   href="https://join.aimindset.org/waitlist"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 text-[9px] font-mono font-black uppercase tracking-[0.16em] text-black/42 underline decoration-transparent underline-offset-4 transition-colors hover:text-[#8DC63F] hover:decoration-[#8DC63F] md:text-[10px]"
+                  className="shrink-0 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-[#b8b6b0] underline decoration-transparent underline-offset-4 transition-colors hover:text-[#8DC63F] hover:decoration-[#8DC63F] md:text-[10px]"
                 >
                   СВЯЖИТЕСЬ С НАМИ
                 </a>
@@ -349,16 +352,16 @@ export default function PricingPaymentPopupNeon({
           ) : (
             <motion.div key="qr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col text-left">
               <div className="mb-5 md:mb-8">
-                <div className={mutedLabelClass}>оплата usdt</div>
-                <h2 className="mt-2 text-[25px] font-black uppercase leading-[0.96] tracking-tight text-[#181616] md:text-3xl">
+                <h2 className="text-xl font-black uppercase leading-tight tracking-tight text-[#f5f4ef] md:text-2xl" style={{ color: '#f5f4ef' }}>
                   ПЕРЕВЕДИТЕ {getPrice()}
                   <br />
                   ПО АДРЕСУ:
                 </h2>
+                <div className="mt-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] text-[#8DC63F]">USDT (TRC20) PAYMENT</div>
               </div>
 
-              <div className="mb-6 flex justify-center rounded-[4px] border border-black/10 bg-[#f9f9f7] p-5 shadow-[0_14px_40px_rgba(24,22,22,0.04)] md:p-6">
-                <div className="flex h-40 w-40 items-center justify-center rounded-[4px] border-2 border-dashed border-black/18 bg-white text-center font-mono text-[10px] font-black tracking-[0.16em] text-black/36 md:h-48 md:w-48">
+              <div className="mb-6 flex justify-center rounded-lg border border-white/10 bg-white/5 p-5 shadow-lg md:p-6">
+                <div className="flex h-40 w-40 items-center justify-center rounded-md border-2 border-dashed border-white/20 text-center font-mono text-[10px] font-bold tracking-[0.16em] text-[#d2d0ca] md:h-48 md:w-48">
                   QR CODE
                 </div>
               </div>
@@ -366,10 +369,10 @@ export default function PricingPaymentPopupNeon({
               <button
                 type="button"
                 onClick={handleCopyAddress}
-                className="mb-8 flex w-full items-center justify-between rounded-[4px] border border-black/10 bg-white p-3 font-mono text-xs font-black text-[#181616] transition-colors hover:border-black/25 md:p-4 md:text-sm"
+                className="mb-8 flex w-full items-center justify-between rounded-sm border border-white/10 bg-black/50 p-3 font-mono text-xs font-bold text-[#8DC63F] transition-colors hover:bg-white/5 md:p-4 md:text-sm"
               >
                 <span className="mr-4 truncate tracking-[0.05em]">{PAYMENT_ADDRESS}</span>
-                <span className="flex shrink-0 items-center gap-2 rounded-[2px] bg-[#8DC63F]/14 px-2 py-1 text-[10px] tracking-[0.1em] text-[#5f861f] md:px-3 md:py-1.5 md:text-xs">
+                <span className="flex shrink-0 items-center gap-2 rounded-sm bg-white/10 px-2 py-1 text-[10px] tracking-[0.1em] text-white/88 md:px-3 md:py-1.5 md:text-xs">
                   <Copy className="h-3.5 w-3.5" />
                   {addressCopied ? 'copied' : 'copy'}
                 </span>
@@ -386,7 +389,7 @@ export default function PricingPaymentPopupNeon({
                 <button
                   type="button"
                   onClick={() => setShowQR(false)}
-                  className="w-full text-center text-[11px] font-black tracking-widest text-black/42 transition-colors hover:text-black"
+                  className="w-full text-center text-[11px] font-black tracking-widest text-white/62 transition-colors hover:text-white"
                 >
                   вернуться к выбору
                 </button>

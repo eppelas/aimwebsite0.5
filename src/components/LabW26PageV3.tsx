@@ -6,10 +6,14 @@ import {
   ArrowRight,
   ChevronDown,
   X,
-  ExternalLink
+  CirclePlay
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
+import PricingPaymentPopupDark from './PricingPaymentPopupDark';
 import PricingPaymentPopupNeon from './PricingPaymentPopupNeon';
+import PricingPaymentPopupDataline from './PricingPaymentPopupDataline';
+import PricingPaymentPopupDatalineBold from './PricingPaymentPopupDatalineBold';
+import PricingPaymentPopupDatalineHeader from './PricingPaymentPopupDatalineHeader';
 import { DARK_CTA_BUTTON_CLASS, GREEN_SOLID_CTA_BUTTON_CLASS, PRICING_CTA_BUTTON_CLASS } from './ctaButtonStyles';
 import ReviewsSection from './ReviewsSection';
 import { FooterFaqBlock } from './FooterFaqBlock';
@@ -33,6 +37,11 @@ interface CaseCard {
   metric: string;
   artFrames: string[];
   filters: string[];
+  featuredTools?: string[];
+  productImageSrc?: string;
+  productImageAlt?: string;
+  productVideoId?: string;
+  productVideoStartSeconds?: number;
 }
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
@@ -42,6 +51,23 @@ const MD_VIEWPORT_QUERY = '(min-width: 768px)';
 const LG_VIEWPORT_QUERY = '(min-width: 1024px)';
 const BASE_URL = import.meta.env.BASE_URL;
 const getCaseStaticVisualSrcByAssetName = (assetName: string) => `${BASE_URL}assets/cases/${assetName}`;
+const COMMUNITY_NIGHT_VIDEO_ID = '2mOF2jvfbiM';
+const getYoutubeEmbedUrl = (videoId: string, startSeconds = 0) => {
+  const params = new URLSearchParams({
+    autoplay: '1',
+    rel: '0',
+    modestbranding: '1',
+    playsinline: '1',
+    enablejsapi: '1',
+    start: String(startSeconds)
+  });
+
+  if (typeof window !== 'undefined') {
+    params.set('origin', window.location.origin);
+  }
+
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+};
 
 const getMediaQueryMatch = (query: string) => typeof window !== 'undefined' && window.matchMedia(query).matches;
 
@@ -482,184 +508,87 @@ const CASE_ARTS = {
 
 const CASE_CARDS: CaseCard[] = [
   {
-    title: 'AI COACHING',
-    author: 'Анна Л.',
-    role: 'Executive-коуч',
-    desc: 'Персональный AI-коуч',
-    details: 'Система поддержки решений и рефлексии с персонализированным контекстом.',
-    tools: 'Claude · Obsidian · Notion',
-    metric: '−35% хаоса в задачах',
-    artFrames: CASE_ARTS.coaching,
-    filters: []
+    title: 'TEAM OPERATION SYSTEM',
+    author: 'Дарья',
+    role: 'Data analyst · разработчик · team lead (2 команды)',
+    desc: 'Команда работает через Claude Code — тимлид видит токены и ROI каждого сотрудника.',
+    details: 'В этом кейсе Дарья показывает Team Operation System для дата-инженерных команд. Personal OS на базе WHOOP и Plaud Pin была предысторией: данные о сне и встречах выгружаются по крону, а агент «Клариса» по утрам сообщает о состоянии и учитывает его при работе с задачами. Командная система работает так: каждый сотрудник ведёт свою GitLab-ветку, хуки автоматически пушат изменения контекста, а PostgreSQL хранит agent metrics по сессиям, задачам, stage outputs и стоимости токенов. Ключевая фича — кнопка VS Code Remote в карточке задачи восстанавливает старую Claude Code-сессию через session ID из PostgreSQL, поэтому сотрудник продолжает контекст вместо создания новой сессии. Сейчас система масштабируется от 1 команды к 4 Team OS и дальше в Company Operation System.',
+    tools: 'Claude Code · PostgreSQL · TMux · GitLab · WHOOP · Plaud',
+    metric: 'Kanban и Scrum заменены AI-native planning; 1 → 4 Team OS',
+    artFrames: CASE_ARTS.project,
+    filters: ['manager', 'developer'],
+    productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/team-os-darya-product.png'),
+    productImageAlt: 'Скриншот Team Operation System Дарьи из демо Community Night',
+    productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
+    productVideoStartSeconds: 4184
   },
   {
-    title: 'AI VISION',
-    author: 'Виктория М.',
-    role: 'Арт-директор',
-    desc: 'Категоризация изображений',
-    details: 'Пайплайн разметки визуальных архивов с тегами и автоматической сортировкой.',
-    tools: 'GPT Vision · Claude',
-    metric: '3x быстрее сортировка',
-    artFrames: CASE_ARTS.vision,
-    filters: ['creative']
-  },
-  {
-    title: 'AI LEARNING',
-    author: 'Ирина С.',
-    role: 'Преподаватель',
-    desc: 'Языковой партнер',
-    details: 'Адаптивная conversational-модель для тренировок и обратной связи.',
-    tools: 'GPT-4 · ElevenLabs',
-    metric: '+40% регулярность практики',
-    artFrames: CASE_ARTS.learning,
-    filters: ['educator']
-  },
-  {
-    title: 'AI SUMMARY',
-    author: 'Михаил К.',
-    role: 'Product Manager',
-    desc: 'Суммаризация встреч',
-    details: 'Автоматические summary + action items + синхронизация задач.',
-    tools: 'Whisper · Gemini · Notion',
-    metric: '−60% ручной рутины',
+    title: 'КОНВЕЙЕР ВСТРЕЧ',
+    author: 'Наташа',
+    role: 'Backend developer · архитектор · портфельный менеджер (30 активных проектов)',
+    desc: 'Встречи обрабатываются сами — задачи, контекст, проекты без участия человека.',
+    details: 'Наташа обрабатывала 30-40 встреч в неделю и тратила на это утра в дороге и субботы. Она перевернула процесс: Plaud скачивает транскрипты, Opus 4.7 получает динамический промпт из описаний всех проектов, Section Project Map режет встречу на части и привязывает их к проектам, затем извлекаются задачи и матчятся с реальным календарём и участниками. Векторная база с метаданными даёт поиск по человеку, дате и проекту, а дедупликация через semantic search убирает повторяющиеся задачи. В веб-интерфейсе виден граф: встреча → задача → проект → следующие шаги.',
+    tools: 'Plaud · Claude Opus · Python · Vector DB · Calendar',
+    metric: 'Субботы освобождены от ручной обработки встреч',
     artFrames: CASE_ARTS.summary,
-    filters: ['manager']
+    filters: ['manager', 'developer'],
+    productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/meeting-pipeline-natasha-product.png'),
+    productImageAlt: 'Скриншот task graph Наташи из демо Community Night',
+    productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
+    productVideoStartSeconds: 521
   },
   {
-    title: 'AI KNOWLEDGE',
-    author: 'Елена В.',
-    role: 'Аналитик',
-    desc: 'Чат с базой знаний',
-    details: 'RAG-слой над заметками и документами команды.',
-    tools: 'Obsidian · MCP · Claude API',
-    metric: '10x быстрее поиск ответа',
-    artFrames: CASE_ARTS.knowledge,
+    title: 'МЕДИТАЦИЯ АГЕНТА',
+    author: 'Даниил',
+    role: 'Software engineer',
+    desc: 'Агент медитирует ночью по крону, дообучается на своих инсайтах.',
+    details: 'Даниил искал способ не будить агента вручную и не подгружать контекст каждый раз заново. Self-Improvement Loop через SLMD оказался неточным, поэтому он стал симулировать для агента практику присутствия: агент выбирает технику, время и длительность медитации, ловит мысль и отбрасывает её как в настоящей практике, а иногда присылает мини-инсайт. После нескольких итераций модель была дообучена локально на текстах Бахтиярова и психонетике. Теперь ночные медитации запускаются по cron, а дообучение идёт на виртуальной машине на данных самих медитаций.',
+    tools: 'Hermes · Kimi · Cron · Fine-tuning · Graph DB',
+    metric: 'Self-improvement loop убран; контекст держится без ручных манипуляций',
+    artFrames: CASE_ARTS.research,
+    filters: ['developer'],
+    productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/agent-meditation-daniil-product.png'),
+    productImageAlt: 'Скриншот графа медитации агента Даниила из демо Community Night',
+    productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
+    productVideoStartSeconds: 3299
+  },
+  {
+    title: 'КНОПКА NEXT',
+    author: 'Алексей',
+    role: 'Разработчик · 14 лет опыта',
+    desc: 'Год с 50 задачами в день — и кнопка Next вместо раздумий о следующем шаге.',
+    details: 'Алексей три года назад пережил жёсткое выгорание: год лежал на диване, жить не хотелось. После этого начал строить систему продуктивности «просто чтобы попробовать»: стартовал с 10 пунктов в списке дел, за год довёл до 50 задач в день. В Obsidian у него шаблон дня с автогенерацией рутин, кнопка Next для перехода между задачами без раздумий, отметки времени и физический таймер на браслете для утреннего просмотра календаря. Главный инсайт — идти на скуку: не менять рутины, пока они не выжгутся до автоматизма.',
+    tools: 'Obsidian · ActivityWatch · OpenWorks · Timer',
+    metric: 'Выживание автоматизировано; сон, прогулки и заметки удержались без системы',
+    artFrames: CASE_ARTS.automation,
     filters: ['developer']
   },
   {
-    title: 'AI PROJECT',
-    author: 'Дмитрий О.',
-    role: 'Project Manager',
-    desc: 'PM-ассистент',
-    details: 'Мониторинг прогресса с автостатусами и еженедельными брифингами.',
-    tools: 'Linear · Notion · n8n',
-    metric: '+25% предсказуемость сроков',
+    title: 'PERSONAL OS МАЙО',
+    author: 'Михаил',
+    role: 'Консультант · агентные системы',
+    desc: 'Personal OS вокруг Gallup Clifton компенсирует слабости и усиливает сильные стороны.',
+    details: 'Михаил назвал свою систему «Майо» — My OS. Корневая гипотеза: не исправлять слабости, а строить систему, которая их компенсирует. После Gallup Clifton он собрал рутины через LaunchD, скиллы вроде «Дьявола адвоката» и Skill-check, коннекторы MCP для Telegram, Zoom, Calendar и ClickUp, vault с профилем себя, портфелем из 9 проектов, встречами и карточками людей. Gateway — Telegram-бот с доступом в систему, а еженедельный спринт-оператор собирает данные активности.',
+    tools: 'Claude Code · Codex · Obsidian · Telegram MCP · ClickUp MCP',
+    metric: 'За ~3 недели система развёрнута и стала основой консалтинговой работы',
+    artFrames: CASE_ARTS.knowledge,
+    filters: ['manager']
+  },
+  {
+    title: 'СТРАТЕГИЯ + ТАКТИКА',
+    author: 'Дмитрий',
+    role: 'Коуч · консультант',
+    desc: 'Система соединяет смысл, вектор и ежедневное исполнение.',
+    details: 'Дмитрий строит личные системы 8 лет и пришёл к двум параллельным трекам: стратегическому и тактическому. Стратегия — сжатый контекст личности в 5000 символов: биография, цели, мотивации, таланты и паттерны, который обновляется раз в 1-2 месяца. Тактика — еженедельный спринт в Cursor/Codex, спринт-оператор по локальным репозиториям, ClickUp через MCP, где задачи создаются и декомпозируются агентом, а человек расставляет их по календарю drag-and-drop.',
+    tools: 'Cursor · Codex · SendPulse · OpenAI API · ClickUp MCP',
+    metric: 'Стратегия без дисциплины и дисциплина без смысла собраны в одну систему',
     artFrames: CASE_ARTS.project,
     filters: ['manager']
-  },
-  {
-    title: 'AI AUTOMATION',
-    author: 'Олег Т.',
-    role: 'Operations Lead',
-    desc: 'Автоматизация воркфлоу',
-    details: 'Многошаговые сценарии: от входящего сигнала до обновления CRM и уведомлений.',
-    tools: 'n8n · Make · Claude',
-    metric: '12+ часов в неделю экономии',
-    artFrames: CASE_ARTS.automation,
-    filters: ['developer']
-  },
-  {
-    title: 'AI RESEARCH',
-    author: 'Василий П.',
-    role: 'Разработчик',
-    desc: 'Исследовательский ассистент',
-    details: 'Сбор и синтез материалов из разных источников в структуру для решений.',
-    tools: 'Perplexity · Elicit · GPT',
-    metric: '2 дня → 2 часа',
-    artFrames: CASE_ARTS.research,
-    filters: ['developer']
-  },
-  {
-    title: 'AI CONTENT',
-    author: 'Мария Д.',
-    role: 'Копирайтер',
-    desc: 'Генерация контента',
-    details: 'Контент-конвейер: идеи, сценарии, тексты, адаптация под каналы.',
-    tools: 'Claude · ChatGPT · Midjourney',
-    metric: '3x скорость публикаций',
-    artFrames: CASE_ARTS.content,
-    filters: ['creative']
-  },
-  {
-    title: 'AI ANALYTICS',
-    author: 'Алексей Н.',
-    role: 'Data Scientist',
-    desc: 'Анализ данных',
-    details: 'Сводка метрик и пояснения на человеческом языке для команд.',
-    tools: 'Python · GPT · Sheets',
-    metric: '−50% времени на отчётность',
-    artFrames: CASE_ARTS.analytics,
-    filters: ['developer']
-  },
-  {
-    title: 'AI CRM',
-    author: 'Наталья Р.',
-    role: 'Sales Ops',
-    desc: 'AI-ассистент для CRM',
-    details: 'Квалификация лидов, резюме звонков и автообновление карточек без ручного копипаста.',
-    tools: 'HubSpot · Claude · n8n',
-    metric: '−45% ручной работы в CRM',
-    artFrames: CASE_ARTS.automation,
-    filters: ['manager']
-  },
-  {
-    title: 'AI SUPPORT',
-    author: 'Кирилл Б.',
-    role: 'Support Lead',
-    desc: 'Поддержка клиентов',
-    details: 'Черновики ответов, маршрутизация обращений и выявление повторяющихся проблем в поддержке.',
-    tools: 'Intercom · GPT-4 · Notion',
-    metric: '+32% скорость ответа',
-    artFrames: CASE_ARTS.summary,
-    filters: ['manager']
-  },
-  {
-    title: 'AI SCRIPTING',
-    author: 'Полина А.',
-    role: 'Продюсер',
-    desc: 'Сценарный AI-помощник',
-    details: 'Быстрые сценарные драфты, структурирование интервью и адаптация сюжетов под форматы.',
-    tools: 'Claude · ChatGPT · Notion',
-    metric: '3x быстрее препродакшн',
-    artFrames: CASE_ARTS.content,
-    filters: ['creative']
-  },
-  {
-    title: 'AI CURATOR',
-    author: 'Лев Г.',
-    role: 'Методист',
-    desc: 'Куратор учебного потока',
-    details: 'Разбор домашних заданий, персональные подсказки и сбор слабых мест по всей группе.',
-    tools: 'GPT-4 · Airtable · ElevenLabs',
-    metric: '+50% качество обратной связи',
-    artFrames: CASE_ARTS.learning,
-    filters: ['educator']
-  },
-  {
-    title: 'AI DASHBOARD',
-    author: 'Тимур З.',
-    role: 'BI Analyst',
-    desc: 'AI-панель метрик',
-    details: 'Живые пояснения к дашбордам, поиск аномалий и авто-сводки для команды раз в неделю.',
-    tools: 'Looker · GPT · Sheets',
-    metric: '−70% времени на расшифровку метрик',
-    artFrames: CASE_ARTS.analytics,
-    filters: ['developer']
-  },
-  {
-    title: 'AI REPO',
-    author: 'Соня К.',
-    role: 'Product Designer',
-    desc: 'Навигатор по проекту',
-    details: 'Поиск по документации, встречам и задачам в одном контексте вместо ручного ресерча по папкам.',
-    tools: 'Obsidian · Claude · MCP',
-    metric: '5x быстрее вход в контекст',
-    artFrames: CASE_ARTS.knowledge,
-    filters: ['creative']
   },
 ];
 
 const getCaseTools = (card: CaseCard) => card.tools.split(' · ').map((tool) => tool.trim()).filter(Boolean);
+const getCaseFeaturedTools = (card: CaseCard) => (card.featuredTools ?? getCaseTools(card)).slice(0, 3);
 const CASE_TOOL_FILTERS = ['all', ...Array.from(new Set(CASE_CARDS.flatMap((card) => getCaseTools(card))))];
 
 export const PROGRAM_TRACKS = [
@@ -2950,12 +2879,31 @@ export default function LabW26PageV3() {
   const [activeCaseIndex, setActiveCaseIndex] = useState<number | null>(null);
   const [hoveredCaseState, setHoveredCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [hoveredOverlayCaseState, setHoveredOverlayCaseState] = useState<{ index: number; nonce: number } | null>(null);
+  const [playingCaseVideoKey, setPlayingCaseVideoKey] = useState<string | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
   const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const isMdViewport = useMediaQuery(MD_VIEWPORT_QUERY);
   const isLgViewport = useMediaQuery(LG_VIEWPORT_QUERY);
+  const paymentPopupVariant = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('payment')
+    : null;
+  const PaymentPopupComponent = paymentPopupVariant === 'dark'
+    ? PricingPaymentPopupDark
+    : paymentPopupVariant === 'v2'
+      ? PricingPaymentPopupNeon
+      : paymentPopupVariant === 'v3'
+        ? PricingPaymentPopupDataline
+        : paymentPopupVariant === 'v5'
+        ? PricingPaymentPopupDatalineBold
+        : paymentPopupVariant === 'v6'
+          ? PricingPaymentPopupDatalineHeader
+          : paymentPopupVariant === 'v7' || paymentPopupVariant === null
+            ? (props: React.ComponentProps<typeof PricingPaymentPopupDatalineHeader>) => (
+                <PricingPaymentPopupDatalineHeader {...props} presentation="v7" />
+              )
+            : PricingPaymentPopupDataline;
   const [philosophySectionRef, shouldLoadPhilosophyMedia] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '900px 0px' : '200px 0px');
   const [mindsetArtRef, shouldLoadMindsetArt] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '700px 0px' : '200px 0px');
   const mobileCaseCardRefs = useRef<Record<number, HTMLButtonElement | null>>({});
@@ -2992,6 +2940,10 @@ export default function LabW26PageV3() {
       }
     }
   }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
+
+  useEffect(() => {
+    setPlayingCaseVideoKey(null);
+  }, [activeCaseIndex]);
 
   useEffect(() => {
     if (isMenuOpen) return;
@@ -3261,6 +3213,88 @@ export default function LabW26PageV3() {
     );
   };
 
+  const renderCaseProductVideo = (card: CaseCard, className?: string, frameClassName?: string) => {
+    const videoStartSeconds = card.productVideoStartSeconds ?? 0;
+    const videoKey = card.productVideoId ? `${card.productVideoId}-${videoStartSeconds}` : null;
+    const embedUrl = card.productVideoId ? getYoutubeEmbedUrl(card.productVideoId, videoStartSeconds) : null;
+    const isPlaying = videoKey !== null && playingCaseVideoKey === videoKey;
+
+    if (!embedUrl || !card.productImageSrc || !videoKey) return null;
+
+    return (
+      <div className={cn("space-y-2", className)}>
+        {isPlaying ? (
+          <div
+            className={cn(
+              "relative aspect-video overflow-hidden rounded-[2px] border border-black/10 bg-black",
+              frameClassName
+            )}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <iframe
+              title={`Видео-фрагмент ${card.title}`}
+              src={embedUrl}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="absolute inset-0 h-full w-full border-0"
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              setPlayingCaseVideoKey(videoKey);
+            }}
+            className={cn(
+              "group relative block aspect-video w-full overflow-hidden rounded-[2px] border border-black/10 bg-black text-left transition-colors hover:border-black/24",
+              frameClassName
+            )}
+            aria-label={`Смотреть видеофрагмент кейса ${card.title}`}
+          >
+            <img
+              src={card.productImageSrc}
+              alt=""
+              loading="lazy"
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover opacity-72 transition-transform duration-500 group-hover:scale-[1.025]"
+            />
+            <div className="absolute inset-0 bg-black/36" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/50 bg-white/14 text-white backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
+                <CirclePlay size={30} strokeWidth={1.8} />
+              </span>
+            </div>
+            <div className="absolute bottom-3 left-3 right-3 flex items-center gap-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-white">
+              <span>youtube fragment</span>
+            </div>
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const renderCaseProductMedia = (card: CaseCard) => {
+    if (!card.productImageSrc) return null;
+
+    return (
+      <div className="flex min-h-[14rem] flex-col gap-3 md:h-full md:min-h-0">
+        <figure className="relative min-h-[14rem] overflow-hidden rounded-[2px] border border-black/10 bg-[#f6f7f2] md:min-h-0 md:flex-[1.04]">
+          <img
+            src={card.productImageSrc}
+            alt={card.productImageAlt ?? `${card.title} product screenshot`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        </figure>
+
+        {renderCaseProductVideo(card, "hidden md:flex md:min-h-0 md:flex-[0.86] md:flex-col", "md:aspect-auto md:flex-1")}
+      </div>
+    );
+  };
+
   const renderCaseCard = (
     card: CaseCard,
     index: number,
@@ -3293,7 +3327,7 @@ export default function LabW26PageV3() {
       onBlur={() => setHovered((current) => (current?.index === index ? null : current))}
       ref={options?.cardRef}
       className={cn(
-        "group relative mx-auto flex w-full flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left transition-all duration-300 md:min-h-[226px] md:h-auto md:max-w-[16.1rem]",
+        "group relative mx-auto flex h-full w-full flex-col overflow-hidden rounded-[2px] border px-3 pb-3 pt-2 text-left transition-all duration-300 md:min-h-[226px] md:max-w-[16.1rem]",
         isVisualActive ? "border-[#8DC63F] bg-[#8DC63F]" : "border-black/15 bg-white md:border-black/10 md:bg-white md:hover:border-[#8DC63F] md:hover:bg-[#8DC63F]",
       )}
     >
@@ -3310,7 +3344,7 @@ export default function LabW26PageV3() {
         isVisualActive ? "text-white/90" : "text-black/78 md:group-hover:text-white/90",
         options?.descriptionLines === 3 ? "min-h-[4.45rem]" : "min-h-[2.9rem]",
       )}>
-        {card.details}
+        {card.desc}
       </p>
 
       <div className={cn("mt-auto truncate font-mono text-[11px] md:text-[10px] leading-[1.1] tracking-[0.02em] transition-none whitespace-nowrap overflow-hidden", isVisualActive ? "text-white/72" : "text-black/60 md:group-hover:text-white/72")}>
@@ -3318,12 +3352,12 @@ export default function LabW26PageV3() {
       </div>
 
       {options?.showTools ? (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {getCaseTools(card).map((tool) => (
+        <div className="mt-2 flex h-[1.65rem] items-center gap-1.5 overflow-hidden whitespace-nowrap">
+          {getCaseFeaturedTools(card).map((tool) => (
             <span
               key={`${keyPrefix}-tool-${card.title}-${tool}`}
               className={cn(
-                "rounded-[2px] border px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] transition-none md:text-[9px]",
+                "shrink-0 rounded-[2px] border px-1.5 py-[3px] font-mono text-[8.5px] uppercase tracking-[0.12em] transition-none md:text-[9px]",
                 isVisualActive
                   ? "border-white/50 bg-white/20 font-bold text-white"
                   : "border-black/10 bg-black/[0.03] text-black/70 md:group-hover:border-white/50 md:group-hover:bg-white/20 md:group-hover:font-bold md:group-hover:text-white",
@@ -3839,11 +3873,11 @@ export default function LabW26PageV3() {
             })}
           </div>
 
-          <div className="mx-auto grid max-w-[68rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto grid max-w-[68rem] auto-rows-fr grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
             {displayedCases.map(({ card, index }, visibleIndex) => (
               <div
                 key={`main-case-slot-${index}`}
-                className={visibleIndex >= 4 ? "hidden md:block" : ""}
+                className={cn("h-full", visibleIndex >= 4 ? "hidden md:block" : "")}
               >
                 {renderCaseCard(card, index, hoveredCaseState?.index === index, hoveredCaseState?.index === index ? hoveredCaseState.nonce : 0, setHoveredCaseState, 'main', {
                   showTools: true,
@@ -4333,7 +4367,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/55 p-3 backdrop-blur-md md:left-[18%] md:items-center md:p-6"
+            className="fixed inset-0 z-[10008] flex items-end justify-center bg-black/55 p-3 backdrop-blur-md md:items-center md:p-6"
             onClick={() => setIsCasesOverlayOpen(false)}
           >
             <motion.div
@@ -4423,7 +4457,7 @@ export default function LabW26PageV3() {
                 </div>
 
                 <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6">
-                  <div className="mx-auto grid max-w-[88rem] grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                  <div className="mx-auto grid max-w-[88rem] auto-rows-fr grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
                     {filteredCases.map(({ card, index }) =>
                       renderCaseCard(card, index, hoveredOverlayCaseState?.index === index, hoveredOverlayCaseState?.index === index ? hoveredOverlayCaseState.nonce : 0, setHoveredOverlayCaseState, 'overlay', {
                         showTools: true,
@@ -4444,7 +4478,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:left-[18%] md:p-6"
+            className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:p-6"
             onClick={() => setActiveCaseIndex(null)}
           >
             <motion.div
@@ -4466,11 +4500,11 @@ export default function LabW26PageV3() {
               {/* Sticky header to ensure close button is ALWAYS at the top of the container */}
               <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-black/8 bg-white px-5 py-4 md:px-7 md:py-5">
                 <div className="min-w-0">
-                  <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] opacity-40 text-black/60">кейс</div>
                   <h3 className="text-[20px] font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
-                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.16em] text-black/42">
-                    <span>{activeCase.author}</span>
-                    <span>{activeCase.role}</span>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] uppercase tracking-[0.16em]">
+                    <span className="font-black text-black/62">{activeCase.author}</span>
+                    <span className="font-black text-black/28">·</span>
+                    <span className="text-black/42">{activeCase.role}</span>
                   </div>
                 </div>
                 <button
@@ -4486,25 +4520,40 @@ export default function LabW26PageV3() {
               </div>
 
               <div className="grid min-h-0 flex-1 gap-0 overflow-y-auto md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)] md:overflow-hidden">
-                <div className="border-b border-black/8 bg-[#f5f7f2] p-5 md:border-b-0 md:border-r md:border-black/8 md:p-7">
-                  <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">визуал</div>
+                <div className="flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f5f7f2] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/8 md:p-7">
                   <div
                     className={cn(
-                      "md:h-full md:min-h-[24rem]",
+                      "min-h-[14rem] md:min-h-0 md:flex-1",
                     )}
                   >
-                    {renderCaseMediaPanel({ index: activeCaseVisualIndex, mode: 'modal' })}
+                    {activeCase.productImageSrc
+                      ? renderCaseProductMedia(activeCase)
+                      : renderCaseMediaPanel({ index: activeCaseVisualIndex, mode: 'modal' })}
                   </div>
                   {activeCase.filters.length ? (
                     <div className="mt-4 flex flex-wrap gap-1.5">
-                      {activeCase.filters.map((filterId) => (
-                        <span
-                          key={`modal-filter-${activeCase.title}-${filterId}`}
-                          className="rounded-[2px] border border-black/10 bg-black/[0.03] px-2 py-1 font-mono text-[8px] uppercase tracking-[0.14em] text-black/54"
-                        >
-                          {CASE_FILTER_LABELS[filterId]}
-                        </span>
-                      ))}
+                      {activeCase.filters.map((filterId) => {
+                        const isActive = activeCaseFilter === filterId;
+                        return (
+                          <button
+                            key={`modal-filter-${activeCase.title}-${filterId}`}
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setActiveCaseFilter(filterId);
+                            }}
+                            className={cn(
+                              "rounded-[2px] border px-2 py-1 text-left font-mono text-[8px] uppercase tracking-[0.14em] transition-colors",
+                              isActive
+                                ? "border-black bg-black text-white"
+                                : "border-black/10 bg-black/[0.03] text-black/54 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
+                            )}
+                            aria-pressed={isActive}
+                          >
+                            {CASE_FILTER_LABELS[filterId]}
+                          </button>
+                        );
+                      })}
                     </div>
                   ) : null}
                 </div>
@@ -4530,6 +4579,14 @@ export default function LabW26PageV3() {
                         {activeCase.metric}
                       </div>
                     </section>
+
+                    {activeCase.productVideoId ? (
+                      <section className="md:hidden">
+                        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">демо</div>
+                        {renderCaseProductVideo(activeCase)}
+                      </section>
+                    ) : null}
+
                   </div>
                 </div>
               </div>
@@ -4538,7 +4595,7 @@ export default function LabW26PageV3() {
         ) : null}
       </AnimatePresence>
 
-      <PricingPaymentPopupNeon
+      <PaymentPopupComponent
         isOpen={activePaymentPlan !== null}
         plan={activePaymentPlan}
         onClose={() => setActivePaymentPlan(null)}
