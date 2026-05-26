@@ -2,6 +2,30 @@
 
 ## User Requests
 
+- Task: Исправить case media UX: увеличенный скриншот закрывается кликом по картинке, YouTube-видео не показывает долгий чёрный экран и имеет рабочую кастомную паузу.
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В работе: zoom overlay теперь закрывается кликом по самой увеличенной картинке. Видео переведено на явное состояние `loading/playing/paused`: до ответа YouTube iframe остаётся прозрачным, поверх сохраняется постер; клики по видеоповерхности отправляют `pauseVideo/playVideo` через IFrame API, а во время долгой загрузки клик отменяет загрузку и возвращает постер. Ожидает локальной проверки.
+
+- Task: Переделать payment flow popups: redirect/loading перед оплатой и return/join bot варианты без старой check-иконки.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` redirect state больше не показывает CTA `открыть эквайринг`: остаётся loading/route popup с кнопкой `назад`, крестиком и номером заказа без contact line. Для join/paid/usdt заменена check-иконка на три варианта visual mark в Morph/System духе: `signal`, `terminal`, `mesh`. `payment-popup-compare.html` получил варианты `bot signal/terminal/mesh` и `redirect signal/terminal/mesh`. `npm run lint` прошёл.
+
+- Task: Исправить desktop-регрессию Telegram error line: `телефон` переносится отдельной строкой.
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` status строки Telegram и promo сделаны нормальным UI-правилом: `whitespace-nowrap` + `overflow-visible`, без auto-scale и без сжатия букв. Длинная подпись остаётся читаемой одной строкой и может продолжаться вправо.
+
+- Task: Исправить mobile GitHub Pages баг, где tap по Telegram/e-mail input на секунду открывает клавиатуру и сразу закрывает её.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: Найден вероятный iOS-trigger: для `v7` payment popup в `LabW26PageV3.tsx` использовался inline React component type, который мог размонтировать форму при viewport re-render после открытия клавиатуры. Компонент сделан стабильным: `PricingPaymentPopupDatalineHeader` теперь рендерится напрямую, а `presentation`/`mobileLayout` передаются обычными props. Дополнительно на mobile/coarse pointer отключён body `position: fixed`, а `Enter/Done` в полях снимает focus. Проверено на локальном mobile viewport `390x844`: Telegram/e-mail/promo inputs сохраняют focus/value, popup не закрывается, body position `static`, `Enter` на promo возвращает focus на body. `npm run lint` прошёл.
+
 - Task: Финальная микроправка основной mobile v7 оплаты: шире payment buttons, меньше Telegram/email gap, promo label ближе к input line.
   Status: implemented
   Owner: assistant

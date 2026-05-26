@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { CheckCircle2, Copy, X } from 'lucide-react';
+import { Copy, X } from 'lucide-react';
 
 interface SelectedPlan {
   name: string;
@@ -19,6 +19,7 @@ type SuccessState = 'none' | 'redirecting' | 'paid' | 'failed' | 'join' | 'usdt'
 type PaymentMethodId = 'usdt' | 'card_ru' | 'card_intl';
 type TelegramDiscountState = 'idle' | 'checking' | 'applied' | 'not_applied';
 type PromoCodeDiscountState = 'idle' | 'checking' | 'applied' | 'not_applied';
+type PaymentStatusVisualVariant = 'signal' | 'terminal' | 'mesh';
 
 const PAYMENT_ADDRESS = 'T9yF8hQpA5vW2xZ1sE4dC7bN0mK3jL6uI9oP';
 const PAYMENT_ACQUIRING_URL = 'https://join.aimindset.org/waitlist';
@@ -27,6 +28,7 @@ const TELEGRAM_ALUMNI_DISCOUNT_HANDLES = new Set(['aim', '@aim']);
 const PROMO_CODE_DISCOUNTS = new Set(['ponchik']);
 const PAYMENT_STATUS_DEMO_STATES = new Set<SuccessState>(['redirecting', 'paid', 'failed', 'join']);
 const PAYMENT_METHOD_IDS = new Set<PaymentMethodId>(['usdt', 'card_ru', 'card_intl']);
+const PAYMENT_STATUS_VISUAL_VARIANTS = new Set<PaymentStatusVisualVariant>(['signal', 'terminal', 'mesh']);
 
 const cn = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
@@ -44,6 +46,11 @@ const getRequestedPaymentMethod = (): PaymentMethodId => {
   if (typeof window === 'undefined') return 'card_intl';
   const requestedMethod = new URLSearchParams(window.location.search).get('paymentMethod') as PaymentMethodId | null;
   return requestedMethod && PAYMENT_METHOD_IDS.has(requestedMethod) ? requestedMethod : 'card_intl';
+};
+const getRequestedPaymentStatusVisual = (): PaymentStatusVisualVariant => {
+  if (typeof window === 'undefined') return 'signal';
+  const requestedVisual = new URLSearchParams(window.location.search).get('paymentStatusVisual') as PaymentStatusVisualVariant | null;
+  return requestedVisual && PAYMENT_STATUS_VISUAL_VARIANTS.has(requestedVisual) ? requestedVisual : 'signal';
 };
 
 export default function PricingPaymentPopupDatalineHeader({
@@ -76,6 +83,7 @@ export default function PricingPaymentPopupDatalineHeader({
     ? requestedPaymentStatus
     : null;
   const visibleSuccessState = successState === 'none' && forcedPaymentStatus ? forcedPaymentStatus : successState;
+  const statusVisualVariant = getRequestedPaymentStatusVisual();
   const appliedDiscountRate = telegramDiscountState === 'applied'
     ? 0.2
     : promoCodeDiscountState === 'applied'
@@ -148,6 +156,12 @@ export default function PricingPaymentPopupDatalineHeader({
     }
   };
 
+  const handleFieldKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.currentTarget.blur();
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -158,11 +172,15 @@ export default function PricingPaymentPopupDatalineHeader({
     const previousWidth = body.style.width;
     const previousOverflow = body.style.overflow;
     const previousOverflowY = body.style.overflowY;
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.width = '100%';
-    body.style.overflow = 'hidden';
-    body.style.overflowY = 'scroll';
+    const shouldLockBody = !window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
+
+    if (shouldLockBody) {
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      body.style.overflowY = 'scroll';
+    }
 
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -173,12 +191,14 @@ export default function PricingPaymentPopupDatalineHeader({
     window.addEventListener('keydown', handleKeydown);
 
     return () => {
-      body.style.position = previousPosition;
-      body.style.top = previousTop;
-      body.style.width = previousWidth;
-      body.style.overflow = previousOverflow;
-      body.style.overflowY = previousOverflowY;
-      window.scrollTo(0, scrollY);
+      if (shouldLockBody) {
+        body.style.position = previousPosition;
+        body.style.top = previousTop;
+        body.style.width = previousWidth;
+        body.style.overflow = previousOverflow;
+        body.style.overflowY = previousOverflowY;
+        window.scrollTo(0, scrollY);
+      }
       window.removeEventListener('keydown', handleKeydown);
     };
   }, [isOpen]);
@@ -255,11 +275,10 @@ export default function PricingPaymentPopupDatalineHeader({
   const renderStatusScreen = () => {
     const statusCopy: Record<Exclude<SuccessState, 'none'>, { label: string; title: string; body: string; tone: 'success' | 'neutral' | 'danger'; cta?: string }> = {
       redirecting: {
-        label: 'эквайринг',
+        label: 'подготовка оплаты',
         title: 'ПЕРЕХОД К ОПЛАТЕ',
-        body: 'Сейчас откроется страница эквайринга. После оплаты мы вернём вас к подтверждению доступа.',
+        body: 'Сейчас откроется страница оплаты. Если окно не появилось, вернитесь назад и попробуйте ещё раз.',
         tone: 'neutral',
-        cta: 'открыть эквайринг',
       },
       paid: {
         label: 'статус оплаты',
@@ -295,16 +314,73 @@ export default function PricingPaymentPopupDatalineHeader({
     const isDanger = copy.tone === 'danger';
     const isSuccess = copy.tone === 'success';
     const ctaHref = activeSuccessState === 'redirecting' ? PAYMENT_ACQUIRING_URL : TELEGRAM_ACCESS_BOT_URL;
+    const showBotCta = activeSuccessState !== 'redirecting' && activeSuccessState !== 'failed';
+    const orderNumber = `#${plan.price}${plan.name.replace(/\s+/g, '').slice(0, 4)}`;
+
+    const renderStatusMark = () => {
+      if (isDanger) {
+        return (
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[4px] border border-black bg-black text-white">
+            <X className="h-8 w-8" strokeWidth={2.1} />
+          </div>
+        );
+      }
+
+      if (statusVisualVariant === 'terminal') {
+        return (
+          <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-[2px] border border-black bg-[#120f10] px-3 py-2 font-mono text-[8px] font-bold uppercase leading-[1.35] tracking-[0.12em] text-[#3db7ef] shadow-[0_12px_30px_rgba(0,0,0,0.12)]">
+            <motion.div
+              className="absolute inset-x-0 top-0 h-px bg-[#e44848]"
+              animate={{ y: [0, 62, 0] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+            />
+            <div>[ access ]</div>
+            <div>{activeSuccessState === 'redirecting' ? 'pay route' : 'bot sync'}</div>
+            <div>0101 1100</div>
+            <div className="text-[#8ad036]">{activeSuccessState === 'redirecting' ? 'opening' : 'ready'}</div>
+          </div>
+        );
+      }
+
+      if (statusVisualVariant === 'mesh') {
+        return (
+          <div className="grid h-16 w-24 shrink-0 grid-cols-5 gap-[3px] rounded-[2px] border border-black bg-white p-2">
+            {Array.from({ length: 15 }).map((_, index) => (
+              <motion.span
+                key={`payment-status-mesh-${index}`}
+                className={cn(
+                  'block rounded-[1px] border border-black/14',
+                  index % 4 === 0 ? 'bg-[#8ad036]' : index % 5 === 0 ? 'bg-black' : 'bg-[#f1f1f1]',
+                )}
+                animate={{ opacity: [0.35, 1, 0.35] }}
+                transition={{ duration: 1.6, delay: index * 0.05, repeat: Infinity }}
+              />
+            ))}
+          </div>
+        );
+      }
+
+      return (
+        <div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-[2px] border border-black bg-white p-3">
+          <div className="flex h-full items-center justify-center gap-1">
+            {[0, 1, 2, 3].map((index) => (
+              <motion.span
+                key={`payment-status-signal-${index}`}
+                className="block h-8 w-[7px] bg-[#8ad036]"
+                animate={{ scaleY: [0.35, 1, 0.35] }}
+                transition={{ duration: 1.05, delay: index * 0.12, repeat: Infinity }}
+              />
+            ))}
+          </div>
+          <div className="absolute bottom-1 left-2 right-2 h-px bg-black/22" />
+        </div>
+      );
+    };
 
     return (
       <motion.div key={activeSuccessState} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex min-h-full flex-col py-7 md:py-10">
         <div className="mb-8 flex items-center gap-4">
-          <div className={cn(
-            'flex h-16 w-16 shrink-0 items-center justify-center rounded-[4px] border',
-            isDanger ? 'border-black bg-black text-white' : 'border-black bg-white text-black',
-          )}>
-            {isDanger ? <X className="h-8 w-8" strokeWidth={2.1} /> : <CheckCircle2 className="h-9 w-9" strokeWidth={1.6} />}
-          </div>
+          {renderStatusMark()}
           <div>
             <div className={mutedLabelClass}>{copy.label}</div>
             <h3 className="mt-3 font-sans text-[28px] font-black uppercase leading-none tracking-[0.01em] text-black md:text-[34px]">
@@ -321,11 +397,11 @@ export default function PricingPaymentPopupDatalineHeader({
         </div>
 
         <div className="mt-6 rounded-[4px] border border-black/10 bg-white px-4 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed tracking-[0.16em] text-black/42">
-          контакт: {telegramHandle.trim() || '@user / телефон'} · заказ #{plan.price}{plan.name.replace(/\s+/g, '').slice(0, 4)}
+          заказ {orderNumber}
         </div>
 
         <div className="mt-auto flex items-center justify-end gap-2 pt-8">
-          {activeSuccessState === 'failed' ? (
+          {activeSuccessState === 'failed' || activeSuccessState === 'redirecting' ? (
             <button
               type="button"
               onClick={() => setSuccessState('none')}
@@ -342,7 +418,7 @@ export default function PricingPaymentPopupDatalineHeader({
             >
               попробовать снова
             </button>
-          ) : (
+          ) : showBotCta ? (
             <a
               href={ctaHref}
               target="_blank"
@@ -351,7 +427,7 @@ export default function PricingPaymentPopupDatalineHeader({
             >
               {copy.cta}
             </a>
-          )}
+          ) : null}
         </div>
       </motion.div>
     );
@@ -487,6 +563,7 @@ export default function PricingPaymentPopupDatalineHeader({
                         setTelegramError('');
                       }
                     }}
+                    onKeyDown={handleFieldKeyDown}
                     className={cn(fieldClass, telegramError && 'border-black bg-white')}
                     aria-invalid={telegramError ? 'true' : 'false'}
                     title="Можно указать @username, username или телефон: +351 912 345 678, 89123456789, (912) 345-67-89"
@@ -499,12 +576,16 @@ export default function PricingPaymentPopupDatalineHeader({
                         animate={{ opacity: telegramError || telegramDiscountState === 'applied' ? 1 : 0, y: 0 }}
                         exit={{ opacity: 0, y: -3 }}
                         transition={{ duration: 0.16 }}
-                        className={cn(
-                          'font-mono text-[9px] font-bold uppercase tracking-[0.16em]',
-                          telegramError ? 'text-black/46' : 'text-[#5f9f20]',
-                        )}
+                        className="w-full overflow-visible"
                       >
-                        {telegramError || (telegramDiscountState === 'applied' ? 'скидка Alumni 20% применена' : '\u00a0')}
+                        <span
+                          className={cn(
+                            'block whitespace-nowrap font-mono text-[9px] font-bold uppercase tracking-[0.16em]',
+                            telegramError ? 'text-black/46' : 'text-[#5f9f20]',
+                          )}
+                        >
+                          {telegramError || (telegramDiscountState === 'applied' ? 'скидка Alumni 20% применена' : '\u00a0')}
+                        </span>
                       </motion.div>
                     </AnimatePresence>
                   </div>
@@ -514,6 +595,7 @@ export default function PricingPaymentPopupDatalineHeader({
                   <input
                     type="email"
                     placeholder="mail@mail.com"
+                    onKeyDown={handleFieldKeyDown}
                     className={fieldClass}
                   />
                 </div>
@@ -530,6 +612,7 @@ export default function PricingPaymentPopupDatalineHeader({
                   placeholder="..."
                   value={promoCode}
                   onChange={(event) => setPromoCode(event.target.value)}
+                  onKeyDown={handleFieldKeyDown}
                   className="w-full border-0 border-b border-black/16 bg-transparent pb-2 font-mono text-[16px] font-medium text-black outline-none transition-all placeholder:text-black/34 focus:border-black/60 md:text-[13px]"
                 />
                 <div className={cn('overflow-hidden pt-1.5', isCompactWide ? 'h-[25px]' : 'h-[42px]')}>
@@ -540,21 +623,24 @@ export default function PricingPaymentPopupDatalineHeader({
                       animate={{ opacity: promoCodeDiscountState === 'idle' ? 0 : 1, y: 0 }}
                       exit={{ opacity: 0, y: -3 }}
                       transition={{ duration: 0.16 }}
-                      className={cn(
-                        'font-mono text-[9px] font-bold uppercase leading-relaxed tracking-[0.16em]',
-                        isCompactWide && 'whitespace-nowrap',
-                        promoCodeDiscountState === 'applied' && !isPromoCodeSuperseded ? 'text-[#5f9f20]' : 'text-black/36',
-                      )}
+                      className="w-full overflow-visible"
                     >
-                      {promoCodeDiscountState === 'checking'
-                        ? 'ищу скидку'
-                        : promoCodeDiscountState === 'applied'
-                          ? isPromoCodeSuperseded
-                            ? 'действует Alumni 20%'
-                            : 'промокод 5% применён'
-                          : promoCodeDiscountState === 'not_applied'
-                            ? 'промокод не применён'
-                            : '\u00a0'}
+                      <span
+                        className={cn(
+                          'block whitespace-nowrap font-mono text-[9px] font-bold uppercase leading-relaxed tracking-[0.16em]',
+                          promoCodeDiscountState === 'applied' && !isPromoCodeSuperseded ? 'text-[#5f9f20]' : 'text-black/36',
+                        )}
+                      >
+                        {promoCodeDiscountState === 'checking'
+                          ? 'ищу скидку'
+                          : promoCodeDiscountState === 'applied'
+                            ? isPromoCodeSuperseded
+                              ? 'действует Alumni 20%'
+                              : 'промокод 5% применён'
+                            : promoCodeDiscountState === 'not_applied'
+                              ? 'промокод не применён'
+                              : '\u00a0'}
+                      </span>
                     </motion.div>
                   </AnimatePresence>
                 </div>

@@ -6,7 +6,10 @@ import {
   ChevronDown,
   X,
   CirclePlay,
-  Maximize2
+  Loader2,
+  Maximize2,
+  Pause,
+  Play
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
 import PricingPaymentPopupDark from './PricingPaymentPopupDark';
@@ -52,6 +55,7 @@ interface CaseProductImage {
   alt?: string;
 }
 
+type CaseVideoPlaybackState = 'loading' | 'playing' | 'paused';
 type CasePopupVariant = 'current' | 'v7-structured' | 'v7-compact' | 'v7-multi-dots' | 'v7-multi-strip' | 'v7-multi-rail';
 type CasePopupGalleryMode = 'dots' | 'strip' | 'rail';
 type PaymentMobileLayout = 'current' | 'wide' | 'dense';
@@ -89,6 +93,20 @@ const getYoutubeEmbedUrl = (videoId: string, startSeconds = 0, endSeconds?: numb
   }
 
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
+};
+
+const getCaseVideoIframeByKey = (videoKey: string) => {
+  if (typeof document === 'undefined') return null;
+  const iframes = Array.from(
+    document.querySelectorAll<HTMLIFrameElement>(`iframe[data-case-video-key="${videoKey}"]`)
+  );
+
+  return iframes.find((iframe) => iframe.getClientRects().length > 0) ?? iframes[0] ?? null;
+};
+
+const postYoutubeCommandToCaseVideo = (videoKey: string, func: string, args: unknown[] = []) => {
+  const iframe = getCaseVideoIframeByKey(videoKey);
+  iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
 };
 
 const getMediaQueryMatch = (query: string) => typeof window !== 'undefined' && window.matchMedia(query).matches;
@@ -2946,6 +2964,7 @@ export default function LabW26PageV3() {
   const [hoveredCaseState, setHoveredCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [hoveredOverlayCaseState, setHoveredOverlayCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [playingCaseVideoKey, setPlayingCaseVideoKey] = useState<string | null>(null);
+  const [caseVideoPlaybackState, setCaseVideoPlaybackState] = useState<CaseVideoPlaybackState>('loading');
   const [activeCaseImageIndex, setActiveCaseImageIndex] = useState(0);
   const [zoomedCaseImage, setZoomedCaseImage] = useState<CaseProductImage | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
@@ -2990,10 +3009,10 @@ export default function LabW26PageV3() {
         : paymentPopupVariant === 'v6'
           ? PricingPaymentPopupDatalineHeader
           : paymentPopupVariant === 'v7' || paymentPopupVariant === null
-            ? (props: React.ComponentProps<typeof PricingPaymentPopupDatalineHeader>) => (
-                <PricingPaymentPopupDatalineHeader {...props} presentation="v7" mobileLayout={paymentMobileLayout} />
-              )
+            ? PricingPaymentPopupDatalineHeader
             : PricingPaymentPopupDataline;
+  const paymentPopupUsesDatalineHeader = PaymentPopupComponent === PricingPaymentPopupDatalineHeader;
+  const paymentPopupHeaderPresentation = paymentPopupVariant === 'v6' ? 'v6' : 'v7';
   const [philosophySectionRef, shouldLoadPhilosophyMedia] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '900px 0px' : '200px 0px');
   const [mindsetArtRef, shouldLoadMindsetArt] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '700px 0px' : '200px 0px');
   const mobileCaseCardRefs = useRef<Record<number, HTMLButtonElement | null>>({});
@@ -3040,6 +3059,7 @@ export default function LabW26PageV3() {
 
   useEffect(() => {
     setPlayingCaseVideoKey(null);
+    setCaseVideoPlaybackState('loading');
     setActiveCaseImageIndex(0);
     setZoomedCaseImage(null);
   }, [activeCaseIndex]);
@@ -3058,16 +3078,13 @@ export default function LabW26PageV3() {
     const endSeconds = playingCase?.productVideoEndSeconds;
     if (!playingCase || typeof endSeconds !== 'number' || endSeconds <= startSeconds) return;
 
-    const getActiveIframe = () =>
-      document.querySelector<HTMLIFrameElement>(`iframe[data-case-video-key="${playingCaseVideoKey}"]`);
-
     const postYoutubeCommand = (func: string, args: unknown[] = []) => {
-      const iframe = getActiveIframe();
-      iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+      postYoutubeCommandToCaseVideo(playingCaseVideoKey, func, args);
     };
 
     const stopAtFragmentEnd = () => {
       postYoutubeCommand('pauseVideo');
+      setCaseVideoPlaybackState('loading');
       setPlayingCaseVideoKey(null);
     };
 
@@ -3082,8 +3099,35 @@ export default function LabW26PageV3() {
       }
 
       if (!data || typeof data !== 'object') return;
-      const payload = data as { event?: string; info?: { currentTime?: number } };
-      const currentTime = payload.info?.currentTime;
+      const payload = data as {
+        event?: string;
+        info?: number | {
+          currentTime?: number;
+          playerState?: number;
+        };
+      };
+      const info = payload.info;
+      const currentTime = typeof info === 'object' && info !== null ? info.currentTime : undefined;
+      const playerState = typeof info === 'number'
+        ? info
+        : typeof info === 'object' && info !== null
+          ? info.playerState
+          : undefined;
+
+      if (payload.event === 'onReady') {
+        postYoutubeCommand('playVideo');
+      }
+
+      if (playerState === 1) {
+        setCaseVideoPlaybackState('playing');
+      } else if (playerState === 2) {
+        setCaseVideoPlaybackState('paused');
+      } else if (playerState === 3) {
+        setCaseVideoPlaybackState('loading');
+      } else if (playerState === 0) {
+        stopAtFragmentEnd();
+      }
+
       if (typeof currentTime !== 'number') return;
 
       if (currentTime < startSeconds - 1) {
@@ -3099,6 +3143,7 @@ export default function LabW26PageV3() {
     window.addEventListener('message', handleYoutubeMessage);
     const timer = window.setInterval(() => {
       postYoutubeCommand('getCurrentTime');
+      postYoutubeCommand('getPlayerState');
     }, 350);
 
     return () => {
@@ -3462,6 +3507,38 @@ export default function LabW26PageV3() {
       }
     };
 
+    const startVideo = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      setCaseVideoPlaybackState('loading');
+      setPlayingCaseVideoKey(videoKey);
+    };
+
+    const toggleVideoPlayback = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+
+      if (caseVideoPlaybackState === 'loading') {
+        postYoutubeCommandToCaseVideo(videoKey, 'pauseVideo');
+        setCaseVideoPlaybackState('loading');
+        setPlayingCaseVideoKey(null);
+        return;
+      }
+
+      if (caseVideoPlaybackState === 'playing') {
+        postYoutubeCommandToCaseVideo(videoKey, 'pauseVideo');
+        setCaseVideoPlaybackState('paused');
+        return;
+      }
+
+      postYoutubeCommandToCaseVideo(videoKey, 'playVideo');
+      setCaseVideoPlaybackState('loading');
+    };
+
+    const videoControlLabel = caseVideoPlaybackState === 'playing'
+      ? `Поставить видео кейса ${card.title} на паузу`
+      : caseVideoPlaybackState === 'paused'
+        ? `Продолжить видео кейса ${card.title}`
+        : `Остановить загрузку видео кейса ${card.title}`;
+
     return (
       <div className={cn("space-y-2", className)}>
         {isPlaying ? (
@@ -3473,6 +3550,16 @@ export default function LabW26PageV3() {
             )}
             onClick={(event) => event.stopPropagation()}
           >
+            <img
+              src={previewImage.src}
+              alt=""
+              loading="eager"
+              aria-hidden="true"
+              className={cn(
+                "absolute inset-0 h-full w-full object-cover transition-opacity duration-200",
+                caseVideoPlaybackState === 'loading' ? "opacity-75" : "opacity-0"
+              )}
+            />
             <iframe
               title={`Видео-фрагмент ${card.title}`}
               src={embedUrl}
@@ -3481,12 +3568,34 @@ export default function LabW26PageV3() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               referrerPolicy="strict-origin-when-cross-origin"
-              className="pointer-events-none absolute inset-0 h-full w-full border-0"
+              className={cn(
+                "pointer-events-none absolute inset-0 h-full w-full border-0 transition-opacity duration-200",
+                caseVideoPlaybackState === 'loading' ? "opacity-0" : "opacity-100"
+              )}
             />
-            <div className="absolute inset-0 z-10 cursor-default" aria-hidden="true" onClick={(event) => event.stopPropagation()} />
+            {caseVideoPlaybackState === 'loading' ? (
+              <div className="absolute inset-0 z-10 bg-black/24" aria-hidden="true" />
+            ) : null}
             <button
               type="button"
-              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-[2px] border border-white/48 bg-black/36 text-white shadow-[0_4px_18px_rgba(0,0,0,0.22)] backdrop-blur transition-colors hover:border-white hover:bg-black/56"
+              className="absolute inset-0 z-20 flex items-center justify-center text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              onClick={toggleVideoPlayback}
+              aria-label={videoControlLabel}
+              title={videoControlLabel}
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-full border border-white/54 bg-black/34 text-white shadow-[0_10px_32px_rgba(0,0,0,0.28)] backdrop-blur-sm transition-transform duration-200 hover:scale-105">
+                {caseVideoPlaybackState === 'playing' ? (
+                  <Pause size={25} strokeWidth={1.9} />
+                ) : caseVideoPlaybackState === 'paused' ? (
+                  <Play size={25} strokeWidth={1.9} />
+                ) : (
+                  <Loader2 size={25} strokeWidth={1.9} className="animate-spin" />
+                )}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="absolute right-3 top-3 z-30 flex h-9 w-9 items-center justify-center rounded-[2px] border border-white/48 bg-black/32 text-white shadow-[0_4px_18px_rgba(0,0,0,0.22)] backdrop-blur transition-colors hover:border-white hover:bg-black/52 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               onClick={requestFullscreen}
               aria-label={`Открыть видео кейса ${card.title} на весь экран`}
               title="На весь экран"
@@ -3497,10 +3606,7 @@ export default function LabW26PageV3() {
         ) : (
           <button
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              setPlayingCaseVideoKey(videoKey);
-            }}
+            onClick={startVideo}
             className={cn(
               "group relative block aspect-video w-full overflow-hidden rounded-[2px] border border-black/10 bg-black text-left transition-colors hover:border-black/24",
               frameClassName
@@ -4967,21 +5073,38 @@ export default function LabW26PageV3() {
               >
                 <X size={22} />
               </button>
-              <img
-                src={zoomedCaseImage.src}
-                alt={zoomedCaseImage.alt ?? 'Увеличенный скриншот кейса'}
-                className="max-h-full max-w-full rounded-[2px] border border-white/12 bg-white object-contain shadow-2xl"
-              />
+              <button
+                type="button"
+                className="flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                onClick={() => setZoomedCaseImage(null)}
+                aria-label="Закрыть увеличенный скриншот"
+              >
+                <img
+                  src={zoomedCaseImage.src}
+                  alt={zoomedCaseImage.alt ?? 'Увеличенный скриншот кейса'}
+                  className="max-h-full max-w-full rounded-[2px] border border-white/12 bg-white object-contain shadow-2xl"
+                />
+              </button>
             </motion.div>
           </motion.div>
         ) : null}
       </AnimatePresence>
 
-      <PaymentPopupComponent
-        isOpen={activePaymentPlan !== null}
-        plan={activePaymentPlan}
-        onClose={() => setActivePaymentPlan(null)}
-      />
+      {paymentPopupUsesDatalineHeader ? (
+        <PricingPaymentPopupDatalineHeader
+          isOpen={activePaymentPlan !== null}
+          plan={activePaymentPlan}
+          onClose={() => setActivePaymentPlan(null)}
+          presentation={paymentPopupHeaderPresentation}
+          mobileLayout={paymentPopupHeaderPresentation === 'v7' ? paymentMobileLayout : 'current'}
+        />
+      ) : (
+        <PaymentPopupComponent
+          isOpen={activePaymentPlan !== null}
+          plan={activePaymentPlan}
+          onClose={() => setActivePaymentPlan(null)}
+        />
+      )}
          </div>
       </main>
 
