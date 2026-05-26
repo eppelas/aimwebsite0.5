@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AI Mindset payment popup compare</title>
+    <title>AI Mindset case popup compare</title>
     <style>
       * {
         box-sizing: border-box;
@@ -38,7 +38,6 @@
       .compare {
         display: grid;
         grid-template-columns: minmax(260px, var(--split)) 8px minmax(260px, 1fr);
-        gap: 0;
         width: 100vw;
         height: 100vh;
         background: var(--divider);
@@ -125,25 +124,7 @@
         min-width: 0;
       }
 
-      .device-button {
-        height: 26px;
-        min-width: 0;
-        border: 1px solid #111;
-        border-radius: 0;
-        background: #fff;
-        color: #111;
-        cursor: pointer;
-        font: 800 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .device-button[aria-pressed="true"],
-      .device-button:hover {
-        background: #111;
-        color: #fff;
-      }
-
+      .device-button,
       .nav-button,
       .tab-button {
         border: 1px solid #111;
@@ -151,6 +132,22 @@
         background: #fff;
         color: #111;
         cursor: pointer;
+      }
+
+      .device-button {
+        height: 26px;
+        min-width: 0;
+        font: 800 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .device-button[aria-pressed="true"],
+      .device-button:hover,
+      .tab-button[aria-pressed="true"],
+      .tab-button:hover {
+        background: #111;
+        color: #fff;
       }
 
       .nav-button {
@@ -175,7 +172,7 @@
       }
 
       .tab-button {
-        flex: 0 0 122px;
+        flex: 0 0 138px;
         height: 29px;
         overflow: hidden;
         padding: 0 8px;
@@ -186,117 +183,83 @@
         text-transform: uppercase;
       }
 
-      .tab-button[aria-pressed="true"],
-      .nav-button:hover,
-      .tab-button:hover {
-        background: #111;
-        color: #fff;
-      }
-
       .stage {
         position: absolute;
         inset: var(--chrome) 0 0;
         overflow: hidden;
-        background: var(--paper);
+        background: #efefed;
       }
 
       .variant-layer {
         position: absolute;
         inset: 0;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
+        display: none;
+        overflow: hidden;
       }
 
       .variant-layer.active {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
+        display: block;
       }
 
       .live-frame {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
         border: 0;
-        background: var(--paper);
+        background: #f8f8f6;
       }
 
       .pane[data-device="mobile"] .variant-layer {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: auto;
-        padding: 24px;
+        display: none;
+        place-items: center;
+        padding: 18px;
+      }
+
+      .pane[data-device="mobile"] .variant-layer.active {
+        display: grid;
       }
 
       .pane[data-device="mobile"] .live-frame {
-        position: relative;
-        left: auto;
-        top: auto;
-        width: min(var(--mobile-width), calc(100% - 24px));
-        height: min(var(--mobile-height), calc(100% - 24px));
-        border: 1px solid rgba(0, 0, 0, 0.18);
-        background: var(--paper);
-        box-shadow: 0 24px 78px rgba(0, 0, 0, 0.18);
-      }
-
-      .pane[data-device="mobile"] .image-reference {
-        display: none;
-      }
-
-      .image-reference {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background:
-          linear-gradient(rgba(248, 248, 246, 0.84), rgba(248, 248, 246, 0.84)),
-          radial-gradient(circle at 50% 45%, rgba(141, 198, 63, 0.14), transparent 36%),
-          #f8f8f6;
-      }
-
-      .image-reference img {
-        display: block;
-        width: 500px;
-        max-width: calc(100% - 64px);
-        max-height: calc(100% - 64px);
-        object-fit: contain;
-        border: 1px solid rgba(0, 0, 0, 0.18);
-        box-shadow: 0 26px 80px rgba(0, 0, 0, 0.14);
+        width: min(var(--mobile-width), 100%);
+        height: min(var(--mobile-height), 100%);
+        border: 1px solid rgba(0, 0, 0, 0.22);
+        box-shadow: 0 16px 54px rgba(0, 0, 0, 0.16);
       }
 
       .hint {
         position: fixed;
         left: 50%;
-        bottom: 10px;
-        z-index: 90;
+        bottom: 14px;
+        z-index: 140;
         transform: translateX(-50%);
-        padding: 5px 8px;
-        background: #000;
+        background: rgba(17, 17, 17, 0.78);
         color: #fff;
-        font: 700 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        padding: 7px 10px;
+        font: 800 11px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        opacity: 0.72;
         pointer-events: none;
       }
 
-      @media (max-width: 900px) {
+      @media (max-width: 760px) {
         :root {
-          --chrome: 74px;
+          --chrome: 112px;
         }
 
         .compare {
           grid-template-columns: 1fr;
-          grid-template-rows: 1fr 8px 1fr;
+          grid-template-rows: 1fr 1fr;
         }
 
         .splitter {
-          width: 100%;
-          height: 8px;
-          cursor: row-resize;
+          display: none;
+        }
+
+        .toolbar {
+          height: var(--chrome);
+        }
+
+        .nav-button {
+          height: 100px;
         }
 
         .hint {
@@ -306,8 +269,8 @@
     </style>
   </head>
   <body>
-    <main class="compare" aria-label="Payment popup comparison">
-      <section class="pane" data-pane="left" aria-label="Левый вариант payment popup">
+    <main class="compare" aria-label="Case popup comparison">
+      <section class="pane" data-pane="left" aria-label="Левый вариант case popup">
         <div class="toolbar">
           <button class="nav-button" type="button" data-action="prev" aria-label="Предыдущий левый вариант">‹</button>
           <div class="toolbar-center">
@@ -324,7 +287,7 @@
 
       <div class="splitter" role="separator" aria-orientation="vertical" aria-label="Изменить ширину сравнения" tabindex="0"></div>
 
-      <section class="pane" data-pane="right" aria-label="Правый вариант payment popup">
+      <section class="pane" data-pane="right" aria-label="Правый вариант case popup">
         <div class="toolbar">
           <button class="nav-button" type="button" data-action="prev" aria-label="Предыдущий правый вариант">‹</button>
           <div class="toolbar-center">
@@ -339,26 +302,13 @@
         <div class="stage"></div>
       </section>
     </main>
-    <div class="hint">A/D left · ←/→ right</div>
+    <div class="hint">A/D left · ←/→ right · drag divider</div>
 
     <script>
       const variants = [
-        { id: "v3", label: "v3 dataline", type: "live", src: "/?payment=v3#pricing" },
-        { id: "v5", label: "v5 structured", type: "live", src: "/?payment=v5#pricing" },
-        { id: "v6", label: "v6 header", type: "live", src: "/?payment=v6#pricing" },
-        { id: "v7", label: "v7 compact", type: "live", src: "/?payment=v7#pricing", mobile: true },
-        { id: "v7-paid", label: "v7 paid", type: "live", src: "/?payment=v7&paymentStatus=paid#pricing", mobile: true },
-        { id: "v7-failed", label: "v7 failed", type: "live", src: "/?payment=v7&paymentStatus=failed#pricing", mobile: true },
-        { id: "v7-bot", label: "v7 bot join", type: "live", src: "/?payment=v7&paymentStatus=join#pricing", mobile: true },
-        { id: "v7-acquiring", label: "v7 acquiring", type: "live", src: "/?payment=v7&paymentStatus=redirecting#pricing", mobile: true },
-        { id: "github-dark", label: "github dark", type: "live", src: "/?payment=dark#pricing", mobile: true },
-        { id: "v2-light", label: "v2 light", type: "live", src: "/?payment=v2#pricing" },
-        {
-          id: "ref-4light",
-          label: "4light webp",
-          type: "image",
-          src: "/assets/payment-popups/4light-v2-aim-os-desktop-01-payment-selection-500x642.webp",
-        },
+        { id: "current", label: "current case", src: "/?casePopup=current&case=0#cases", mobile: true },
+        { id: "v7-structured", label: "v7 structured", src: "/?casePopup=v7-structured&case=0#cases", mobile: true },
+        { id: "v7-compact", label: "v7 compact", src: "/?casePopup=v7-compact&case=0#cases", mobile: true },
       ];
 
       const state = {
@@ -385,19 +335,10 @@
         : state.split;
 
       const getPaneDevice = (paneKey) => state[`${paneKey}Device`];
-
       const getAvailableVariantIndexes = (paneKey) => variants
         .map((variant, index) => ({ variant, index }))
         .filter(({ variant }) => getPaneDevice(paneKey) === "desktop" || variant.mobile)
         .map(({ index }) => index);
-
-      const normalizePaneVariantForDevice = (paneKey) => {
-        const available = getAvailableVariantIndexes(paneKey);
-        if (available.includes(state[paneKey])) return;
-        state[paneKey] = getPaneDevice(paneKey) === "mobile"
-          ? getVariantIndex(paneKey === "left" ? "v7" : "github-dark", available[0])
-          : available[0];
-      };
 
       const updateUrl = () => {
         const nextParams = new URLSearchParams(window.location.search);
@@ -416,7 +357,7 @@
         if (shouldUpdateUrl) updateUrl();
       };
 
-      const openPricingPopup = (iframe) => {
+      const keepCasePopupOpen = (iframe) => {
         try {
           const doc = iframe.contentDocument;
           if (!doc) return false;
@@ -424,33 +365,18 @@
             item.textContent?.toLowerCase().includes("понятно"),
           );
           cookieButton?.click();
-          const bodyText = doc.body.innerText;
-          if (
-            bodyText.includes("ОПЛАТА ЗАКАЗА")
-            || bodyText.includes("ОПЛАТА ПОЛУЧЕНА")
-            || bodyText.includes("ОПЛАТА НЕ ПРОШЛА")
-            || bodyText.includes("ОТКРОЙТЕ БОТА")
-            || bodyText.includes("ПЕРЕХОД К ОПЛАТЕ")
-          ) return !cookieButton;
-
-          doc.querySelector("#pricing")?.scrollIntoView({ block: "center" });
-          const button = Array.from(doc.querySelectorAll("button")).find((item) =>
-            item.textContent?.includes("/присоединиться"),
-          );
-          if (!button) return false;
-          button.click();
-          return true;
+          return doc.body.innerText.includes("TEAM OPERATION SYSTEM") || doc.body.innerText.includes("задача");
         } catch {
           return false;
         }
       };
 
-      const schedulePopupOpen = (iframe) => {
+      const scheduleCaseOpen = (iframe) => {
         let attempts = 0;
         const timer = window.setInterval(() => {
           attempts += 1;
-          const isPopupOpen = openPricingPopup(iframe);
-          if ((isPopupOpen && attempts > 10) || attempts > 30) {
+          const isOpen = keepCasePopupOpen(iframe);
+          if ((isOpen && attempts > 5) || attempts > 30) {
             window.clearInterval(timer);
           }
         }, 350);
@@ -470,7 +396,7 @@
         });
 
         const activeFrame = pane.querySelector(`.variant-layer[data-variant="${variant.id}"] iframe`);
-        if (activeFrame) schedulePopupOpen(activeFrame);
+        if (activeFrame) scheduleCaseOpen(activeFrame);
         updateUrl();
       };
 
@@ -510,7 +436,6 @@
       const setPaneDevice = (paneKey, device) => {
         const pane = document.querySelector(`[data-pane="${paneKey}"]`);
         state[`${paneKey}Device`] = device;
-        normalizePaneVariantForDevice(paneKey);
         syncPaneDeviceControls(pane);
         renderPaneTabs(pane);
         setActivePaneVariant(paneKey, state[paneKey]);
@@ -520,25 +445,17 @@
         const paneKey = pane.dataset.pane;
         const stage = pane.querySelector(".stage");
 
-        variants.forEach((variant, index) => {
+        variants.forEach((variant) => {
           const layer = document.createElement("div");
-          layer.className = `variant-layer ${variant.type === "image" ? "image-reference" : ""}`;
+          layer.className = "variant-layer";
           layer.dataset.variant = variant.id;
 
-          if (variant.type === "image") {
-            const image = document.createElement("img");
-            image.src = variant.src;
-            image.alt = variant.label;
-            layer.append(image);
-          } else {
-            const iframe = document.createElement("iframe");
-            iframe.className = "live-frame";
-            iframe.src = variant.src;
-            iframe.title = variant.label;
-            iframe.addEventListener("load", () => schedulePopupOpen(iframe));
-            layer.append(iframe);
-          }
-
+          const iframe = document.createElement("iframe");
+          iframe.className = "live-frame";
+          iframe.src = variant.src;
+          iframe.title = variant.label;
+          iframe.addEventListener("load", () => scheduleCaseOpen(iframe));
+          layer.append(iframe);
           stage.append(layer);
         });
 
@@ -551,8 +468,6 @@
         renderPaneTabs(pane);
       };
 
-      normalizePaneVariantForDevice("left");
-      normalizePaneVariantForDevice("right");
       document.querySelectorAll(".pane").forEach(buildPane);
       document.querySelectorAll(".pane").forEach((pane) => setActivePaneVariant(pane.dataset.pane, state[pane.dataset.pane]));
       setSplit(state.split, false);

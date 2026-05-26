@@ -2,6 +2,36 @@
 
 ## User Requests
 
+- Task: Вернуться к v7 оплате: убрать локальный card input, добавить acquiring/result states и Telegram contact rules.
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` убран внутренний экран `БЕЗОПАСНАЯ ОПЛАТА` с вводом номера карты/expiry/CVC; card/ru/eu flow теперь ведёт в acquiring state. Добавлены review states через query `paymentStatus=redirecting|paid|failed|join`: переход к эквайрингу, оплата получена, оплата не прошла, переход в Telegram-бот для доступа к группе. Success/join copy учитывает Telegram docs: бот не может первым написать человеку, пользователь должен сам открыть бот/start. В Telegram поле добавлена валидация: принимаются `@username`, `username` и телефоны с `+`, пробелами, скобками, точками и дефисами; username проверяется как латиница/цифры/underscore 5-32 символа, а тестовый alumni handle `aim`/`@aim` оставлен валидным для demo-скидки. `payment-popup-compare.html` получил tabs `v7 paid`, `v7 failed`, `v7 bot join`, `v7 acquiring`.
+
+- Task: Сделать compare-инструмент для case popups и добавить новые v7-похожие варианты кейс-модалки.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: Добавлен URL-switch `casePopup=current|v7-structured|v7-compact` и auto-open параметр `case=0`, чтобы review surface открывал один и тот же кейс без хрупких кликов. Новые варианты сохраняют текущие функции case modal: `задача`, галерея product screenshots, zoom overlay, фильтры, tools и результат. Добавлен `case-popup-compare.html` по паттерну payment compare: independent left/right variants, per-pane desktop/mobile, draggable splitter, keyboard `A/D` для левой панели и `←/→` для правой. Дизайн-ориентиры взяты из локального `_sources_global_dev/agent-design-kit`: UI UX Pro Max quality pass, platform design quality gate и repo notes по design systems. Проверено: `npm run lint`, `npm run build`, Playwright smoke на compare desktop + right mobile; оба iframe открывают case modal, mobile iframe `390px`, horizontal overflow=false. Screenshots: `/tmp/aim-case-popup-compare-v7.png`, `/tmp/aim-case-popup-v7-compact.png`.
+
+- Task: Добавить в case detail modal исходную задачу перед `решение` и упорядочить tools по правилу AI/Git/hardware → infrastructure.
+  Status: implemented
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: Источник: `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md`, поля `Задача / идея` и `Технологии`. В `CaseCard` добавлено поле `task`; в detail modal блок `задача` поставлен перед `решение`. Tools для кейсов отсортированы по правилу: AI-модель/AI-продукт → Git/repo/workflow platform → hardware/wearables → прикладные apps/no-code → infrastructure/DB/terminal/dev internals. Для Дарьи порядок стал `Claude Code · GitLab · WHOOP · Plaud · PostgreSQL · TMux`. Ожидает локальной проверки.
+
+- Task: В case detail modal добавить поддержку нескольких product screenshots с точками и возможность увеличивать скриншот.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: `CaseCard` расширен до массива `productImages` с fallback на старые `productImageSrc/productImageAlt`. Левый product media блок стал галереей: при нескольких скриншотах появляются стрелки и точки, активное изображение можно выбрать по dot controls. Скриншот открывается в отдельном увеличенном overlay по клику на изображение или кнопку zoom. Проверено локально: `npm run lint`, `npm run build`, in-app browser desktop case modal + zoom overlay, mobile viewport `390x844` без horizontal overflow (`390/390`) + zoom overlay. Для review добавлены локальные preview launchers: `! Open AIM V3 Current Site.command` и `! Open AIM V3 Current Site.app`; rollback path для launcher cleanup: move these two items to Trash.
+
+- Task: Добавить в V3 site agent-readable surfaces для QA: canonical, JSON-LD, Markdown mirror, `llms.txt`, `llms-full.txt` и `sitemap.xml`.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `index.html` добавлены raw HTML head surfaces, которые видны без JS: `meta description`, `rel=canonical`, `text/markdown` alternate, ссылки на `llms.txt`, `llms-full.txt`, `sitemap.xml` и JSON-LD `WebPage`. В `public/` добавлены `index.md`, `llms.txt`, `llms-full.txt`, `sitemap.xml`, чтобы эти файлы попали в build и были доступны QA-раннеру как реальные agent-readable endpoints. Сам лендинг уже содержит `<main>` в `LabW26PageV3.tsx`, поэтому этот кусок оставлен без переписывания. Проверено: `npm run lint`, `npm run build`, а затем inspection `dist/index.html` и `dist/{index.md,llms.txt,llms-full.txt,sitemap.xml}`; локальный smoke check подтвердил `canonical=true`, `markdown=true`, `llms=true`, `sitemap=true`, `jsonLd=true`, `mainInSource=true`.
+
 - Task: Микро-полировка v7: сдвинуть popup левее и поднять action buttons без изменения высоты.
   Status: self-checked
   Owner: assistant

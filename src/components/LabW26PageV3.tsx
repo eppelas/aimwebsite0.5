@@ -5,8 +5,11 @@ import {
   ChevronRight,
   ArrowRight,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
   X,
-  CirclePlay
+  CirclePlay,
+  ZoomIn
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
 import PricingPaymentPopupDark from './PricingPaymentPopupDark';
@@ -32,6 +35,7 @@ interface CaseCard {
   author: string;
   role: string;
   desc: string;
+  task: string;
   details: string;
   tools: string;
   metric: string;
@@ -40,9 +44,17 @@ interface CaseCard {
   featuredTools?: string[];
   productImageSrc?: string;
   productImageAlt?: string;
+  productImages?: CaseProductImage[];
   productVideoId?: string;
   productVideoStartSeconds?: number;
 }
+
+interface CaseProductImage {
+  src: string;
+  alt?: string;
+}
+
+type CasePopupVariant = 'current' | 'v7-structured' | 'v7-compact';
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
 
@@ -512,8 +524,9 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Дарья',
     role: 'Data analyst · разработчик · team lead (2 команды)',
     desc: 'Команда работает через Claude Code — тимлид видит токены и ROI каждого сотрудника.',
+    task: 'Сделать так, чтобы каждая задача команды закрывалась через Claude Code, контекст синхронизировался автоматически, а тимлид видел метрики и стоимость в реальном времени.',
     details: 'В этом кейсе Дарья показывает Team Operation System для дата-инженерных команд. Personal OS на базе WHOOP и Plaud Pin была предысторией: данные о сне и встречах выгружаются по крону, а агент «Клариса» по утрам сообщает о состоянии и учитывает его при работе с задачами. Командная система работает так: каждый сотрудник ведёт свою GitLab-ветку, хуки автоматически пушат изменения контекста, а PostgreSQL хранит agent metrics по сессиям, задачам, stage outputs и стоимости токенов. Ключевая фича — кнопка VS Code Remote в карточке задачи восстанавливает старую Claude Code-сессию через session ID из PostgreSQL, поэтому сотрудник продолжает контекст вместо создания новой сессии. Сейчас система масштабируется от 1 команды к 4 Team OS и дальше в Company Operation System.',
-    tools: 'Claude Code · PostgreSQL · TMux · GitLab · WHOOP · Plaud',
+    tools: 'Claude Code · GitLab · WHOOP · Plaud · PostgreSQL · TMux',
     metric: 'Kanban и Scrum заменены AI-native planning; 1 → 4 Team OS',
     artFrames: CASE_ARTS.project,
     filters: ['manager', 'developer'],
@@ -527,8 +540,9 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Наташа',
     role: 'Backend developer · архитектор · портфельный менеджер (30 активных проектов)',
     desc: 'Встречи обрабатываются сами — задачи, контекст, проекты без участия человека.',
+    task: 'Полностью автоматизировать обработку встреч без ручного раскладывания файлов: получать задачи, обещания и контекст решений сразу из потока транскриптов.',
     details: 'Наташа обрабатывала 30-40 встреч в неделю и тратила на это утра в дороге и субботы. Она перевернула процесс: Plaud скачивает транскрипты, Opus 4.7 получает динамический промпт из описаний всех проектов, Section Project Map режет встречу на части и привязывает их к проектам, затем извлекаются задачи и матчятся с реальным календарём и участниками. Векторная база с метаданными даёт поиск по человеку, дате и проекту, а дедупликация через semantic search убирает повторяющиеся задачи. В веб-интерфейсе виден граф: встреча → задача → проект → следующие шаги.',
-    tools: 'Plaud · Claude Opus · Python · Vector DB · Calendar',
+    tools: 'Claude Opus · Plaud · Calendar · Python · Vector DB',
     metric: 'Субботы освобождены от ручной обработки встреч',
     artFrames: CASE_ARTS.summary,
     filters: ['manager', 'developer'],
@@ -542,8 +556,9 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Даниил',
     role: 'Software engineer',
     desc: 'Агент медитирует ночью по крону, дообучается на своих инсайтах.',
+    task: 'Решить проблему потери контекста агента без ручной подгрузки документов: заменить неточный self-improvement loop практикой «присутствия».',
     details: 'Даниил искал способ не будить агента вручную и не подгружать контекст каждый раз заново. Self-Improvement Loop через SLMD оказался неточным, поэтому он стал симулировать для агента практику присутствия: агент выбирает технику, время и длительность медитации, ловит мысль и отбрасывает её как в настоящей практике, а иногда присылает мини-инсайт. После нескольких итераций модель была дообучена локально на текстах Бахтиярова и психонетике. Теперь ночные медитации запускаются по cron, а дообучение идёт на виртуальной машине на данных самих медитаций.',
-    tools: 'Hermes · Kimi · Cron · Fine-tuning · Graph DB',
+    tools: 'Kimi · Hermes · Cron · Fine-tuning · Graph DB',
     metric: 'Self-improvement loop убран; контекст держится без ручных манипуляций',
     artFrames: CASE_ARTS.research,
     filters: ['developer'],
@@ -557,6 +572,7 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Алексей',
     role: 'Разработчик · 14 лет опыта',
     desc: 'Год с 50 задачами в день — и кнопка Next вместо раздумий о следующем шаге.',
+    task: 'Восстановиться после выгорания и собрать систему дисциплины, где следующий шаг не нужно выбирать усилием воли.',
     details: 'Алексей три года назад пережил жёсткое выгорание: год лежал на диване, жить не хотелось. После этого начал строить систему продуктивности «просто чтобы попробовать»: стартовал с 10 пунктов в списке дел, за год довёл до 50 задач в день. В Obsidian у него шаблон дня с автогенерацией рутин, кнопка Next для перехода между задачами без раздумий, отметки времени и физический таймер на браслете для утреннего просмотра календаря. Главный инсайт — идти на скуку: не менять рутины, пока они не выжгутся до автоматизма.',
     tools: 'Obsidian · ActivityWatch · OpenWorks · Timer',
     metric: 'Выживание автоматизировано; сон, прогулки и заметки удержались без системы',
@@ -568,6 +584,7 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Михаил',
     role: 'Консультант · агентные системы',
     desc: 'Personal OS вокруг Gallup Clifton компенсирует слабости и усиливает сильные стороны.',
+    task: 'Создать Personal OS, которая компенсирует слабые места вроде исполнения и эмпатии, а человека оставляет в зоне его сильных сторон.',
     details: 'Михаил назвал свою систему «Майо» — My OS. Корневая гипотеза: не исправлять слабости, а строить систему, которая их компенсирует. После Gallup Clifton он собрал рутины через LaunchD, скиллы вроде «Дьявола адвоката» и Skill-check, коннекторы MCP для Telegram, Zoom, Calendar и ClickUp, vault с профилем себя, портфелем из 9 проектов, встречами и карточками людей. Gateway — Telegram-бот с доступом в систему, а еженедельный спринт-оператор собирает данные активности.',
     tools: 'Claude Code · Codex · Obsidian · Telegram MCP · ClickUp MCP',
     metric: 'За ~3 недели система развёрнута и стала основой консалтинговой работы',
@@ -579,8 +596,9 @@ const CASE_CARDS: CaseCard[] = [
     author: 'Дмитрий',
     role: 'Коуч · консультант',
     desc: 'Система соединяет смысл, вектор и ежедневное исполнение.',
+    task: 'Объединить стратегический фокус с ежедневным исполнением, чтобы смысл и дисциплина усиливали друг друга.',
     details: 'Дмитрий строит личные системы 8 лет и пришёл к двум параллельным трекам: стратегическому и тактическому. Стратегия — сжатый контекст личности в 5000 символов: биография, цели, мотивации, таланты и паттерны, который обновляется раз в 1-2 месяца. Тактика — еженедельный спринт в Cursor/Codex, спринт-оператор по локальным репозиториям, ClickUp через MCP, где задачи создаются и декомпозируются агентом, а человек расставляет их по календарю drag-and-drop.',
-    tools: 'Cursor · Codex · SendPulse · OpenAI API · ClickUp MCP',
+    tools: 'Codex · Cursor · SendPulse · OpenAI API · ClickUp MCP',
     metric: 'Стратегия без дисциплины и дисциплина без смысла собраны в одну систему',
     artFrames: CASE_ARTS.project,
     filters: ['manager']
@@ -589,6 +607,14 @@ const CASE_CARDS: CaseCard[] = [
 
 const getCaseTools = (card: CaseCard) => card.tools.split(' · ').map((tool) => tool.trim()).filter(Boolean);
 const getCaseFeaturedTools = (card: CaseCard) => (card.featuredTools ?? getCaseTools(card)).slice(0, 3);
+const getCaseProductImages = (card: CaseCard): CaseProductImage[] => {
+  if (card.productImages?.length) return card.productImages;
+  if (!card.productImageSrc) return [];
+  return [{ src: card.productImageSrc, alt: card.productImageAlt }];
+};
+const CASE_TOOL_ORDER_RULE =
+  'Порядок tools в кейсах: AI-модель/AI-продукт -> Git/repo/workflow platform -> hardware/wearables -> прикладные apps/no-code -> инфраструктура/DB/terminal/dev internals.';
+const CASE_POPUP_VARIANTS = new Set<CasePopupVariant>(['current', 'v7-structured', 'v7-compact']);
 const CASE_TOOL_FILTERS = ['all', ...Array.from(new Set(CASE_CARDS.flatMap((card) => getCaseTools(card))))];
 
 export const PROGRAM_TRACKS = [
@@ -2880,6 +2906,8 @@ export default function LabW26PageV3() {
   const [hoveredCaseState, setHoveredCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [hoveredOverlayCaseState, setHoveredOverlayCaseState] = useState<{ index: number; nonce: number } | null>(null);
   const [playingCaseVideoKey, setPlayingCaseVideoKey] = useState<string | null>(null);
+  const [activeCaseImageIndex, setActiveCaseImageIndex] = useState(0);
+  const [zoomedCaseImage, setZoomedCaseImage] = useState<CaseProductImage | null>(null);
   const [activeMobileSpeakerIndex, setActiveMobileSpeakerIndex] = useState<number | null>(null);
   const [activeMobileSpeakerRowIndex, setActiveMobileSpeakerRowIndex] = useState<number | null>(null);
   const [activePageSectionId, setActivePageSectionId] = useState<string>('hero');
@@ -2889,6 +2917,16 @@ export default function LabW26PageV3() {
   const paymentPopupVariant = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('payment')
     : null;
+  const searchParams = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search)
+    : null;
+  const casePopupVariantParam = searchParams?.get('casePopup') as CasePopupVariant | null;
+  const casePopupVariant: CasePopupVariant = casePopupVariantParam && CASE_POPUP_VARIANTS.has(casePopupVariantParam)
+    ? casePopupVariantParam
+    : 'current';
+  const requestedCaseIndex = searchParams?.get('case');
+  const isCasePopupV7 = casePopupVariant !== 'current';
+  const isCasePopupCompact = casePopupVariant === 'v7-compact';
   const PaymentPopupComponent = paymentPopupVariant === 'dark'
     ? PricingPaymentPopupDark
     : paymentPopupVariant === 'v2'
@@ -2914,7 +2952,7 @@ export default function LabW26PageV3() {
   const bodyOverflowRestoreRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const isModalOpen = isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null;
+    const isModalOpen = isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null || zoomedCaseImage !== null;
     const body = document.body;
 
     if (isModalOpen) {
@@ -2939,10 +2977,19 @@ export default function LabW26PageV3() {
         });
       }
     }
-  }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen]);
+  }, [activeCaseIndex, isCasesOverlayOpen, isMenuOpen, zoomedCaseImage]);
+
+  useEffect(() => {
+    if (requestedCaseIndex === null || activeCaseIndex !== null) return;
+    const parsedCaseIndex = Number.parseInt(requestedCaseIndex, 10);
+    if (!Number.isFinite(parsedCaseIndex)) return;
+    setActiveCaseIndex(Math.min(CASE_CARDS.length - 1, Math.max(0, parsedCaseIndex)));
+  }, [activeCaseIndex, requestedCaseIndex]);
 
   useEffect(() => {
     setPlayingCaseVideoKey(null);
+    setActiveCaseImageIndex(0);
+    setZoomedCaseImage(null);
   }, [activeCaseIndex]);
 
   useEffect(() => {
@@ -3101,6 +3148,68 @@ export default function LabW26PageV3() {
   const displayedCases = isTouchMobileViewport ? visibleCases.slice(0, 4) : visibleCases;
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
   const activeCaseVisualIndex = activeCaseIndex ?? 0;
+  const activeCaseProductImages = activeCase ? getCaseProductImages(activeCase) : [];
+  const casePopupOverlayClass = isCasePopupV7
+    ? 'fixed inset-0 z-[10010] flex items-center justify-center bg-[#f1f1f1]/90 p-3 backdrop-blur-[2px] md:p-6'
+    : 'fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:p-6';
+  const casePopupPanelClass = isCasePopupV7
+    ? cn(
+        'flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-[4px] border border-black bg-white text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] overscroll-contain md:max-h-[calc(100dvh-3rem)]',
+        isCasePopupCompact
+          ? 'max-w-[64rem] md:h-[min(40rem,calc(100vh-3rem))]'
+          : 'max-w-[72rem] md:h-[min(43rem,calc(100vh-3rem))]'
+      )
+    : 'flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl overscroll-contain md:h-[min(46rem,calc(100vh-3rem))]';
+  const casePopupHeaderClass = isCasePopupV7
+    ? cn(
+        'sticky top-0 z-10 flex items-start justify-between gap-4 bg-white px-5 md:px-7',
+        isCasePopupCompact ? 'py-5 md:py-6' : 'py-6 md:py-7'
+      )
+    : 'sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-black/8 bg-white px-5 py-4 md:px-7 md:py-5';
+  const casePopupTitleClass = isCasePopupV7
+    ? cn(
+        'font-sans font-black uppercase leading-none tracking-[0.01em] text-black',
+        isCasePopupCompact ? 'text-[24px] md:text-[32px]' : 'text-[26px] md:text-[36px]'
+      )
+    : 'text-[20px] font-black uppercase tracking-tighter leading-tight md:text-3xl';
+  const casePopupCloseClass = isCasePopupV7
+    ? 'shrink-0 flex h-[44px] w-[44px] items-center justify-center rounded-[4px] border border-black/10 bg-[#f4f4f4] text-black transition-all duration-150 hover:scale-110 hover:border-black hover:bg-white'
+    : 'shrink-0 -mr-2 -mt-2 rounded-full p-4 text-black/40 transition-colors hover:bg-black/5 hover:text-black md:p-2';
+  const casePopupGridClass = isCasePopupV7
+    ? cn(
+        'grid min-h-0 flex-1 gap-0 overflow-y-auto md:overflow-hidden',
+        isCasePopupCompact
+          ? 'md:grid-cols-[minmax(300px,0.9fr)_minmax(0,1.1fr)]'
+          : 'md:grid-cols-[minmax(340px,0.95fr)_minmax(0,1.05fr)]'
+      )
+    : 'grid min-h-0 flex-1 gap-0 overflow-y-auto md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)] md:overflow-hidden';
+  const casePopupMediaPaneClass = isCasePopupV7
+    ? cn(
+        'flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f6f6f6] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/10',
+        isCasePopupCompact ? 'md:p-6' : 'md:p-7'
+      )
+    : 'flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f5f7f2] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/8 md:p-7';
+  const casePopupContentClass = isCasePopupV7
+    ? cn('min-h-0 overflow-y-auto px-5 py-5 overscroll-behavior-contain md:px-7', isCasePopupCompact ? 'md:py-5' : 'md:py-6')
+    : 'min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6 overscroll-behavior-contain';
+  const casePopupSectionGapClass = isCasePopupV7
+    ? cn(isCasePopupCompact ? 'space-y-4 pb-7' : 'space-y-5 pb-8')
+    : 'space-y-5 pb-8';
+  const casePopupLabelClass = isCasePopupV7
+    ? 'mb-2 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-black/46'
+    : 'mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36';
+  const casePopupTaskTextClass = isCasePopupV7
+    ? 'rounded-[4px] border border-black/12 bg-[#f6f6f6] px-4 py-4 text-[14px] font-medium leading-[1.62] text-black/72 md:text-[15px]'
+    : 'text-[14px] leading-[1.65] text-black/72 md:text-[15px]';
+  const casePopupBodyTextClass = isCasePopupV7
+    ? 'text-[14px] leading-[1.66] text-black/78 md:text-[15px]'
+    : 'text-[14px] leading-[1.7] text-black/78 md:text-[15px]';
+  const casePopupToolsClass = isCasePopupV7
+    ? 'rounded-[4px] border border-black/12 bg-white px-4 py-3 font-mono text-[12px] leading-[1.6] text-black/66 md:text-[13px]'
+    : 'rounded-[4px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]';
+  const casePopupMetricClass = isCasePopupV7
+    ? 'border-t border-[#78bd2f] pt-4 font-mono text-[12px] font-black uppercase leading-[1.55] tracking-[0.12em] text-[#5f9f20] md:text-[13px]'
+    : 'text-[13px] font-semibold uppercase tracking-[0.08em] text-[#56771f] md:text-[14px]';
 
   useEffect(() => {
     setActiveMobileCaseIndex(null);
@@ -3218,8 +3327,9 @@ export default function LabW26PageV3() {
     const videoKey = card.productVideoId ? `${card.productVideoId}-${videoStartSeconds}` : null;
     const embedUrl = card.productVideoId ? getYoutubeEmbedUrl(card.productVideoId, videoStartSeconds) : null;
     const isPlaying = videoKey !== null && playingCaseVideoKey === videoKey;
+    const previewImage = getCaseProductImages(card)[0];
 
-    if (!embedUrl || !card.productImageSrc || !videoKey) return null;
+    if (!embedUrl || !previewImage || !videoKey) return null;
 
     return (
       <div className={cn("space-y-2", className)}>
@@ -3255,7 +3365,7 @@ export default function LabW26PageV3() {
             aria-label={`Смотреть видеофрагмент кейса ${card.title}`}
           >
             <img
-              src={card.productImageSrc}
+              src={previewImage.src}
               alt=""
               loading="lazy"
               aria-hidden="true"
@@ -3277,18 +3387,96 @@ export default function LabW26PageV3() {
   };
 
   const renderCaseProductMedia = (card: CaseCard) => {
-    if (!card.productImageSrc) return null;
+    const productImages = getCaseProductImages(card);
+    const selectedImage = productImages[activeCaseImageIndex] ?? productImages[0];
+    const hasMultipleImages = productImages.length > 1;
+
+    if (!selectedImage) return null;
+
+    const showPreviousImage = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      setActiveCaseImageIndex((current) => (current - 1 + productImages.length) % productImages.length);
+    };
+
+    const showNextImage = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      setActiveCaseImageIndex((current) => (current + 1) % productImages.length);
+    };
 
     return (
       <div className="flex min-h-[14rem] flex-col gap-3 md:h-full md:min-h-0">
-        <figure className="relative min-h-[14rem] overflow-hidden rounded-[2px] border border-black/10 bg-[#f6f7f2] md:min-h-0 md:flex-[1.04]">
-          <img
-            src={card.productImageSrc}
-            alt={card.productImageAlt ?? `${card.title} product screenshot`}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-contain"
-          />
-        </figure>
+        <div className="relative min-h-[14rem] overflow-hidden rounded-[2px] border border-black/10 bg-[#f6f7f2] md:min-h-0 md:flex-[1.04]">
+          <button
+            type="button"
+            className="group absolute inset-0 block h-full w-full cursor-zoom-in"
+            onClick={(event) => {
+              event.stopPropagation();
+              setZoomedCaseImage(selectedImage);
+            }}
+            aria-label={`Увеличить скриншот кейса ${card.title}`}
+          >
+            <img
+              src={selectedImage.src}
+              alt={selectedImage.alt ?? card.productImageAlt ?? `${card.title} product screenshot`}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.012]"
+            />
+          </button>
+
+          <button
+            type="button"
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
+            onClick={(event) => {
+              event.stopPropagation();
+              setZoomedCaseImage(selectedImage);
+            }}
+            aria-label={`Увеличить скриншот кейса ${card.title}`}
+          >
+            <ZoomIn size={17} strokeWidth={1.9} />
+          </button>
+
+          {hasMultipleImages ? (
+            <>
+              <button
+                type="button"
+                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
+                onClick={showPreviousImage}
+                aria-label={`Предыдущий скриншот кейса ${card.title}`}
+              >
+                <ChevronLeft size={18} strokeWidth={1.9} />
+              </button>
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
+                onClick={showNextImage}
+                aria-label={`Следующий скриншот кейса ${card.title}`}
+              >
+                <ChevronRightIcon size={18} strokeWidth={1.9} />
+              </button>
+              <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
+                {productImages.map((image, index) => {
+                  const isActive = index === activeCaseImageIndex;
+                  return (
+                    <button
+                      key={`${card.title}-product-image-dot-${image.src}-${index}`}
+                      type="button"
+                      className={cn(
+                        "h-2 rounded-full border border-black/20 bg-white/78 transition-all",
+                        isActive ? "w-6 bg-black" : "w-2 hover:bg-black/36"
+                      )}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setActiveCaseImageIndex(index);
+                      }}
+                      aria-label={`Открыть скриншот ${index + 1} из ${productImages.length} кейса ${card.title}`}
+                      aria-pressed={isActive}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </div>
 
         {renderCaseProductVideo(card, "hidden md:flex md:min-h-0 md:flex-[0.86] md:flex-col", "md:aspect-auto md:flex-1")}
       </div>
@@ -4478,7 +4666,7 @@ export default function LabW26PageV3() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:p-6"
+            className={casePopupOverlayClass}
             onClick={() => setActiveCaseIndex(null)}
           >
             <motion.div
@@ -4486,7 +4674,7 @@ export default function LabW26PageV3() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 22 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-black/12 bg-white text-black shadow-2xl overscroll-contain md:h-[min(46rem,calc(100vh-3rem))]"
+              className={casePopupPanelClass}
               // Use onClick to distinguish between tap (to close) and swipe (to scroll)
               onClick={(event) => {
                 const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 1024px)').matches;
@@ -4498,10 +4686,13 @@ export default function LabW26PageV3() {
               }}
             >
               {/* Sticky header to ensure close button is ALWAYS at the top of the container */}
-              <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-black/8 bg-white px-5 py-4 md:px-7 md:py-5">
+              <div className={casePopupHeaderClass}>
                 <div className="min-w-0">
-                  <h3 className="text-[20px] font-black uppercase tracking-tighter leading-tight md:text-3xl">{activeCase.title}</h3>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] uppercase tracking-[0.16em]">
+                  <h3 className={casePopupTitleClass}>{activeCase.title}</h3>
+                  <div className={cn(
+                    'mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[10px] uppercase tracking-[0.16em]',
+                    isCasePopupV7 && 'font-mono font-bold tracking-[0.2em]'
+                  )}>
                     <span className="font-black text-black/62">{activeCase.author}</span>
                     <span className="font-black text-black/28">·</span>
                     <span className="text-black/42">{activeCase.role}</span>
@@ -4509,7 +4700,7 @@ export default function LabW26PageV3() {
                 </div>
                 <button
                   type="button"
-                  className="shrink-0 -mr-2 -mt-2 rounded-full p-4 text-black/40 transition-colors hover:bg-black/5 hover:text-black md:p-2"
+                  className={casePopupCloseClass}
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveCaseIndex(null);
@@ -4519,14 +4710,14 @@ export default function LabW26PageV3() {
                 </button>
               </div>
 
-              <div className="grid min-h-0 flex-1 gap-0 overflow-y-auto md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)] md:overflow-hidden">
-                <div className="flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f5f7f2] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/8 md:p-7">
+              <div className={casePopupGridClass}>
+                <div className={casePopupMediaPaneClass}>
                   <div
                     className={cn(
                       "min-h-[14rem] md:min-h-0 md:flex-1",
                     )}
                   >
-                    {activeCase.productImageSrc
+                    {activeCaseProductImages.length
                       ? renderCaseProductMedia(activeCase)
                       : renderCaseMediaPanel({ index: activeCaseVisualIndex, mode: 'modal' })}
                   </div>
@@ -4557,32 +4748,42 @@ export default function LabW26PageV3() {
                     </div>
                   ) : null}
                 </div>
-                <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-7 md:py-6 overscroll-behavior-contain">
-                  <div className="space-y-5 pb-8">
+                <div className={casePopupContentClass}>
+                  <div className={casePopupSectionGapClass}>
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">решение</div>
-                      <p className="text-[14px] leading-[1.7] text-black/78 md:text-[15px]">
+                      <div className={casePopupLabelClass}>задача</div>
+                      <p className={casePopupTaskTextClass}>
+                        {activeCase.task}
+                      </p>
+                    </section>
+
+                    <section>
+                      <div className={casePopupLabelClass}>решение</div>
+                      <p className={casePopupBodyTextClass}>
                         {activeCase.details}
                       </p>
                     </section>
 
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">инструменты</div>
-                      <div className="rounded-[4px] border border-black/8 bg-black/[0.03] px-4 py-3 text-[13px] leading-[1.6] text-black/72 md:text-[14px]">
+                      <div className={casePopupLabelClass}>инструменты</div>
+                      <div
+                        className={casePopupToolsClass}
+                        title={CASE_TOOL_ORDER_RULE}
+                      >
                         {activeCase.tools}
                       </div>
                     </section>
 
                     <section>
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">результат</div>
-                      <div className="text-[13px] font-semibold uppercase tracking-[0.08em] text-[#56771f] md:text-[14px]">
+                      <div className={casePopupLabelClass}>результат</div>
+                      <div className={casePopupMetricClass}>
                         {activeCase.metric}
                       </div>
                     </section>
 
                     {activeCase.productVideoId ? (
                       <section className="md:hidden">
-                        <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36">демо</div>
+                        <div className={casePopupLabelClass}>демо</div>
                         {renderCaseProductVideo(activeCase)}
                       </section>
                     ) : null}
@@ -4590,6 +4791,41 @@ export default function LabW26PageV3() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {zoomedCaseImage ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10020] flex items-center justify-center bg-black/88 p-3 backdrop-blur-md md:p-8"
+            onClick={() => setZoomedCaseImage(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.985 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="relative flex h-full max-h-[92vh] w-full max-w-[92rem] items-center justify-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="absolute right-0 top-0 z-10 flex h-11 w-11 items-center justify-center rounded-[2px] border border-white/14 bg-white/10 text-white/72 backdrop-blur transition-colors hover:bg-white hover:text-black"
+                onClick={() => setZoomedCaseImage(null)}
+                aria-label="Закрыть увеличенный скриншот"
+              >
+                <X size={22} />
+              </button>
+              <img
+                src={zoomedCaseImage.src}
+                alt={zoomedCaseImage.alt ?? 'Увеличенный скриншот кейса'}
+                className="max-h-full max-w-full rounded-[2px] border border-white/12 bg-white object-contain shadow-2xl"
+              />
             </motion.div>
           </motion.div>
         ) : null}

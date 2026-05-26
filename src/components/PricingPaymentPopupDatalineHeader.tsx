@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, CheckCircle2, Copy, X } from 'lucide-react';
+import { CheckCircle2, Copy, X } from 'lucide-react';
 
 interface SelectedPlan {
   name: string;
@@ -14,19 +14,30 @@ interface PricingPaymentPopupDatalineHeaderProps {
   presentation?: 'v6' | 'v7';
 }
 
-type SuccessState = 'none' | 'card_input' | 'card' | 'usdt';
+type SuccessState = 'none' | 'redirecting' | 'paid' | 'failed' | 'join' | 'usdt';
 type PaymentMethodId = 'usdt' | 'card_ru' | 'card_intl';
-type CardSubmethodId = 'card' | 'sbp' | 'qr' | 'revolut' | 'link';
 type TelegramDiscountState = 'idle' | 'checking' | 'applied' | 'not_applied';
 type PromoCodeDiscountState = 'idle' | 'checking' | 'applied' | 'not_applied';
 
 const PAYMENT_ADDRESS = 'T9yF8hQpA5vW2xZ1sE4dC7bN0mK3jL6uI9oP';
+const PAYMENT_ACQUIRING_URL = 'https://join.aimindset.org/waitlist';
+const TELEGRAM_ACCESS_BOT_URL = 'https://t.me/aimindset_bot?start=payment_success';
 const TELEGRAM_ALUMNI_DISCOUNT_HANDLES = new Set(['aim', '@aim']);
 const PROMO_CODE_DISCOUNTS = new Set(['ponchik']);
+const PAYMENT_STATUS_DEMO_STATES = new Set<SuccessState>(['redirecting', 'paid', 'failed', 'join']);
 
 const cn = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
 const formatRoublePrice = (amount: number) => `${new Intl.NumberFormat('ru-RU').format(amount)}\u00a0₽`;
+const isTelegramUsername = (value: string) => /^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(value.trim());
+const isKnownAlumniHandle = (value: string) => TELEGRAM_ALUMNI_DISCOUNT_HANDLES.has(value.trim().toLowerCase());
+const isTelegramPhone = (value: string) => {
+  const trimmedValue = value.trim();
+  if (!/^\+?[\d\s().-]{7,24}$/.test(trimmedValue)) return false;
+  const digits = trimmedValue.replace(/\D/g, '');
+  return digits.length >= 7 && digits.length <= 15;
+};
+const isValidTelegramContact = (value: string) => isTelegramUsername(value) || isTelegramPhone(value) || isKnownAlumniHandle(value);
 
 export default function PricingPaymentPopupDatalineHeader({
   isOpen,
@@ -36,10 +47,10 @@ export default function PricingPaymentPopupDatalineHeader({
 }: PricingPaymentPopupDatalineHeaderProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('card_intl');
   const [successState, setSuccessState] = useState<SuccessState>('none');
-  const [subMethod, setSubMethod] = useState<CardSubmethodId>('card');
   const [showQR, setShowQR] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
   const [telegramHandle, setTelegramHandle] = useState('');
+  const [telegramError, setTelegramError] = useState('');
   const [telegramDiscountState, setTelegramDiscountState] = useState<TelegramDiscountState>('idle');
   const [promoCode, setPromoCode] = useState('');
   const [promoCodeDiscountState, setPromoCodeDiscountState] = useState<PromoCodeDiscountState>('idle');
@@ -78,10 +89,10 @@ export default function PricingPaymentPopupDatalineHeader({
   const resetState = () => {
     setSelectedMethod('card_intl');
     setSuccessState('none');
-    setSubMethod('card');
     setShowQR(false);
     setAddressCopied(false);
     setTelegramHandle('');
+    setTelegramError('');
     setTelegramDiscountState('idle');
     setPromoCode('');
     setPromoCodeDiscountState('idle');
@@ -93,12 +104,16 @@ export default function PricingPaymentPopupDatalineHeader({
   };
 
   const handleInitialPay = () => {
+    if (!isValidTelegramContact(telegramHandle)) {
+      setTelegramError('укажите @user, username или телефон');
+      return;
+    }
+
     if (selectedMethod === 'usdt') {
       setShowQR(true);
       return;
     }
-    setSuccessState('card_input');
-    setSubMethod('card');
+    setSuccessState('redirecting');
   };
 
   const handleCopyAddress = async () => {
@@ -138,6 +153,14 @@ export default function PricingPaymentPopupDatalineHeader({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!isOpen || typeof window === 'undefined') return;
+    const requestedStatus = new URLSearchParams(window.location.search).get('paymentStatus') as SuccessState | null;
+    if (requestedStatus && PAYMENT_STATUS_DEMO_STATES.has(requestedStatus)) {
+      setSuccessState(requestedStatus);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!telegramHandle.trim()) {
       setTelegramDiscountState('idle');
       return;
@@ -148,7 +171,7 @@ export default function PricingPaymentPopupDatalineHeader({
     const timer = window.setTimeout(() => {
       const normalizedHandle = telegramHandle.trim().toLowerCase();
       setTelegramDiscountState(
-        TELEGRAM_ALUMNI_DISCOUNT_HANDLES.has(normalizedHandle) ? 'applied' : 'not_applied',
+        isKnownAlumniHandle(normalizedHandle) ? 'applied' : 'not_applied',
       );
     }, 520);
 
@@ -191,6 +214,110 @@ export default function PricingPaymentPopupDatalineHeader({
   const primaryButtonClass =
     'inline-flex h-[46px] min-w-[170px] items-center justify-center bg-[#8ad036] px-8 font-mono text-[12px] font-black lowercase leading-none tracking-[0.2em] text-black transition-all duration-150 hover:scale-[1.025] hover:bg-[#79bd2d]';
 
+  const renderStatusScreen = () => {
+    const statusCopy: Record<Exclude<SuccessState, 'none'>, { label: string; title: string; body: string; tone: 'success' | 'neutral' | 'danger'; cta?: string }> = {
+      redirecting: {
+        label: 'эквайринг',
+        title: 'ПЕРЕХОД К ОПЛАТЕ',
+        body: 'Сейчас откроется страница эквайринга. После оплаты мы вернём вас к подтверждению доступа.',
+        tone: 'neutral',
+        cta: 'открыть эквайринг',
+      },
+      paid: {
+        label: 'статус оплаты',
+        title: 'ОПЛАТА ПОЛУЧЕНА',
+        body: 'Платёж прошёл. Чтобы получить доступ к группе, откройте бота и нажмите Start.',
+        tone: 'success',
+        cta: 'перейти в бот',
+      },
+      failed: {
+        label: 'статус оплаты',
+        title: 'ОПЛАТА НЕ ПРОШЛА',
+        body: 'Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно вернуться и попробовать другой способ.',
+        tone: 'danger',
+      },
+      join: {
+        label: 'доступ к группе',
+        title: 'ОТКРОЙТЕ БОТА',
+        body: 'Telegram не даёт боту первым написать вам. Откройте бота после оплаты, чтобы получить ссылку на группу.',
+        tone: 'success',
+        cta: 'перейти в бот',
+      },
+      usdt: {
+        label: 'проверка перевода',
+        title: 'ЗАЯВКА ПРИНЯТА',
+        body: 'Мы проверим USDT-перевод и пришлём доступ через Telegram. Если хотите ускорить проверку, откройте бота.',
+        tone: 'neutral',
+        cta: 'перейти в бот',
+      },
+    };
+
+    const copy = statusCopy[successState as Exclude<SuccessState, 'none'>];
+    const isDanger = copy.tone === 'danger';
+    const isSuccess = copy.tone === 'success';
+    const ctaHref = successState === 'redirecting' ? PAYMENT_ACQUIRING_URL : TELEGRAM_ACCESS_BOT_URL;
+
+    return (
+      <motion.div key={successState} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex min-h-full flex-col py-7 md:py-10">
+        <div className="mb-8 flex items-center gap-4">
+          <div className={cn(
+            'flex h-16 w-16 shrink-0 items-center justify-center rounded-[4px] border',
+            isDanger ? 'border-black bg-black text-white' : 'border-black bg-white text-black',
+          )}>
+            {isDanger ? <X className="h-8 w-8" strokeWidth={2.1} /> : <CheckCircle2 className="h-9 w-9" strokeWidth={1.6} />}
+          </div>
+          <div>
+            <div className={mutedLabelClass}>{copy.label}</div>
+            <h3 className="mt-3 font-sans text-[28px] font-black uppercase leading-none tracking-[0.01em] text-black md:text-[34px]">
+              {copy.title}
+            </h3>
+          </div>
+        </div>
+
+        <div className={cn(
+          'rounded-[4px] border px-5 py-5 font-sans text-[15px] leading-relaxed md:px-6 md:py-6',
+          isSuccess ? 'border-[#8ad036] bg-[#f4faed] text-black/76' : 'border-black/12 bg-[#f6f6f6] text-black/68',
+        )}>
+          {copy.body}
+        </div>
+
+        <div className="mt-6 rounded-[4px] border border-black/10 bg-white px-4 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed tracking-[0.16em] text-black/42">
+          контакт: {telegramHandle.trim() || '@user / телефон'} · заказ #{plan.price}{plan.name.replace(/\s+/g, '').slice(0, 4)}
+        </div>
+
+        <div className="mt-auto flex items-center justify-end gap-2 pt-8">
+          {successState === 'failed' ? (
+            <button
+              type="button"
+              onClick={() => setSuccessState('none')}
+              className="inline-flex h-[46px] min-w-[150px] items-center justify-center px-4 font-mono text-[12px] font-black lowercase leading-none tracking-[0.2em] text-black/46 underline decoration-transparent underline-offset-4 transition-colors hover:text-black hover:decoration-black"
+            >
+              назад
+            </button>
+          ) : null}
+          {successState === 'failed' ? (
+            <button
+              type="button"
+              onClick={() => setSuccessState('none')}
+              className={cn(primaryButtonClass, 'bg-black text-white hover:bg-black/82')}
+            >
+              попробовать снова
+            </button>
+          ) : (
+            <a
+              href={ctaHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={primaryButtonClass}
+            >
+              {copy.cta}
+            </a>
+          )}
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <div
       className="fixed inset-y-0 left-0 right-0 z-[10030] flex items-end justify-center bg-[#f1f1f1]/90 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] pt-3 backdrop-blur-[2px] sm:p-4 md:left-[18%] md:items-center md:p-4"
@@ -222,125 +349,7 @@ export default function PricingPaymentPopupDatalineHeader({
         </button>
 
         <AnimatePresence mode="wait">
-          {successState === 'card' || successState === 'usdt' ? (
-            <motion.div key="success" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-7 text-center md:py-10">
-              <div className="mx-auto flex h-32 w-32 items-center justify-center border border-black bg-white md:h-36 md:w-36">
-                <CheckCircle2 className="h-16 w-16 text-black" strokeWidth={1.5} />
-              </div>
-              <h3 className="mt-8 font-sans text-[28px] font-black uppercase leading-none tracking-[0.02em] text-black md:text-3xl">
-                {successState === 'usdt' ? 'СПАСИБО ЗА ПОКУПКУ!' : 'СПАСИБО ЗА ЗАКАЗ!'}
-              </h3>
-              <p className="mx-auto mt-5 max-w-[25rem] font-sans text-sm font-normal leading-relaxed text-black/60">
-                {successState === 'usdt' ? (
-                  <>
-                    Мы свяжемся с вами в Telegram в течение суток с подтверждением оплаты.
-                    <br />
-                    <br />
-                    <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-black/70">заказ #{plan.price}{plan.name.replace(/\s+/g, '').slice(0, 4)}</span>
-                  </>
-                ) : (
-                  'Оплата прошла успешно. Мы скоро свяжемся с вами в Telegram с подтверждением и доступом.'
-                )}
-              </p>
-              <button
-                type="button"
-                onClick={handleClose}
-                className={`${primaryButtonClass} mt-8 w-full md:mt-10`}
-              >
-                закрыть
-              </button>
-            </motion.div>
-          ) : successState === 'card_input' ? (
-            <motion.div key="card-input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <div className="mb-7 md:mb-8">
-                <div className={mutedLabelClass}>оплата картой</div>
-                <h2 className="mt-4 font-sans text-[28px] font-black uppercase leading-none tracking-[0.02em] text-black md:text-[34px]">БЕЗОПАСНАЯ ОПЛАТА</h2>
-                <div className="mt-2 text-[10px] font-mono font-medium uppercase tracking-[0.28em] text-black/42">
-                  {selectedMethod === 'card_intl' ? 'EU-КАРТЫ' : 'РУ-КАРТЫ'}
-                </div>
-              </div>
-
-              <div className="mb-7 border-b border-black pb-6 md:mb-8">
-                <div className={mutedLabelClass}>к оплате</div>
-                <div className="mt-1 font-sans text-[38px] font-black tracking-[0.02em] text-black md:text-[44px]">{getPrice()}</div>
-              </div>
-
-              <div className="mb-6 grid grid-cols-3 gap-2 md:gap-3">
-                {(selectedMethod === 'card_intl'
-                  ? [
-                      { id: 'revolut', label: 'Revolut' },
-                      { id: 'link', label: 'Link' },
-                      { id: 'card', label: 'Карта' },
-                    ]
-                  : [
-                      { id: 'sbp', label: 'СБП' },
-                      { id: 'qr', label: 'QR' },
-                      { id: 'card', label: 'Карта' },
-                    ]
-                ).map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setSubMethod(option.id as CardSubmethodId)}
-                    className={selectorClass(subMethod === option.id)}
-                  >
-                    <span>{option.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              {subMethod === 'card' ? (
-                <div className="mb-6 flex flex-col gap-3 border border-black/12 bg-white p-4 md:gap-4 md:p-6">
-                  <input
-                    type="text"
-                    placeholder="Номер карты"
-                    className={fieldClass}
-                  />
-                  <div className="flex gap-3 md:gap-4">
-                    <input
-                      type="text"
-                      placeholder="ММ/ГГ"
-                      className={fieldClass}
-                    />
-                    <input
-                      type="text"
-                      placeholder="CVC"
-                      className={fieldClass}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-6 flex h-[132px] items-center justify-center border border-black/20 bg-[#f4f4f4] p-4 text-center font-mono text-[10px] font-medium uppercase leading-relaxed tracking-[0.24em] text-black/46 md:h-[156px] md:p-6 md:text-[11px]">
-                  {subMethod === 'sbp'
-                    ? 'ОТКРЫТЬ ПРИЛОЖЕНИЕ БАНКА'
-                    : subMethod === 'qr'
-                      ? 'СКАНИРОВАТЬ QR-КОД'
-                      : subMethod === 'revolut'
-                        ? 'ПЕРЕЙТИ В REVOLUT APP'
-                        : subMethod === 'link'
-                          ? 'ПЕРЕЙТИ В LINK.COM'
-                          : 'ПЕРЕХОД К ОПЛАТЕ...'}
-                </div>
-              )}
-
-              <div className="mt-auto flex flex-col gap-6 pt-4 md:gap-8 md:pt-6">
-                <button
-                  type="button"
-                  onClick={() => setSuccessState('card')}
-                  className={`${primaryButtonClass} w-full whitespace-nowrap`}
-                >
-                  оплатить
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSuccessState('none')}
-                  className="mx-auto flex items-center gap-2 pb-4 text-[11px] font-mono font-medium tracking-[0.2em] text-black/46 transition-colors hover:text-black md:pb-6"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" /> вернуться назад
-                </button>
-              </div>
-            </motion.div>
-          ) : !showQR ? (
+          {successState !== 'none' ? renderStatusScreen() : !showQR ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
               <div className={cn('pr-16 md:pr-20', isCompactWide ? 'mb-9 md:mb-9' : 'mb-6 md:mb-6')}>
                 <h2 className={cn(
@@ -407,23 +416,30 @@ export default function PricingPaymentPopupDatalineHeader({
                     type="text"
                     placeholder="@user или телефон"
                     value={telegramHandle}
-                    onChange={(event) => setTelegramHandle(event.target.value)}
-                    className={fieldClass}
+                    onChange={(event) => {
+                      setTelegramHandle(event.target.value);
+                      if (!telegramError || !event.target.value.trim() || isValidTelegramContact(event.target.value)) {
+                        setTelegramError('');
+                      }
+                    }}
+                    className={cn(fieldClass, telegramError && 'border-black bg-white')}
+                    aria-invalid={telegramError ? 'true' : 'false'}
+                    title="Можно указать @username, username или телефон: +351 912 345 678, 89123456789, (912) 345-67-89"
                   />
                   <div className="h-[28px] overflow-hidden pt-1.5">
                     <AnimatePresence mode="wait">
                       <motion.div
-                        key={telegramDiscountState}
+                        key={telegramError || telegramDiscountState}
                         initial={{ opacity: 0, y: -3 }}
-                        animate={{ opacity: telegramDiscountState === 'applied' ? 1 : 0, y: 0 }}
+                        animate={{ opacity: telegramError || telegramDiscountState === 'applied' ? 1 : 0, y: 0 }}
                         exit={{ opacity: 0, y: -3 }}
                         transition={{ duration: 0.16 }}
                         className={cn(
                           'font-mono text-[9px] font-bold uppercase tracking-[0.16em]',
-                          'text-[#5f9f20]',
+                          telegramError ? 'text-black/46' : 'text-[#5f9f20]',
                         )}
                       >
-                        {telegramDiscountState === 'applied' ? 'скидка Alumni 20% применена' : '\u00a0'}
+                        {telegramError || (telegramDiscountState === 'applied' ? 'скидка Alumni 20% применена' : '\u00a0')}
                       </motion.div>
                     </AnimatePresence>
                   </div>

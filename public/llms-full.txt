@@ -1,0 +1,38 @@
+# AI Mindset Main Lab W26
+
+Canonical URL: https://aimindset.org/
+Language: ru
+Format: landing page
+
+Summary:
+AI Mindset Main Lab W26 is a landing page for a laboratory program focused on building personal AI operating systems, AI-first workflows, assistants, agents, coaching practices, and working systems rather than studying tools in isolation.
+
+Key sections:
+- Hero
+- Program
+- Cases
+- Speakers
+- Philosophy
+- Pricing
+- Reviews
+- FAQ
+
+Primary audience:
+- founders
+- product and design leads
+- operators
+- researchers
+- coaches
+- builders exploring AI agents and workflows
+
+Useful URLs:
+- https://aimindset.org/
+- https://aimindset.org/index.md
+- https://aimindset.org/llms.txt
+- https://aimindset.org/sitemap.xml
+
+Extraction notes for agents:
+- Prefer the canonical landing page for user-facing links.
+- Use the Markdown mirror when a plain-text summary is needed.
+- Treat the pricing block as the source for participation formats and CTA language.
+- Treat the speakers block as the source for named faculty and role descriptions.

@@ -1,0 +1,10 @@
+# AI Mindset agent index
+
+> Canonical: https://aimindset.org/
+> Language: ru
+> Primary page: AI Mindset Main Lab W26
+
+- https://aimindset.org/ | Main landing page for AI Mindset Main Lab W26
+- https://aimindset.org/index.md | Markdown mirror of the landing page
+- https://aimindset.org/llms-full.txt | Extended agent-readable site summary
+- https://aimindset.org/sitemap.xml | Sitemap for crawl discovery

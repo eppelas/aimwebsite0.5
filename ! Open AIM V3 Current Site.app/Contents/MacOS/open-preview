@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+COMMAND_PATH='/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AIM Website/V3 Site Repo - aimwebsite0.5/! Open AIM V3 Current Site.command'
+
+if [ ! -f "$COMMAND_PATH" ]; then
+  osascript -e 'display alert "Preview launcher is missing its .command file." message "Expected: '"$COMMAND_PATH"'" as warning' >/dev/null 2>&1 || true
+  exit 1
+fi
+
+open "$COMMAND_PATH"
