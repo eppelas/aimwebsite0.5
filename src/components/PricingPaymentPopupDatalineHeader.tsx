@@ -12,6 +12,7 @@ interface PricingPaymentPopupDatalineHeaderProps {
   plan: SelectedPlan | null;
   onClose: () => void;
   presentation?: 'v6' | 'v7';
+  mobileLayout?: 'current' | 'wide' | 'dense';
 }
 
 type SuccessState = 'none' | 'redirecting' | 'paid' | 'failed' | 'join' | 'usdt';
@@ -21,10 +22,11 @@ type PromoCodeDiscountState = 'idle' | 'checking' | 'applied' | 'not_applied';
 
 const PAYMENT_ADDRESS = 'T9yF8hQpA5vW2xZ1sE4dC7bN0mK3jL6uI9oP';
 const PAYMENT_ACQUIRING_URL = 'https://join.aimindset.org/waitlist';
-const TELEGRAM_ACCESS_BOT_URL = 'https://t.me/aimindset_bot?start=payment_success';
+const TELEGRAM_ACCESS_BOT_URL = 'https://t.me/prod_ai_mind_set_bot?start=payment_success';
 const TELEGRAM_ALUMNI_DISCOUNT_HANDLES = new Set(['aim', '@aim']);
 const PROMO_CODE_DISCOUNTS = new Set(['ponchik']);
 const PAYMENT_STATUS_DEMO_STATES = new Set<SuccessState>(['redirecting', 'paid', 'failed', 'join']);
+const PAYMENT_METHOD_IDS = new Set<PaymentMethodId>(['usdt', 'card_ru', 'card_intl']);
 
 const cn = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
@@ -38,14 +40,20 @@ const isTelegramPhone = (value: string) => {
   return digits.length >= 7 && digits.length <= 15;
 };
 const isValidTelegramContact = (value: string) => isTelegramUsername(value) || isTelegramPhone(value) || isKnownAlumniHandle(value);
+const getRequestedPaymentMethod = (): PaymentMethodId => {
+  if (typeof window === 'undefined') return 'card_intl';
+  const requestedMethod = new URLSearchParams(window.location.search).get('paymentMethod') as PaymentMethodId | null;
+  return requestedMethod && PAYMENT_METHOD_IDS.has(requestedMethod) ? requestedMethod : 'card_intl';
+};
 
 export default function PricingPaymentPopupDatalineHeader({
   isOpen,
   plan,
   onClose,
   presentation = 'v6',
+  mobileLayout = 'current',
 }: PricingPaymentPopupDatalineHeaderProps) {
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>('card_intl');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>(() => getRequestedPaymentMethod());
   const [successState, setSuccessState] = useState<SuccessState>('none');
   const [showQR, setShowQR] = useState(false);
   const [addressCopied, setAddressCopied] = useState(false);
@@ -58,6 +66,16 @@ export default function PricingPaymentPopupDatalineHeader({
   const basePrice = useMemo(() => Number.parseInt(plan?.price ?? '0', 10), [plan?.price]);
   const planLabel = 'MAIN LAB X26 · ADVANCED TRACK';
   const isCompactWide = presentation === 'v7';
+  const isMobileWideLayout = isCompactWide && mobileLayout === 'wide';
+  const isMobileDenseLayout = isCompactWide && mobileLayout === 'dense';
+  const isMobileFittedLayout = isMobileWideLayout || isMobileDenseLayout;
+  const requestedPaymentStatus = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('paymentStatus') as SuccessState | null
+    : null;
+  const forcedPaymentStatus = requestedPaymentStatus && PAYMENT_STATUS_DEMO_STATES.has(requestedPaymentStatus)
+    ? requestedPaymentStatus
+    : null;
+  const visibleSuccessState = successState === 'none' && forcedPaymentStatus ? forcedPaymentStatus : successState;
   const appliedDiscountRate = telegramDiscountState === 'applied'
     ? 0.2
     : promoCodeDiscountState === 'applied'
@@ -80,14 +98,18 @@ export default function PricingPaymentPopupDatalineHeader({
   };
 
   const getOriginalPrice = () => {
-    if (!basePrice || !appliedDiscountRate) return '';
-    if (selectedMethod === 'usdt') return `${Math.round(basePrice * 0.95)}\u00a0USDT`;
+    if (!basePrice) return '';
+    if (selectedMethod === 'usdt') {
+      const originalUsdtPrice = appliedDiscountRate ? Math.round(basePrice * 0.95) : basePrice;
+      return `${originalUsdtPrice}\u00a0USDT`;
+    }
+    if (!appliedDiscountRate) return '';
     if (selectedMethod === 'card_intl') return `€${basePrice}`;
     return formatRoublePrice(basePrice * 100);
   };
 
   const resetState = () => {
-    setSelectedMethod('card_intl');
+    setSelectedMethod(getRequestedPaymentMethod());
     setSuccessState('none');
     setShowQR(false);
     setAddressCopied(false);
@@ -129,8 +151,18 @@ export default function PricingPaymentPopupDatalineHeader({
   useEffect(() => {
     if (!isOpen) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousWidth = body.style.width;
+    const previousOverflow = body.style.overflow;
+    const previousOverflowY = body.style.overflowY;
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    body.style.overflowY = 'scroll';
 
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -141,7 +173,12 @@ export default function PricingPaymentPopupDatalineHeader({
     window.addEventListener('keydown', handleKeydown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.width = previousWidth;
+      body.style.overflow = previousOverflow;
+      body.style.overflowY = previousOverflowY;
+      window.scrollTo(0, scrollY);
       window.removeEventListener('keydown', handleKeydown);
     };
   }, [isOpen]);
@@ -199,14 +236,15 @@ export default function PricingPaymentPopupDatalineHeader({
   if (!isOpen || !plan) return null;
 
   const selectorClass = (isActive: boolean) => cn(
-    'relative inline-flex min-h-[50px] items-center justify-center border px-3 text-center font-mono text-[11px] font-black uppercase leading-none tracking-[0.28em] transition-all duration-150 md:min-h-[52px] md:text-[12px]',
+    'relative inline-flex items-center justify-center border text-center font-mono font-black uppercase leading-none transition-all duration-150 md:min-h-[52px] md:px-3 md:text-[12px] md:tracking-[0.28em]',
+    isMobileFittedLayout ? 'min-h-[44px] px-2 text-[10px] tracking-[0.18em]' : 'min-h-[50px] px-3 text-[11px] tracking-[0.28em]',
     isActive
       ? 'border-black bg-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]'
       : 'border-black/80 bg-white text-black hover:border-black hover:bg-[#f3f3f3]',
   );
 
   const fieldClass =
-    'w-full border border-black/14 bg-[#f7f7f7] px-4 py-3 font-mono text-[12px] font-medium text-black outline-none transition-colors placeholder:text-black/32 focus:border-black/70 focus:bg-white md:py-[13px] md:text-[13px]';
+    'w-full border border-black/14 bg-[#f7f7f7] px-4 py-3 font-mono text-[16px] font-medium text-black outline-none transition-colors placeholder:text-black/32 focus:border-black/70 focus:bg-white md:py-[13px] md:text-[13px]';
 
   const mutedLabelClass =
     'font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-black/46';
@@ -226,9 +264,9 @@ export default function PricingPaymentPopupDatalineHeader({
       paid: {
         label: 'статус оплаты',
         title: 'ОПЛАТА ПОЛУЧЕНА',
-        body: 'Платёж прошёл. Чтобы получить доступ к группе, откройте бота и нажмите Start.',
+        body: 'Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.',
         tone: 'success',
-        cta: 'перейти в бот',
+        cta: '/присоединиться',
       },
       failed: {
         label: 'статус оплаты',
@@ -239,26 +277,27 @@ export default function PricingPaymentPopupDatalineHeader({
       join: {
         label: 'доступ к группе',
         title: 'ОТКРОЙТЕ БОТА',
-        body: 'Telegram не даёт боту первым написать вам. Откройте бота после оплаты, чтобы получить ссылку на группу.',
+        body: 'Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.',
         tone: 'success',
-        cta: 'перейти в бот',
+        cta: '/присоединиться',
       },
       usdt: {
         label: 'проверка перевода',
         title: 'ЗАЯВКА ПРИНЯТА',
         body: 'Мы проверим USDT-перевод и пришлём доступ через Telegram. Если хотите ускорить проверку, откройте бота.',
         tone: 'neutral',
-        cta: 'перейти в бот',
+        cta: '/присоединиться',
       },
     };
 
-    const copy = statusCopy[successState as Exclude<SuccessState, 'none'>];
+    const activeSuccessState = visibleSuccessState as Exclude<SuccessState, 'none'>;
+    const copy = statusCopy[activeSuccessState];
     const isDanger = copy.tone === 'danger';
     const isSuccess = copy.tone === 'success';
-    const ctaHref = successState === 'redirecting' ? PAYMENT_ACQUIRING_URL : TELEGRAM_ACCESS_BOT_URL;
+    const ctaHref = activeSuccessState === 'redirecting' ? PAYMENT_ACQUIRING_URL : TELEGRAM_ACCESS_BOT_URL;
 
     return (
-      <motion.div key={successState} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex min-h-full flex-col py-7 md:py-10">
+      <motion.div key={activeSuccessState} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex min-h-full flex-col py-7 md:py-10">
         <div className="mb-8 flex items-center gap-4">
           <div className={cn(
             'flex h-16 w-16 shrink-0 items-center justify-center rounded-[4px] border',
@@ -286,7 +325,7 @@ export default function PricingPaymentPopupDatalineHeader({
         </div>
 
         <div className="mt-auto flex items-center justify-end gap-2 pt-8">
-          {successState === 'failed' ? (
+          {activeSuccessState === 'failed' ? (
             <button
               type="button"
               onClick={() => setSuccessState('none')}
@@ -295,7 +334,7 @@ export default function PricingPaymentPopupDatalineHeader({
               назад
             </button>
           ) : null}
-          {successState === 'failed' ? (
+          {activeSuccessState === 'failed' ? (
             <button
               type="button"
               onClick={() => setSuccessState('none')}
@@ -320,7 +359,12 @@ export default function PricingPaymentPopupDatalineHeader({
 
   return (
     <div
-      className="fixed inset-y-0 left-0 right-0 z-[10030] flex items-end justify-center bg-[#f1f1f1]/90 px-2 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] pt-3 backdrop-blur-[2px] sm:p-4 md:left-[18%] md:items-center md:p-4"
+      className={cn(
+        'fixed inset-y-0 left-0 right-0 z-[10030] flex justify-center bg-[#f1f1f1]/90 backdrop-blur-[2px] sm:p-4 md:left-[18%] md:items-center md:p-4',
+        isMobileFittedLayout
+          ? 'items-center px-1 py-[calc(env(safe-area-inset-bottom,0px)+8px)]'
+          : 'items-end px-2 pb-[calc(env(safe-area-inset-bottom,0px)+24px)] pt-3',
+      )}
       onClick={handleClose}
     >
       <motion.div
@@ -330,9 +374,14 @@ export default function PricingPaymentPopupDatalineHeader({
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         className={cn(
-          'relative flex max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] w-full flex-col overflow-y-auto rounded-[4px] border border-black bg-white p-7 pt-8 text-left font-mono text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] md:max-h-[calc(100dvh-2rem)]',
+          'relative flex w-full flex-col overflow-y-auto overscroll-contain rounded-[4px] border border-black bg-white text-left font-mono text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] md:max-h-[calc(100dvh-2rem)]',
+          isMobileDenseLayout
+            ? 'max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-0.5rem)] max-w-[calc(100vw-8px)] p-4 pt-[18px]'
+            : isMobileWideLayout
+              ? 'max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-0.75rem)] max-w-[calc(100vw-8px)] p-4 pt-[18px]'
+              : 'max-h-[calc(100dvh-env(safe-area-inset-bottom,0px)-1.5rem)] p-7 pt-8',
           isCompactWide
-            ? 'max-w-[560px] md:mr-10 md:h-[640px] md:p-7'
+            ? 'md:mr-10 md:h-[640px] md:max-w-[560px] md:p-7'
             : 'max-w-[500px] md:h-[642px] md:p-[30px]',
         )}
       >
@@ -341,7 +390,10 @@ export default function PricingPaymentPopupDatalineHeader({
           onClick={handleClose}
           className={cn(
             'absolute right-7 z-20 flex h-[44px] w-[44px] items-center justify-center rounded-[4px] border border-black/10 bg-[#f4f4f4] text-black transition-all duration-150 hover:scale-110 hover:border-black hover:bg-white md:right-8',
-            isCompactWide ? 'top-10' : 'top-8 md:top-8',
+            isMobileWideLayout && '!right-4 !top-[22px] !h-[34px] !w-[34px]',
+            isMobileDenseLayout && '!right-4 !top-[22px] !h-[34px] !w-[34px]',
+            isCompactWide ? 'md:top-10' : 'top-8 md:top-8',
+            isCompactWide && !isMobileFittedLayout && 'top-10',
           )}
           aria-label="Закрыть"
         >
@@ -349,12 +401,16 @@ export default function PricingPaymentPopupDatalineHeader({
         </button>
 
         <AnimatePresence mode="wait">
-          {successState !== 'none' ? renderStatusScreen() : !showQR ? (
+          {visibleSuccessState !== 'none' ? renderStatusScreen() : !showQR ? (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-              <div className={cn('pr-16 md:pr-20', isCompactWide ? 'mb-9 md:mb-9' : 'mb-6 md:mb-6')}>
+              <div className={cn(
+                'pr-16 md:pr-20',
+                isMobileDenseLayout ? 'mb-6 md:mb-9' : isMobileWideLayout ? 'mb-6 md:mb-9' : isCompactWide ? 'mb-9 md:mb-9' : 'mb-6 md:mb-6',
+              )}>
                 <h2 className={cn(
-                  'mt-4 font-sans font-black uppercase leading-none tracking-[0.01em] text-black',
-                  isCompactWide ? 'text-[31px] md:text-[36px]' : 'text-[32px] md:text-[38px]',
+                  'font-sans font-black uppercase leading-none tracking-[0.01em] text-black',
+                isMobileFittedLayout ? 'mt-2' : 'mt-4',
+                  isMobileDenseLayout ? 'text-[26px] md:text-[36px]' : isMobileWideLayout ? 'text-[27px] md:text-[36px]' : isCompactWide ? 'text-[31px] md:text-[36px]' : 'text-[32px] md:text-[38px]',
                 )}>ОПЛАТА ЗАКАЗА</h2>
                 {!isCompactWide ? (
                   <div className="mt-3 text-[11px] font-mono font-black uppercase tracking-[0.24em] text-[#78bd2f]">{planLabel}</div>
@@ -362,19 +418,22 @@ export default function PricingPaymentPopupDatalineHeader({
               </div>
 
               <div className={cn(
-                'grid grid-cols-[1fr_auto] items-center gap-4 rounded-[4px] border border-black/12 bg-[#f6f6f6] px-4 py-4 md:px-5',
-                isCompactWide ? 'mb-6 md:mb-6 md:py-4' : 'mb-5 md:mb-5 md:py-[18px]',
+                'grid grid-cols-[minmax(0,1fr)_auto] items-center rounded-[4px] border border-black/12 bg-[#f6f6f6] md:px-5',
+                isMobileDenseLayout ? 'mb-5 gap-2 px-3 py-3 md:mb-6 md:gap-4 md:py-4' : isMobileWideLayout ? 'mb-5 gap-3 px-4 py-3.5 md:mb-6 md:gap-4 md:py-4' : isCompactWide ? 'mb-6 gap-4 px-4 py-4 md:mb-6 md:py-4' : 'mb-5 gap-4 px-4 py-4 md:mb-5 md:py-[18px]',
               )}>
                 <div>
-                  <div className="font-mono text-[12px] font-black uppercase tracking-[0.24em] text-black/48">итого к оплате:</div>
+                  <div className={cn(
+                    'font-mono font-black uppercase text-black/48',
+                    isMobileFittedLayout ? 'text-[10px] tracking-[0.18em] md:text-[12px] md:tracking-[0.24em]' : 'text-[12px] tracking-[0.24em]',
+                  )}>{isMobileFittedLayout ? 'к оплате:' : 'итого к оплате:'}</div>
                 </div>
-                <div className="relative flex h-[54px] items-center justify-end text-right">
+                <div className={cn('relative flex items-center justify-end text-right', isMobileFittedLayout ? 'h-[50px]' : 'h-[54px]')}>
                   {getOriginalPrice() ? (
                     <div className="absolute right-0 top-[-4px] font-mono text-[10px] font-bold leading-none tracking-[0.16em] text-black/32 line-through">
                       {getOriginalPrice()}
                     </div>
                   ) : null}
-                  <div className="font-sans text-[40px] font-black leading-none tracking-[0.01em] text-black md:text-[46px]">{getPrice()}</div>
+                  <div className="font-sans text-[clamp(31px,9.6vw,40px)] font-black leading-none tracking-[0.01em] text-black md:text-[46px]">{getPrice()}</div>
                 </div>
               </div>
 
@@ -382,9 +441,9 @@ export default function PricingPaymentPopupDatalineHeader({
                 <div className="mb-6 h-px w-full bg-[#78bd2f] md:mb-6" aria-hidden="true" />
               ) : null}
 
-              <div className={cn('text-left', isCompactWide ? 'mb-8 md:mb-8' : 'mb-5 md:mb-5')}>
+              <div className={cn('text-left', isMobileDenseLayout ? 'mb-5 md:mb-8' : isMobileWideLayout ? 'mb-6 md:mb-8' : isCompactWide ? 'mb-8 md:mb-8' : 'mb-5 md:mb-5')}>
                 <div className={`mb-4 ${mutedLabelClass}`}>способ оплаты</div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className={cn('grid gap-3 sm:grid-cols-3', isMobileFittedLayout ? 'grid-cols-3 gap-1.5 sm:gap-3' : 'grid-cols-1')}>
                   {methods.map((method) => (
                     <button
                       key={method.id}
@@ -393,7 +452,10 @@ export default function PricingPaymentPopupDatalineHeader({
                       className={selectorClass(selectedMethod === method.id)}
                     >
                       {method.id === 'usdt' ? (
-                        <span className="absolute -top-[11px] left-[-1px] h-[20px] bg-[#8ad036] px-4 pt-[5px] text-[10px] font-black tracking-[0.18em] text-black">
+                        <span className={cn(
+                          'absolute left-[-1px] bg-[#8ad036] font-black text-black',
+                          isMobileFittedLayout ? '-top-[10px] h-[18px] px-2 pt-[5px] text-[8px] tracking-[0.12em]' : '-top-[11px] h-[20px] px-4 pt-[5px] text-[10px] tracking-[0.18em]',
+                        )}>
                           СКИДКА 5%
                         </span>
                       ) : null}
@@ -406,7 +468,10 @@ export default function PricingPaymentPopupDatalineHeader({
                 </div>
               </div>
 
-              <div className={cn('flex flex-col gap-5 sm:flex-row', isCompactWide ? 'mb-3 md:mb-3 md:gap-6' : 'mb-4 md:mb-4 md:gap-7')}>
+              <div className={cn(
+                'flex flex-col sm:flex-row',
+                isMobileDenseLayout ? 'mb-6 gap-1 md:mb-3 md:gap-6' : isMobileWideLayout ? 'mb-7 gap-1 md:mb-3 md:gap-6' : isCompactWide ? 'mb-3 gap-5 md:mb-3 md:gap-6' : 'mb-4 gap-5 md:mb-4 md:gap-7',
+              )}>
                 <div className="min-w-0 flex-1">
                   <div className={`mb-2 flex items-start gap-[1px] ${mutedLabelClass}`}>
                     <span className="-mt-[3px] text-[13px] leading-none text-[#78bd2f]">*</span>
@@ -426,7 +491,7 @@ export default function PricingPaymentPopupDatalineHeader({
                     aria-invalid={telegramError ? 'true' : 'false'}
                     title="Можно указать @username, username или телефон: +351 912 345 678, 89123456789, (912) 345-67-89"
                   />
-                  <div className="h-[28px] overflow-hidden pt-1.5">
+                  <div className={cn('overflow-hidden pt-1.5', isMobileFittedLayout ? 'h-[22px] md:h-[28px]' : 'h-[28px]')}>
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={telegramError || telegramDiscountState}
@@ -455,8 +520,9 @@ export default function PricingPaymentPopupDatalineHeader({
               </div>
 
               <div className={cn(
-                'flex w-full flex-col gap-1.5',
-                isCompactWide ? 'mb-4 max-w-none sm:w-[calc((100%-1.5rem)/2)] md:mb-4' : 'mb-3 max-w-[238px] md:mb-3',
+                'flex w-full flex-col',
+                isMobileFittedLayout ? 'gap-0.5 md:gap-1.5' : 'gap-1.5',
+                isMobileDenseLayout ? 'mb-0 max-w-none md:mb-4 sm:w-[calc((100%-1.5rem)/2)]' : isMobileWideLayout ? 'mb-1 max-w-none md:mb-4 sm:w-[calc((100%-1.5rem)/2)]' : isCompactWide ? 'mb-4 max-w-none sm:w-[calc((100%-1.5rem)/2)] md:mb-4' : 'mb-3 max-w-[238px] md:mb-3',
               )}>
                 <div className={`truncate ${mutedLabelClass}`}>промокод</div>
                 <input
@@ -464,7 +530,7 @@ export default function PricingPaymentPopupDatalineHeader({
                   placeholder="..."
                   value={promoCode}
                   onChange={(event) => setPromoCode(event.target.value)}
-                  className="w-full border-0 border-b border-black/16 bg-transparent pb-2 font-mono text-[13px] font-medium text-black outline-none transition-all placeholder:text-black/34 focus:border-black/60"
+                  className="w-full border-0 border-b border-black/16 bg-transparent pb-2 font-mono text-[16px] font-medium text-black outline-none transition-all placeholder:text-black/34 focus:border-black/60 md:text-[13px]"
                 />
                 <div className={cn('overflow-hidden pt-1.5', isCompactWide ? 'h-[25px]' : 'h-[42px]')}>
                   <AnimatePresence mode="wait">
@@ -494,7 +560,7 @@ export default function PricingPaymentPopupDatalineHeader({
                 </div>
               </div>
 
-              <div className={cn('mt-auto flex items-center justify-end gap-2 pt-4', isCompactWide && 'pb-3')}>
+              <div className={cn('flex items-center justify-end gap-2', isMobileDenseLayout ? 'pb-6 pt-0 md:mt-auto md:pb-3 md:pt-4' : isMobileWideLayout ? 'pb-7 pt-0 md:mt-auto md:pb-3 md:pt-4' : 'mt-auto pt-4', isCompactWide && !isMobileFittedLayout && 'pb-3')}>
                 <a
                   href="https://join.aimindset.org/waitlist"
                   target="_blank"

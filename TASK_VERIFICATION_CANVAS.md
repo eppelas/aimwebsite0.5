@@ -2,11 +2,71 @@
 
 ## User Requests
 
-- Task: Вернуться к v7 оплате: убрать локальный card input, добавить acquiring/result states и Telegram contact rules.
+- Task: Финальная микроправка основной mobile v7 оплаты: шире payment buttons, меньше Telegram/email gap, promo label ближе к input line.
   Status: implemented
   Owner: assistant
   Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` убран внутренний экран `БЕЗОПАСНАЯ ОПЛАТА` с вводом номера карты/expiry/CVC; card/ru/eu flow теперь ведёт в acquiring state. Добавлены review states через query `paymentStatus=redirecting|paid|failed|join`: переход к эквайрингу, оплата получена, оплата не прошла, переход в Telegram-бот для доступа к группе. Success/join copy учитывает Telegram docs: бот не может первым написать человеку, пользователь должен сам открыть бот/start. В Telegram поле добавлена валидация: принимаются `@username`, `username` и телефоны с `+`, пробелами, скобками, точками и дефисами; username проверяется как латиница/цифры/underscore 5-32 символа, а тестовый alumni handle `aim`/`@aim` оставлен валидным для demo-скидки. `payment-popup-compare.html` получил tabs `v7 paid`, `v7 failed`, `v7 bot join`, `v7 acquiring`.
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` для mobile fitted layout уменьшен gap между payment method buttons до `gap-1.5`, чтобы USDT/RU/EU стали шире. Telegram status reserve уменьшен с `30px` до `22px`, а contact stack gap с `gap-2` до `gap-1`, чтобы Telegram -> e-mail стал примерно на треть меньше. Promo block на mobile получил `gap-0.5`, чтобы label был ближе к линии input. `npm run lint` прошёл. Playwright визуальная проверка в текущем runtime заблокирована отсутствующим bundled Chromium (`chromium_headless_shell-1223` missing), поэтому требуется browser review по локальной ссылке.
+
+- Task: Сделать `v7 mob wide` основной мобильной версией оплаты и выровнять крестик с заголовком/контентом.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: Default `paymentMobile` для v7 изменён с `current` на `wide`, а compare-таб `v7 mob current` теперь явно открывает `paymentMobile=current`. В основном mobile wide уменьшен внутренний padding (`max-w calc(100vw - 8px)`, `p-4`), крестик зафиксирован в `34px` и выровнен по правому краю контента (`closeContentRightDelta=-1`) и по вертикальному центру заголовка (`titleCloseCenterDelta=0`). Контактные spacing-и сохранены просторнее: Telegram -> email около `62px`, email -> promo около `50px`; поля остаются `16px`, premium USDT `1490 -> 1416` влезает, horizontal overflow=false, visualViewport scale=1. Проверено `npm run lint`, Playwright mobile default v7 и phone compare `v7 mob wide`; screenshot `/tmp/aim-payment-v7-mobile-wide-main-final.png`.
+
+- Task: Ограничить YouTube-видео в case popup до конкретных фрагментов без подписи `youtube fragment` и без кликов наружу.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `LabW26PageV3.tsx` добавлены `productVideoEndSeconds` и `getYoutubeEmbedUrl(videoId,start,end)` с `start/end`, `controls=0`, `disablekb=1`, `iv_load_policy=3`, `showinfo=0`, `enablejsapi=1`, fullscreen оставлен через `fs=1`. Наша видимая подпись `youtube fragment` убрана. YouTube iframe сделан `pointer-events-none`, поверх него стоит blocking overlay, поэтому клики по YouTube UI не уводят наружу; добавлена собственная fullscreen-кнопка на shell. Добавлен IFrame API watchdog: если currentTime выходит за фрагмент, видео возвращается к началу или закрывается на конце. Фрагменты: Наташа `521-816`, Алексей `816-1531`, Даниил `3299-3692`, Дарья `4184-4822`. Проверено: `npm run lint`, `npm run build`, Playwright desktop по 4 кейсам проверил params, no `youtube fragment`, iframe pointer-events none, fullscreen button, no overflow; Playwright mobile 390px для кейса Алексея.
+
+- Task: Сделать mobile-only режим payment compare для просмотра вариантов на телефоне свайпом.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: `payment-popup-compare.html` получил phone mode для viewport <=640px или `phoneMode=1`: desktop split hidden, используется один fullscreen iframe `.phone-frame`, варианты `v7 mob current/wide/dense/v7/github dark` переключаются горизонтальным свайпом, снизу показан компактный label+dots indicator. Чтобы свайп работал поверх самого попапа, добавлен same-origin swipe bridge внутрь iframe; при этом iframe остаётся один, без фоновых desktop panes. Проверено Playwright mobile 390px: `phoneMode=true`, compare hidden, iframe count=1, `v7 mob wide` открывает premium USDT popup, synthetic iframe swipe переключает на `v7 mob dense`, popup остаётся открытым, horizontal overflow=false. `npm run lint` прошёл.
+
+- Task: Довести multi-screenshot UI в case popup: убрать arrows, вынести dots наружу, зафиксировать высоту media-зоны и проверить контраст/UX.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `LabW26PageV3.tsx` multi-screenshot media теперь использует фиксированную `aspect-[2/1]` рамку, чтобы popup не менял высоту при разных пропорциях изображений. Стрелки переключения убраны; dots вынесены в отдельную строку под скриншотом, увеличены до 14px, получили 2px border, активный чёрный state и счётчик `1 / N`. Strip/Rail варианты оставлены для сравнения, но тоже без стрелок и с более контрастными controls. В `case-popup-compare.html` tabs переименованы в `fixed dots`, `fixed strip`, `fixed rail`. Усилен контраст label/task блока. Проверено: `npm run lint`, `npm run build`, Playwright desktop/mobile `v7-multi-dots` с dots=3, arrows=0, stable media height, no horizontal overflow; Playwright all variants `v7-multi-dots|strip|rail` arrows=0 and no overflow.
+
+- Task: Добавить четвёртый Community Night кейс из markdown-файла в тот же media/popup формат, что первые три.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: По источнику `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md` четвёртый кейс — Алексей, `КНОПКА NEXT`. Текстовая карточка уже была в `LabW26PageV3.tsx`, но без media-полей. Добавлен clean YouTube video still `public/assets/cases/community-night/burnout-next-alexey-video-still.png`, `productImageSrc/productImageAlt`, `productVideoId` и `productVideoStartSeconds: 816`; tools уточнены до `Obsidian · ActivityWatch · OpenWorks · физический таймер`. В sampled YouTube segment не найден кадр с Obsidian/product UI, поэтому использован чистый speaker video still без browser/player/OS UI. Проверено: `npm run lint`, Playwright desktop `case=3` с image/video fragment `start=816`, Playwright mobile 390px без horizontal overflow.
+
+- Task: Сделать несколько мобильных v7-вариантов payment popup, убрать iOS field zoom и уплотнить форму под один экран.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: Добавлены `paymentMobile=current|wide|dense` для `PricingPaymentPopupDatalineHeader`. Мобильные поля получили 16px font-size против iOS auto-zoom; payment modal теперь фиксирует body position при открытии, чтобы background не уезжал/не оставался в zoom-scroll состоянии. Варианты `wide` и `dense` расширяют карточку почти до краёв, делают payment buttons в 3 компактные колонки, уменьшают gap между Telegram и e-mail, оставляют больший gap до промокода, поднимают action buttons и в mobile price-block сокращают label до `к оплате:`. `payment-popup-compare.html` получил tabs `v7 mob current`, `v7 mob wide`, `v7 mob dense` на premium + USDT для проверки длинной цены. Проверено: `npm run lint`, Playwright 390px/375px для current/wide/dense, input font-size 16px, `bodyPosition=fixed`, `visualViewport.scale=1`, horizontal overflow=false, premium USDT `1490 USDT -> 1416 USDT` есть, compare left/right mobile wide/dense открывает активные iframe 390px без overflow. Screenshot: `/tmp/aim-payment-mobile-usdt-variants-compare.png`.
+
+- Task: В оплате показывать USDT 5% сразу при выборе USDT и суммировать USDT-скидку с Alumni/promocode.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` обновлён `getOriginalPrice`: при выбранном USDT старая цена теперь показывается всегда. Без дополнительных скидок показывает `590 USDT` -> `561 USDT`; с promo `ponchik` показывает `561 USDT` -> `533 USDT`; с alumni `aim` + `ponchik` показывает `561 USDT` -> `448 USDT`, при этом промокод помечается как `действует Alumni 20%`. Product rules дописаны про видимость USDT-only скидки и пересинхронизированы в hub. Проверено: `npm run lint`, Playwright desktop сценарии USDT-only / promo+USDT / alumni+promo+USDT, Playwright mobile 390px без horizontal overflow.
+
+- Task: Полировка case popup variants: убрать modal-теги и zoom-плюсик, убрать пустые поля у горизонтальных скриншотов, добавить multi-screenshot варианты.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `LabW26PageV3.tsx` для всех case popup variants убраны role filter tags под медиа. Видимая zoom-кнопка с иконкой удалена; увеличение остаётся по клику на изображение. Product screenshot теперь рендерится natural-height image, чтобы у горизонтального скриншота не появлялись пустые поля сверху/снизу. V7 close button смягчён до прозрачной кнопки с очень лёгким hover. Блок `задача` в v7 выделен через верхнюю линию и мягкий фон. В `case-popup-compare.html` добавлены варианты `multi dots`, `multi strip`, `multi rail` для проверки разных паттернов нескольких скриншотов. Проверено через `npm run lint`, `npm run build`, Playwright desktop compare current/v7-multi-strip и mobile viewport 390px.
+
+- Task: Обновить успешную оплату: текст про telegram-бот и кнопка `/присоединиться` в production bot.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В success/join states оплаты текст заменён на `Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.`. Bot CTA теперь подписан `/присоединиться` и ведёт на `https://t.me/prod_ai_mind_set_bot?start=payment_success`. USDT follow-up CTA также ведёт в тот же production bot. Проверено Playwright на `?payment=v7&paymentStatus=paid#pricing`: новый текст есть, старого текста нет, кнопка `/присоединиться` есть, href корректный. `npm run lint` прошёл.
+
+- Task: Вернуться к v7 оплате: убрать локальный card input, добавить acquiring/result states и Telegram contact rules.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-26
+  Note: В `PricingPaymentPopupDatalineHeader.tsx` убран внутренний экран `БЕЗОПАСНАЯ ОПЛАТА` с вводом номера карты/expiry/CVC; card/ru/eu flow теперь ведёт в acquiring state. Добавлены review states через query `paymentStatus=redirecting|paid|failed|join`: переход к эквайрингу, оплата получена, оплата не прошла, переход в Telegram-бот для доступа к группе. Success/join copy учитывает Telegram docs: бот не может первым написать человеку, пользователь должен сам открыть бот/start. В Telegram поле добавлена валидация: принимаются `@username`, `username` и телефоны с `+`, пробелами, скобками, точками и дефисами; username проверяется как латиница/цифры/underscore 5-32 символа, а тестовый alumni handle `aim`/`@aim` оставлен валидным для demo-скидки. `payment-popup-compare.html` получил tabs `v7 paid`, `v7 failed`, `v7 bot join`, `v7 acquiring`. Проверено: `npm run lint`, `npm run build`, Playwright smoke по `aim`, `@aim`, `+351 912 345 678`, `(912) 345-67-89`; card input text `Номер карты/ММ/ГГ/CVC` отсутствует; compare `v7-paid/v7-failed` и `v7-bot/v7-acquiring mobile` открывают нужные states, horizontal overflow=false. Screenshot: `/tmp/aim-payment-v7-result-states.png`.
 
 - Task: Сделать compare-инструмент для case popups и добавить новые v7-похожие варианты кейс-модалки.
   Status: self-checked

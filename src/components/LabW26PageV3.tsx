@@ -2,14 +2,11 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring, useTransform } from 'motion/react';
 import {
   Menu,
-  ChevronRight,
   ArrowRight,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight as ChevronRightIcon,
   X,
   CirclePlay,
-  ZoomIn
+  Maximize2
 } from 'lucide-react';
 import { MorphSvg } from './MorphSvg';
 import PricingPaymentPopupDark from './PricingPaymentPopupDark';
@@ -47,6 +44,7 @@ interface CaseCard {
   productImages?: CaseProductImage[];
   productVideoId?: string;
   productVideoStartSeconds?: number;
+  productVideoEndSeconds?: number;
 }
 
 interface CaseProductImage {
@@ -54,7 +52,9 @@ interface CaseProductImage {
   alt?: string;
 }
 
-type CasePopupVariant = 'current' | 'v7-structured' | 'v7-compact';
+type CasePopupVariant = 'current' | 'v7-structured' | 'v7-compact' | 'v7-multi-dots' | 'v7-multi-strip' | 'v7-multi-rail';
+type CasePopupGalleryMode = 'dots' | 'strip' | 'rail';
+type PaymentMobileLayout = 'current' | 'wide' | 'dense';
 
 const cn = (...classes: (string | boolean | undefined | null)[]) => classes.filter(Boolean).join(' ');
 
@@ -64,15 +64,25 @@ const LG_VIEWPORT_QUERY = '(min-width: 1024px)';
 const BASE_URL = import.meta.env.BASE_URL;
 const getCaseStaticVisualSrcByAssetName = (assetName: string) => `${BASE_URL}assets/cases/${assetName}`;
 const COMMUNITY_NIGHT_VIDEO_ID = '2mOF2jvfbiM';
-const getYoutubeEmbedUrl = (videoId: string, startSeconds = 0) => {
+const COMMUNITY_NIGHT_VIDEO_DURATION_SECONDS = 4822;
+const getYoutubeEmbedUrl = (videoId: string, startSeconds = 0, endSeconds?: number) => {
   const params = new URLSearchParams({
     autoplay: '1',
+    controls: '0',
+    disablekb: '1',
+    fs: '1',
+    iv_load_policy: '3',
     rel: '0',
     modestbranding: '1',
     playsinline: '1',
     enablejsapi: '1',
+    showinfo: '0',
     start: String(startSeconds)
   });
+
+  if (typeof endSeconds === 'number' && Number.isFinite(endSeconds) && endSeconds > startSeconds) {
+    params.set('end', String(endSeconds));
+  }
 
   if (typeof window !== 'undefined') {
     params.set('origin', window.location.origin);
@@ -533,7 +543,8 @@ const CASE_CARDS: CaseCard[] = [
     productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/team-os-darya-product.png'),
     productImageAlt: 'Скриншот Team Operation System Дарьи из демо Community Night',
     productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
-    productVideoStartSeconds: 4184
+    productVideoStartSeconds: 4184,
+    productVideoEndSeconds: COMMUNITY_NIGHT_VIDEO_DURATION_SECONDS
   },
   {
     title: 'КОНВЕЙЕР ВСТРЕЧ',
@@ -549,7 +560,8 @@ const CASE_CARDS: CaseCard[] = [
     productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/meeting-pipeline-natasha-product.png'),
     productImageAlt: 'Скриншот task graph Наташи из демо Community Night',
     productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
-    productVideoStartSeconds: 521
+    productVideoStartSeconds: 521,
+    productVideoEndSeconds: 816
   },
   {
     title: 'МЕДИТАЦИЯ АГЕНТА',
@@ -565,7 +577,8 @@ const CASE_CARDS: CaseCard[] = [
     productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/agent-meditation-daniil-product.png'),
     productImageAlt: 'Скриншот графа медитации агента Даниила из демо Community Night',
     productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
-    productVideoStartSeconds: 3299
+    productVideoStartSeconds: 3299,
+    productVideoEndSeconds: 3692
   },
   {
     title: 'КНОПКА NEXT',
@@ -574,10 +587,15 @@ const CASE_CARDS: CaseCard[] = [
     desc: 'Год с 50 задачами в день — и кнопка Next вместо раздумий о следующем шаге.',
     task: 'Восстановиться после выгорания и собрать систему дисциплины, где следующий шаг не нужно выбирать усилием воли.',
     details: 'Алексей три года назад пережил жёсткое выгорание: год лежал на диване, жить не хотелось. После этого начал строить систему продуктивности «просто чтобы попробовать»: стартовал с 10 пунктов в списке дел, за год довёл до 50 задач в день. В Obsidian у него шаблон дня с автогенерацией рутин, кнопка Next для перехода между задачами без раздумий, отметки времени и физический таймер на браслете для утреннего просмотра календаря. Главный инсайт — идти на скуку: не менять рутины, пока они не выжгутся до автоматизма.',
-    tools: 'Obsidian · ActivityWatch · OpenWorks · Timer',
+    tools: 'Obsidian · ActivityWatch · OpenWorks · физический таймер',
     metric: 'Выживание автоматизировано; сон, прогулки и заметки удержались без системы',
     artFrames: CASE_ARTS.automation,
-    filters: ['developer']
+    filters: ['developer'],
+    productImageSrc: getCaseStaticVisualSrcByAssetName('community-night/burnout-next-alexey-video-still.png'),
+    productImageAlt: 'Кадр из YouTube-фрагмента рассказа Алексея о системе 50 задач и кнопке Next',
+    productVideoId: COMMUNITY_NIGHT_VIDEO_ID,
+    productVideoStartSeconds: 816,
+    productVideoEndSeconds: 1531
   },
   {
     title: 'PERSONAL OS МАЙО',
@@ -614,7 +632,29 @@ const getCaseProductImages = (card: CaseCard): CaseProductImage[] => {
 };
 const CASE_TOOL_ORDER_RULE =
   'Порядок tools в кейсах: AI-модель/AI-продукт -> Git/repo/workflow platform -> hardware/wearables -> прикладные apps/no-code -> инфраструктура/DB/terminal/dev internals.';
-const CASE_POPUP_VARIANTS = new Set<CasePopupVariant>(['current', 'v7-structured', 'v7-compact']);
+const CASE_POPUP_VARIANTS = new Set<CasePopupVariant>([
+  'current',
+  'v7-structured',
+  'v7-compact',
+  'v7-multi-dots',
+  'v7-multi-strip',
+  'v7-multi-rail',
+]);
+const PAYMENT_MOBILE_LAYOUTS = new Set<PaymentMobileLayout>(['current', 'wide', 'dense']);
+const CASE_POPUP_MULTI_SCREENSHOT_IMAGES: CaseProductImage[] = [
+  {
+    src: getCaseStaticVisualSrcByAssetName('community-night/team-os-darya-product.png'),
+    alt: 'Скриншот Team Operation System Дарьи из демо Community Night',
+  },
+  {
+    src: getCaseStaticVisualSrcByAssetName('community-night/meeting-pipeline-natasha-product.png'),
+    alt: 'Демо-скриншот второго изображения для проверки multi-screenshot layout',
+  },
+  {
+    src: getCaseStaticVisualSrcByAssetName('community-night/agent-meditation-daniil-product.png'),
+    alt: 'Демо-скриншот третьего изображения для проверки multi-screenshot layout',
+  },
+];
 const CASE_TOOL_FILTERS = ['all', ...Array.from(new Set(CASE_CARDS.flatMap((card) => getCaseTools(card))))];
 
 export const PROGRAM_TRACKS = [
@@ -2925,8 +2965,20 @@ export default function LabW26PageV3() {
     ? casePopupVariantParam
     : 'current';
   const requestedCaseIndex = searchParams?.get('case');
+  const paymentMobileLayoutParam = searchParams?.get('paymentMobile') as PaymentMobileLayout | null;
+  const paymentMobileLayout: PaymentMobileLayout = paymentMobileLayoutParam && PAYMENT_MOBILE_LAYOUTS.has(paymentMobileLayoutParam)
+    ? paymentMobileLayoutParam
+    : 'wide';
   const isCasePopupV7 = casePopupVariant !== 'current';
-  const isCasePopupCompact = casePopupVariant === 'v7-compact';
+  const isCasePopupCompact = casePopupVariant === 'v7-compact' || casePopupVariant === 'v7-multi-strip';
+  const casePopupGalleryMode: CasePopupGalleryMode = casePopupVariant === 'v7-multi-strip'
+    ? 'strip'
+    : casePopupVariant === 'v7-multi-rail'
+      ? 'rail'
+      : 'dots';
+  const shouldShowCasePopupMultiScreenshots = casePopupVariant === 'v7-multi-dots'
+    || casePopupVariant === 'v7-multi-strip'
+    || casePopupVariant === 'v7-multi-rail';
   const PaymentPopupComponent = paymentPopupVariant === 'dark'
     ? PricingPaymentPopupDark
     : paymentPopupVariant === 'v2'
@@ -2939,7 +2991,7 @@ export default function LabW26PageV3() {
           ? PricingPaymentPopupDatalineHeader
           : paymentPopupVariant === 'v7' || paymentPopupVariant === null
             ? (props: React.ComponentProps<typeof PricingPaymentPopupDatalineHeader>) => (
-                <PricingPaymentPopupDatalineHeader {...props} presentation="v7" />
+                <PricingPaymentPopupDatalineHeader {...props} presentation="v7" mobileLayout={paymentMobileLayout} />
               )
             : PricingPaymentPopupDataline;
   const [philosophySectionRef, shouldLoadPhilosophyMedia] = useNearViewport<HTMLDivElement>(isTouchMobileViewport ? '900px 0px' : '200px 0px');
@@ -2991,6 +3043,69 @@ export default function LabW26PageV3() {
     setActiveCaseImageIndex(0);
     setZoomedCaseImage(null);
   }, [activeCaseIndex]);
+
+  useEffect(() => {
+    if (!playingCaseVideoKey) return;
+
+    const playingCase = CASE_CARDS.find((card) => {
+      if (!card.productVideoId) return false;
+      const startSeconds = card.productVideoStartSeconds ?? 0;
+      const endSeconds = card.productVideoEndSeconds ?? 'open';
+      return `${card.productVideoId}-${startSeconds}-${endSeconds}` === playingCaseVideoKey;
+    });
+
+    const startSeconds = playingCase?.productVideoStartSeconds ?? 0;
+    const endSeconds = playingCase?.productVideoEndSeconds;
+    if (!playingCase || typeof endSeconds !== 'number' || endSeconds <= startSeconds) return;
+
+    const getActiveIframe = () =>
+      document.querySelector<HTMLIFrameElement>(`iframe[data-case-video-key="${playingCaseVideoKey}"]`);
+
+    const postYoutubeCommand = (func: string, args: unknown[] = []) => {
+      const iframe = getActiveIframe();
+      iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+    };
+
+    const stopAtFragmentEnd = () => {
+      postYoutubeCommand('pauseVideo');
+      setPlayingCaseVideoKey(null);
+    };
+
+    const handleYoutubeMessage = (event: MessageEvent) => {
+      let data: unknown = event.data;
+      if (typeof data === 'string') {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          return;
+        }
+      }
+
+      if (!data || typeof data !== 'object') return;
+      const payload = data as { event?: string; info?: { currentTime?: number } };
+      const currentTime = payload.info?.currentTime;
+      if (typeof currentTime !== 'number') return;
+
+      if (currentTime < startSeconds - 1) {
+        postYoutubeCommand('seekTo', [startSeconds, true]);
+        return;
+      }
+
+      if (currentTime >= endSeconds - 0.2) {
+        stopAtFragmentEnd();
+      }
+    };
+
+    window.addEventListener('message', handleYoutubeMessage);
+    const timer = window.setInterval(() => {
+      postYoutubeCommand('getCurrentTime');
+    }, 350);
+
+    return () => {
+      window.removeEventListener('message', handleYoutubeMessage);
+      window.clearInterval(timer);
+    };
+  }, [playingCaseVideoKey]);
 
   useEffect(() => {
     if (isMenuOpen) return;
@@ -3148,13 +3263,17 @@ export default function LabW26PageV3() {
   const displayedCases = isTouchMobileViewport ? visibleCases.slice(0, 4) : visibleCases;
   const activeCase = activeCaseIndex === null ? null : CASE_CARDS[activeCaseIndex];
   const activeCaseVisualIndex = activeCaseIndex ?? 0;
-  const activeCaseProductImages = activeCase ? getCaseProductImages(activeCase) : [];
+  const activeCaseProductImages = activeCase
+    ? shouldShowCasePopupMultiScreenshots
+      ? CASE_POPUP_MULTI_SCREENSHOT_IMAGES
+      : getCaseProductImages(activeCase)
+    : [];
   const casePopupOverlayClass = isCasePopupV7
-    ? 'fixed inset-0 z-[10010] flex items-center justify-center bg-[#f1f1f1]/90 p-3 backdrop-blur-[2px] md:p-6'
+    ? 'fixed inset-0 z-[10010] flex items-center justify-center bg-black/42 p-3 backdrop-blur-[2px] md:p-6'
     : 'fixed inset-0 z-[10010] flex items-center justify-center bg-black/80 p-3 backdrop-blur-md md:p-6';
   const casePopupPanelClass = isCasePopupV7
     ? cn(
-        'flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-[4px] border border-black bg-white text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] overscroll-contain md:max-h-[calc(100dvh-3rem)]',
+        'flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-[2px] border border-black/70 bg-white text-black shadow-[0_34px_110px_rgba(0,0,0,0.14)] overscroll-contain md:max-h-[calc(100dvh-3rem)]',
         isCasePopupCompact
           ? 'max-w-[64rem] md:h-[min(40rem,calc(100vh-3rem))]'
           : 'max-w-[72rem] md:h-[min(43rem,calc(100vh-3rem))]'
@@ -3173,7 +3292,7 @@ export default function LabW26PageV3() {
       )
     : 'text-[20px] font-black uppercase tracking-tighter leading-tight md:text-3xl';
   const casePopupCloseClass = isCasePopupV7
-    ? 'shrink-0 flex h-[44px] w-[44px] items-center justify-center rounded-[4px] border border-black/10 bg-[#f4f4f4] text-black transition-all duration-150 hover:scale-110 hover:border-black hover:bg-white'
+    ? 'shrink-0 flex h-[40px] w-[40px] items-center justify-center rounded-[2px] border border-transparent bg-transparent text-black/42 transition-all duration-150 hover:border-black/10 hover:bg-black/[0.025] hover:text-black/70'
     : 'shrink-0 -mr-2 -mt-2 rounded-full p-4 text-black/40 transition-colors hover:bg-black/5 hover:text-black md:p-2';
   const casePopupGridClass = isCasePopupV7
     ? cn(
@@ -3185,7 +3304,7 @@ export default function LabW26PageV3() {
     : 'grid min-h-0 flex-1 gap-0 overflow-y-auto md:grid-cols-[minmax(280px,0.95fr)_minmax(0,1.15fr)] md:overflow-hidden';
   const casePopupMediaPaneClass = isCasePopupV7
     ? cn(
-        'flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f6f6f6] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/10',
+        'flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f7f7f4] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/10',
         isCasePopupCompact ? 'md:p-6' : 'md:p-7'
       )
     : 'flex min-h-0 flex-col overflow-y-auto border-b border-black/8 bg-[#f5f7f2] p-5 overscroll-contain md:border-b-0 md:border-r md:border-black/8 md:p-7';
@@ -3196,10 +3315,10 @@ export default function LabW26PageV3() {
     ? cn(isCasePopupCompact ? 'space-y-4 pb-7' : 'space-y-5 pb-8')
     : 'space-y-5 pb-8';
   const casePopupLabelClass = isCasePopupV7
-    ? 'mb-2 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-black/46'
-    : 'mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/36';
+    ? 'mb-2 font-mono text-[10px] font-black uppercase tracking-[0.24em] text-black/58'
+    : 'mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-black/42';
   const casePopupTaskTextClass = isCasePopupV7
-    ? 'rounded-[4px] border border-black/12 bg-[#f6f6f6] px-4 py-4 text-[14px] font-medium leading-[1.62] text-black/72 md:text-[15px]'
+    ? 'border-t border-black/24 bg-[#f7f7f3] px-0 py-4 text-[14px] font-semibold leading-[1.62] text-black/78 md:text-[15px]'
     : 'text-[14px] leading-[1.65] text-black/72 md:text-[15px]';
   const casePopupBodyTextClass = isCasePopupV7
     ? 'text-[14px] leading-[1.66] text-black/78 md:text-[15px]'
@@ -3324,17 +3443,30 @@ export default function LabW26PageV3() {
 
   const renderCaseProductVideo = (card: CaseCard, className?: string, frameClassName?: string) => {
     const videoStartSeconds = card.productVideoStartSeconds ?? 0;
-    const videoKey = card.productVideoId ? `${card.productVideoId}-${videoStartSeconds}` : null;
-    const embedUrl = card.productVideoId ? getYoutubeEmbedUrl(card.productVideoId, videoStartSeconds) : null;
+    const videoEndSeconds = card.productVideoEndSeconds;
+    const videoKey = card.productVideoId ? `${card.productVideoId}-${videoStartSeconds}-${videoEndSeconds ?? 'open'}` : null;
+    const embedUrl = card.productVideoId ? getYoutubeEmbedUrl(card.productVideoId, videoStartSeconds, videoEndSeconds) : null;
     const isPlaying = videoKey !== null && playingCaseVideoKey === videoKey;
     const previewImage = getCaseProductImages(card)[0];
 
     if (!embedUrl || !previewImage || !videoKey) return null;
 
+    const requestFullscreen = (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      const videoShell = event.currentTarget.closest('[data-case-video-shell]') as
+        | (HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void })
+        | null;
+      const enterFullscreen = videoShell?.requestFullscreen ?? videoShell?.webkitRequestFullscreen;
+      if (videoShell && enterFullscreen) {
+        void enterFullscreen.call(videoShell);
+      }
+    };
+
     return (
       <div className={cn("space-y-2", className)}>
         {isPlaying ? (
           <div
+            data-case-video-shell
             className={cn(
               "relative aspect-video overflow-hidden rounded-[2px] border border-black/10 bg-black",
               frameClassName
@@ -3344,12 +3476,23 @@ export default function LabW26PageV3() {
             <iframe
               title={`Видео-фрагмент ${card.title}`}
               src={embedUrl}
+              data-case-video-key={videoKey}
               loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               referrerPolicy="strict-origin-when-cross-origin"
-              className="absolute inset-0 h-full w-full border-0"
+              className="pointer-events-none absolute inset-0 h-full w-full border-0"
             />
+            <div className="absolute inset-0 z-10 cursor-default" aria-hidden="true" onClick={(event) => event.stopPropagation()} />
+            <button
+              type="button"
+              className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-[2px] border border-white/48 bg-black/36 text-white shadow-[0_4px_18px_rgba(0,0,0,0.22)] backdrop-blur transition-colors hover:border-white hover:bg-black/56"
+              onClick={requestFullscreen}
+              aria-label={`Открыть видео кейса ${card.title} на весь экран`}
+              title="На весь экран"
+            >
+              <Maximize2 size={17} strokeWidth={1.9} />
+            </button>
           </div>
         ) : (
           <button
@@ -3377,108 +3520,137 @@ export default function LabW26PageV3() {
                 <CirclePlay size={30} strokeWidth={1.8} />
               </span>
             </div>
-            <div className="absolute bottom-3 left-3 right-3 flex items-center gap-3 font-mono text-[9px] font-bold uppercase tracking-[0.14em] text-white">
-              <span>youtube fragment</span>
-            </div>
           </button>
         )}
       </div>
     );
   };
 
-  const renderCaseProductMedia = (card: CaseCard) => {
-    const productImages = getCaseProductImages(card);
+  const renderCaseProductMedia = (card: CaseCard, productImages = getCaseProductImages(card)) => {
     const selectedImage = productImages[activeCaseImageIndex] ?? productImages[0];
     const hasMultipleImages = productImages.length > 1;
 
     if (!selectedImage) return null;
 
-    const showPreviousImage = (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      setActiveCaseImageIndex((current) => (current - 1 + productImages.length) % productImages.length);
-    };
+    const renderGalleryDots = (placement: 'desktop' | 'mobile' | 'default' = 'default') => {
+      if (!hasMultipleImages) return null;
 
-    const showNextImage = (event: React.MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
-      setActiveCaseImageIndex((current) => (current + 1) % productImages.length);
+      return (
+        <div
+          className={cn(
+            "flex min-h-9 items-center justify-between gap-3 rounded-[2px] border border-black/12 bg-white px-3 py-2 shadow-[0_1px_0_rgba(0,0,0,0.03)]",
+            placement === 'desktop' && "hidden md:flex",
+            placement === 'mobile' && "flex md:hidden"
+          )}
+        >
+          <span className="font-mono text-[9px] font-black uppercase tracking-[0.16em] text-black/52">
+            {activeCaseImageIndex + 1} / {productImages.length}
+          </span>
+          <div className="flex items-center gap-2.5" aria-label={`Скриншоты кейса ${card.title}`}>
+            {productImages.map((image, index) => {
+              const isActive = index === activeCaseImageIndex;
+              return (
+                <button
+                  key={`${card.title}-product-image-dot-${image.src}-${index}`}
+                  type="button"
+                  className={cn(
+                    "h-3.5 w-3.5 rounded-full border-2 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
+                    isActive
+                      ? "border-black bg-black shadow-[0_0_0_3px_rgba(0,0,0,0.08)]"
+                      : "border-black/62 bg-white hover:border-black hover:bg-[#8DC63F]"
+                  )}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveCaseImageIndex(index);
+                  }}
+                  aria-label={`Открыть скриншот ${index + 1} из ${productImages.length} кейса ${card.title}`}
+                  aria-pressed={isActive}
+                />
+              );
+            })}
+          </div>
+        </div>
+      );
     };
 
     return (
-      <div className="flex min-h-[14rem] flex-col gap-3 md:h-full md:min-h-0">
-        <div className="relative min-h-[14rem] overflow-hidden rounded-[2px] border border-black/10 bg-[#f6f7f2] md:min-h-0 md:flex-[1.04]">
-          <button
-            type="button"
-            className="group absolute inset-0 block h-full w-full cursor-zoom-in"
-            onClick={(event) => {
-              event.stopPropagation();
-              setZoomedCaseImage(selectedImage);
-            }}
-            aria-label={`Увеличить скриншот кейса ${card.title}`}
-          >
-            <img
-              src={selectedImage.src}
-              alt={selectedImage.alt ?? card.productImageAlt ?? `${card.title} product screenshot`}
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.012]"
-            />
-          </button>
-
-          <button
-            type="button"
-            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
-            onClick={(event) => {
-              event.stopPropagation();
-              setZoomedCaseImage(selectedImage);
-            }}
-            aria-label={`Увеличить скриншот кейса ${card.title}`}
-          >
-            <ZoomIn size={17} strokeWidth={1.9} />
-          </button>
-
-          {hasMultipleImages ? (
-            <>
-              <button
-                type="button"
-                className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
-                onClick={showPreviousImage}
-                aria-label={`Предыдущий скриншот кейса ${card.title}`}
-              >
-                <ChevronLeft size={18} strokeWidth={1.9} />
-              </button>
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[2px] border border-black/10 bg-white/82 text-black/54 shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-black"
-                onClick={showNextImage}
-                aria-label={`Следующий скриншот кейса ${card.title}`}
-              >
-                <ChevronRightIcon size={18} strokeWidth={1.9} />
-              </button>
-              <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-1.5">
-                {productImages.map((image, index) => {
-                  const isActive = index === activeCaseImageIndex;
-                  return (
-                    <button
-                      key={`${card.title}-product-image-dot-${image.src}-${index}`}
-                      type="button"
-                      className={cn(
-                        "h-2 rounded-full border border-black/20 bg-white/78 transition-all",
-                        isActive ? "w-6 bg-black" : "w-2 hover:bg-black/36"
-                      )}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setActiveCaseImageIndex(index);
-                      }}
-                      aria-label={`Открыть скриншот ${index + 1} из ${productImages.length} кейса ${card.title}`}
-                      aria-pressed={isActive}
-                    />
-                  );
-                })}
-              </div>
-            </>
+      <div className="flex min-h-0 flex-col gap-3">
+        <div className={cn("grid gap-3", casePopupGalleryMode === 'rail' && hasMultipleImages ? "md:grid-cols-[68px_minmax(0,1fr)]" : "")}>
+          {hasMultipleImages && casePopupGalleryMode === 'rail' ? (
+            <div className="hidden flex-col gap-2 md:flex">
+              {productImages.map((image, index) => {
+                const isActive = index === activeCaseImageIndex;
+                return (
+                  <button
+                    key={`${card.title}-product-image-rail-${image.src}-${index}`}
+                    type="button"
+                    className={cn(
+                      "aspect-square overflow-hidden rounded-[2px] border-2 bg-white transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
+                      isActive ? "border-black opacity-100" : "border-black/16 opacity-72 hover:border-black/46 hover:opacity-100"
+                    )}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setActiveCaseImageIndex(index);
+                    }}
+                    aria-label={`Открыть скриншот ${index + 1} из ${productImages.length} кейса ${card.title}`}
+                    aria-pressed={isActive}
+                  >
+                    <img src={image.src} alt="" aria-hidden="true" className="h-full w-full object-cover" loading="lazy" />
+                  </button>
+                );
+              })}
+            </div>
           ) : null}
+
+          <div className="relative aspect-[2/1] overflow-hidden rounded-[2px] border border-black/16 bg-[#efefeb]">
+            <button
+              type="button"
+              className="group block h-full w-full cursor-zoom-in"
+              onClick={(event) => {
+                event.stopPropagation();
+                setZoomedCaseImage(selectedImage);
+              }}
+              aria-label={`Увеличить скриншот кейса ${card.title}`}
+            >
+              <img
+                src={selectedImage.src}
+                alt={selectedImage.alt ?? card.productImageAlt ?? `${card.title} product screenshot`}
+                loading="lazy"
+                className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.006]"
+              />
+            </button>
+          </div>
         </div>
 
-        {renderCaseProductVideo(card, "hidden md:flex md:min-h-0 md:flex-[0.86] md:flex-col", "md:aspect-auto md:flex-1")}
+        {renderGalleryDots()}
+
+        {hasMultipleImages && casePopupGalleryMode === 'strip' ? (
+          <div className="grid grid-cols-3 gap-2">
+            {productImages.map((image, index) => {
+              const isActive = index === activeCaseImageIndex;
+              return (
+                <button
+                  key={`${card.title}-product-image-thumb-${image.src}-${index}`}
+                  type="button"
+                  className={cn(
+                    "aspect-[2/1] overflow-hidden rounded-[2px] border-2 bg-white transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black",
+                    isActive ? "border-black opacity-100" : "border-black/16 opacity-72 hover:border-black/46 hover:opacity-100"
+                  )}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveCaseImageIndex(index);
+                  }}
+                  aria-label={`Открыть скриншот ${index + 1} из ${productImages.length} кейса ${card.title}`}
+                  aria-pressed={isActive}
+                >
+                  <img src={image.src} alt="" aria-hidden="true" className="h-full w-full object-cover" loading="lazy" />
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {renderCaseProductVideo(card, "hidden md:flex md:min-h-0 md:flex-col", "md:aspect-video")}
       </div>
     );
   };
@@ -4718,35 +4890,9 @@ export default function LabW26PageV3() {
                     )}
                   >
                     {activeCaseProductImages.length
-                      ? renderCaseProductMedia(activeCase)
+                      ? renderCaseProductMedia(activeCase, activeCaseProductImages)
                       : renderCaseMediaPanel({ index: activeCaseVisualIndex, mode: 'modal' })}
                   </div>
-                  {activeCase.filters.length ? (
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {activeCase.filters.map((filterId) => {
-                        const isActive = activeCaseFilter === filterId;
-                        return (
-                          <button
-                            key={`modal-filter-${activeCase.title}-${filterId}`}
-                            type="button"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setActiveCaseFilter(filterId);
-                            }}
-                            className={cn(
-                              "rounded-[2px] border px-2 py-1 text-left font-mono text-[8px] uppercase tracking-[0.14em] transition-colors",
-                              isActive
-                                ? "border-black bg-black text-white"
-                                : "border-black/10 bg-black/[0.03] text-black/54 hover:border-[#8DC63F] hover:bg-[#8DC63F] hover:text-black",
-                            )}
-                            aria-pressed={isActive}
-                          >
-                            {CASE_FILTER_LABELS[filterId]}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : null}
                 </div>
                 <div className={casePopupContentClass}>
                   <div className={casePopupSectionGapClass}>

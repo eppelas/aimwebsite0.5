@@ -283,6 +283,10 @@
         pointer-events: none;
       }
 
+      .phone-carousel {
+        display: none;
+      }
+
       @media (max-width: 900px) {
         :root {
           --chrome: 74px;
@@ -301,6 +305,84 @@
 
         .hint {
           display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        :root {
+          --chrome: 0px;
+        }
+
+        html,
+        body {
+          background: #f8f8f6;
+          overscroll-behavior: none;
+        }
+
+        body.phone-mode {
+          overflow: hidden;
+        }
+
+        body.phone-mode .compare,
+        body.phone-mode .hint {
+          display: none;
+        }
+
+        body.phone-mode .phone-carousel {
+          position: fixed;
+          inset: 0;
+          display: block;
+          overflow: hidden;
+          background: #f8f8f6;
+          touch-action: pan-y;
+        }
+
+        .phone-frame {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border: 0;
+          background: #f8f8f6;
+        }
+
+        .phone-pill {
+          position: fixed;
+          left: 50%;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+          z-index: 40;
+          transform: translateX(-50%);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: calc(100vw - 20px);
+          padding: 6px 9px;
+          border: 1px solid rgba(0, 0, 0, 0.14);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.72);
+          color: rgba(0, 0, 0, 0.58);
+          font: 800 9px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          backdrop-filter: blur(12px);
+          pointer-events: none;
+        }
+
+        .phone-dots {
+          display: flex;
+          gap: 5px;
+        }
+
+        .phone-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 999px;
+          background: rgba(0, 0, 0, 0.22);
+        }
+
+        .phone-dot[aria-current="true"] {
+          width: 15px;
+          background: #111;
         }
       }
     </style>
@@ -339,6 +421,13 @@
         <div class="stage"></div>
       </section>
     </main>
+    <section class="phone-carousel" aria-label="Мобильные версии payment popup">
+      <iframe class="phone-frame" title="Мобильная версия оплаты"></iframe>
+      <div class="phone-pill" aria-live="polite">
+        <span class="phone-label"></span>
+        <span class="phone-dots"></span>
+      </div>
+    </section>
     <div class="hint">A/D left · ←/→ right</div>
 
     <script>
@@ -347,6 +436,9 @@
         { id: "v5", label: "v5 structured", type: "live", src: "/?payment=v5#pricing" },
         { id: "v6", label: "v6 header", type: "live", src: "/?payment=v6#pricing" },
         { id: "v7", label: "v7 compact", type: "live", src: "/?payment=v7#pricing", mobile: true },
+        { id: "v7-mobile-current", label: "v7 mob current", type: "live", src: "/?payment=v7&paymentMobile=current&paymentPlan=premium&paymentMethod=usdt#pricing", mobile: true },
+        { id: "v7-mobile-wide", label: "v7 mob wide", type: "live", src: "/?payment=v7&paymentMobile=wide&paymentPlan=premium&paymentMethod=usdt#pricing", mobile: true },
+        { id: "v7-mobile-dense", label: "v7 mob dense", type: "live", src: "/?payment=v7&paymentMobile=dense&paymentPlan=premium&paymentMethod=usdt#pricing", mobile: true },
         { id: "v7-paid", label: "v7 paid", type: "live", src: "/?payment=v7&paymentStatus=paid#pricing", mobile: true },
         { id: "v7-failed", label: "v7 failed", type: "live", src: "/?payment=v7&paymentStatus=failed#pricing", mobile: true },
         { id: "v7-bot", label: "v7 bot join", type: "live", src: "/?payment=v7&paymentStatus=join#pricing", mobile: true },
@@ -368,6 +460,22 @@
         leftDevice: "desktop",
         rightDevice: "desktop",
       };
+      const phoneVariants = [
+        "v7-mobile-current",
+        "v7-mobile-wide",
+        "v7-mobile-dense",
+        "v7",
+        "github-dark",
+      ];
+      const phoneState = {
+        index: 0,
+        startX: 0,
+        startY: 0,
+        deltaX: 0,
+        isDragging: false,
+        lastSrc: "",
+      };
+      const isPhoneMode = window.matchMedia("(max-width: 640px)").matches || params.get("phoneMode") === "1";
 
       const getVariantIndex = (id, fallback) => {
         const index = variants.findIndex((variant) => variant.id === id);
@@ -383,6 +491,8 @@
       state.split = params.has("split") && Number.isFinite(Number(params.get("split")))
         ? Math.min(78, Math.max(22, Number(params.get("split"))))
         : state.split;
+      phoneState.index = Math.max(0, phoneVariants.indexOf(params.get("phone") || params.get("left") || "v7-mobile-wide"));
+      if (!Number.isFinite(phoneState.index) || phoneState.index < 0) phoneState.index = phoneVariants.indexOf("v7-mobile-wide");
 
       const getPaneDevice = (paneKey) => state[`${paneKey}Device`];
 
@@ -406,6 +516,14 @@
         nextParams.set("split", String(Math.round(state.split)));
         nextParams.set("leftDevice", state.leftDevice);
         nextParams.set("rightDevice", state.rightDevice);
+        nextParams.delete("device");
+        window.history.replaceState(null, "", `${window.location.pathname}?${nextParams.toString()}`);
+      };
+
+      const updatePhoneUrl = () => {
+        const nextParams = new URLSearchParams(window.location.search);
+        nextParams.set("phone", variants[getVariantIndex(phoneVariants[phoneState.index], 0)].id);
+        nextParams.set("phoneMode", "1");
         nextParams.delete("device");
         window.history.replaceState(null, "", `${window.location.pathname}?${nextParams.toString()}`);
       };
@@ -434,9 +552,12 @@
           ) return !cookieButton;
 
           doc.querySelector("#pricing")?.scrollIntoView({ block: "center" });
-          const button = Array.from(doc.querySelectorAll("button")).find((item) =>
+          const planParam = new URL(iframe.contentWindow.location.href).searchParams.get("paymentPlan");
+          const pricingButtons = Array.from(doc.querySelectorAll("#pricing button")).filter((item) =>
             item.textContent?.includes("/присоединиться"),
           );
+          const planIndex = planParam === "premium" ? 2 : planParam === "advanced" ? 1 : 0;
+          const button = pricingButtons[planIndex] || pricingButtons[0];
           if (!button) return false;
           button.click();
           return true;
@@ -446,6 +567,7 @@
       };
 
       const schedulePopupOpen = (iframe) => {
+        installPhoneSwipeBridge(iframe);
         let attempts = 0;
         const timer = window.setInterval(() => {
           attempts += 1;
@@ -454,6 +576,108 @@
             window.clearInterval(timer);
           }
         }, 350);
+      };
+
+      const installPhoneSwipeBridge = (iframe) => {
+        if (!iframe.classList.contains("phone-frame")) return;
+        try {
+          const doc = iframe.contentDocument;
+          if (!doc || doc.__aimPaymentSwipeBridge) return;
+          doc.__aimPaymentSwipeBridge = true;
+          let startX = 0;
+          let startY = 0;
+          let deltaX = 0;
+          let isTracking = false;
+
+          doc.addEventListener("pointerdown", (event) => {
+            isTracking = true;
+            startX = event.clientX;
+            startY = event.clientY;
+            deltaX = 0;
+          }, { passive: true });
+
+          doc.addEventListener("pointermove", (event) => {
+            if (!isTracking) return;
+            const nextDeltaX = event.clientX - startX;
+            const deltaY = event.clientY - startY;
+            if (Math.abs(deltaY) > Math.abs(nextDeltaX) * 1.25) return;
+            deltaX = nextDeltaX;
+          }, { passive: true });
+
+          const finish = () => {
+            if (!isTracking) return;
+            isTracking = false;
+            if (Math.abs(deltaX) > 54) {
+              movePhone(deltaX < 0 ? 1 : -1);
+            }
+          };
+
+          doc.addEventListener("pointerup", finish, { passive: true });
+          doc.addEventListener("pointercancel", finish, { passive: true });
+        } catch {}
+      };
+
+      const setPhoneVariant = (index, shouldUpdateUrl = true) => {
+        phoneState.index = (index + phoneVariants.length) % phoneVariants.length;
+        const variant = variants[getVariantIndex(phoneVariants[phoneState.index], 0)];
+        document.querySelector(".phone-label").textContent = variant.label;
+        document.querySelectorAll(".phone-dot").forEach((dot, dotIndex) => {
+          dot.setAttribute("aria-current", dotIndex === phoneState.index ? "true" : "false");
+        });
+        const frame = document.querySelector(".phone-frame");
+        frame.title = variant.label;
+        if (phoneState.lastSrc !== variant.src) {
+          phoneState.lastSrc = variant.src;
+          frame.src = variant.src;
+        } else {
+          schedulePopupOpen(frame);
+        }
+        if (shouldUpdateUrl) updatePhoneUrl();
+      };
+
+      const movePhone = (direction) => {
+        setPhoneVariant(phoneState.index + direction);
+      };
+
+      const buildPhoneCarousel = () => {
+        const carousel = document.querySelector(".phone-carousel");
+        const dots = carousel.querySelector(".phone-dots");
+        phoneVariants.forEach((variantId) => {
+          const dot = document.createElement("span");
+          dot.className = "phone-dot";
+          dot.setAttribute("aria-hidden", "true");
+          dots.append(dot);
+        });
+        carousel.querySelector(".phone-frame").addEventListener("load", (event) => schedulePopupOpen(event.currentTarget));
+
+        carousel.addEventListener("pointerdown", (event) => {
+          phoneState.isDragging = true;
+          phoneState.startX = event.clientX;
+          phoneState.startY = event.clientY;
+          phoneState.deltaX = 0;
+        });
+
+        carousel.addEventListener("pointermove", (event) => {
+          if (!phoneState.isDragging) return;
+          const deltaX = event.clientX - phoneState.startX;
+          const deltaY = event.clientY - phoneState.startY;
+          if (Math.abs(deltaY) > Math.abs(deltaX) * 1.2) return;
+          phoneState.deltaX = deltaX;
+        });
+
+        const finishSwipe = () => {
+          if (!phoneState.isDragging) return;
+          phoneState.isDragging = false;
+          if (Math.abs(phoneState.deltaX) > 46) {
+            movePhone(phoneState.deltaX < 0 ? 1 : -1);
+            return;
+          }
+          setPhoneVariant(phoneState.index);
+        };
+
+        carousel.addEventListener("pointerup", finishSwipe);
+        carousel.addEventListener("pointercancel", finishSwipe);
+        setPhoneVariant(phoneState.index, false);
       };
 
       const setActivePaneVariant = (paneKey, index) => {
@@ -551,11 +775,17 @@
         renderPaneTabs(pane);
       };
 
-      normalizePaneVariantForDevice("left");
-      normalizePaneVariantForDevice("right");
-      document.querySelectorAll(".pane").forEach(buildPane);
-      document.querySelectorAll(".pane").forEach((pane) => setActivePaneVariant(pane.dataset.pane, state[pane.dataset.pane]));
-      setSplit(state.split, false);
+      buildPhoneCarousel();
+      if (isPhoneMode) {
+        document.body.classList.add("phone-mode");
+        setPhoneVariant(phoneState.index, false);
+      } else {
+        normalizePaneVariantForDevice("left");
+        normalizePaneVariantForDevice("right");
+        document.querySelectorAll(".pane").forEach(buildPane);
+        document.querySelectorAll(".pane").forEach((pane) => setActivePaneVariant(pane.dataset.pane, state[pane.dataset.pane]));
+        setSplit(state.split, false);
+      }
 
       const splitter = document.querySelector(".splitter");
       let isResizing = false;
