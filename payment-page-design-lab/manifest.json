@@ -1,0 +1,245 @@
+{
+  "updatedAt": "2026-05-28",
+  "sourceOfTruth": "V3 Site Repo - aimwebsite0.5/payment-page-design-lab/manifest.json",
+  "status": "review-only",
+  "liveSiteReplacement": false,
+  "copyAndUxSource": {
+    "component": "V3 Site Repo - aimwebsite0.5/src/components/PricingPaymentPopupDatalineHeader.tsx",
+    "pricingSource": "V3 Site Repo - aimwebsite0.5/src/components/LabW26PageV3.tsx",
+    "rules": [
+      "Keep payment text, labels, states, price math, discount rules, CTA labels, and validation behavior aligned with the current payment popup.",
+      "Use these variants for visual review only; do not port into React or replace live checkout without explicit design approval.",
+      "External references are mechanics only, not copied assets/layouts.",
+      "Never copy textual labels or presentation copy from visual references into payment prototypes. Visible text must come from the current payment source or be directly relevant to AIM/payment review."
+    ]
+  },
+  "designCurriculumReferencePack": {
+    "path": "../../website-ops/design-curriculum-reference-pack.md",
+    "useFor": [
+      "project argumentation",
+      "checkout clarity",
+      "visual storytelling",
+      "mobile readability",
+      "reference curation"
+    ],
+    "policy": "Use the lesson pack as internal design reasoning only. Do not copy course text into payment prototypes."
+  },
+  "run": {
+    "id": "2026-05-27-payment-canvas-10x",
+    "type": "payment-page-visual-variants",
+    "path": "runs/2026-05-27-payment-canvas-10x/index.html",
+    "mainReviewPath": "index.html",
+    "variantCount": 19
+  },
+  "paymentUx": {
+    "fixedReviewOrder": {
+      "price": "890",
+      "currency": "EUR",
+      "source": "LabW26PageV3.tsx pricing value; plan selection is intentionally removed from payment-page prototypes"
+    },
+    "methods": [
+      "USDT",
+      "РУ-КАРТЫ",
+      "EU-КАРТЫ"
+    ],
+    "alumniDiscountHandles": [
+      "aim",
+      "@aim"
+    ],
+    "promoCodes": [
+      "ponchik"
+    ],
+    "paymentStates": [
+      "form",
+      "redirecting",
+      "paid",
+      "failed"
+    ],
+    "removedFromPageForm": [
+      "MAIN LAB / ADVANCED / PREMIUM plan selector",
+      "internal state switcher panels",
+      "join as a separate state"
+    ],
+    "reviewerNote": "Для проверки скидок: в Telegram введите aim, в промокод — ponchik."
+  },
+  "variants": [
+    {
+      "id": "kinetic-type",
+      "title": "Kinetic Type Gate",
+      "reference": "X26 workshop presentation slide 9 mechanics: rotating rings of text",
+      "artifact": "index.html"
+    },
+    {
+      "id": "garden-ledger",
+      "title": "Dark Garden Ledger",
+      "reference": "X26 garden / living participant system mechanics",
+      "artifact": "index.html"
+    },
+    {
+      "id": "noise-receipt",
+      "title": "Noise Receipt Theater",
+      "reference": "receipt and payment route as full-page theatrical canvas",
+      "artifact": "index.html"
+    },
+    {
+      "id": "topographic-price",
+      "title": "Topographic Price Field",
+      "reference": "discount/price terrain and contour maps",
+      "artifact": "index.html"
+    },
+    {
+      "id": "constellation-route",
+      "title": "Constellation Route",
+      "reference": "site to gateway to bank to bot route map",
+      "artifact": "index.html"
+    },
+    {
+      "id": "vault-access",
+      "title": "Access Vault",
+      "reference": "payment unlocks group access",
+      "artifact": "index.html"
+    },
+    {
+      "id": "signal-lines",
+      "title": "Signal Lines",
+      "reference": "payment route as readable signal motion",
+      "artifact": "index.html"
+    },
+    {
+      "id": "glitch-grid",
+      "title": "Glitch Grid",
+      "reference": "controlled dark glitch system",
+      "artifact": "index.html"
+    },
+    {
+      "id": "case-mosaic",
+      "title": "Case Mosaic Checkout",
+      "reference": "real AIM case imagery from local V3 assets",
+      "artifact": "index.html"
+    },
+    {
+      "id": "terminal-orbit",
+      "title": "Terminal Orbit",
+      "reference": "terminal route with orbital order state",
+      "artifact": "index.html"
+    },
+    {
+      "id": "anca-galaxy-form",
+      "title": "Anca Galaxy Form",
+      "reference": "Anca Projects hero-canvas mouse-reactive starfield copied as payment page canvas",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/Anca Projects/index.html",
+      "artifact": "index.html?variant=anca-galaxy-form&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-anca-galaxy-form.png",
+      "sonyaSendAllowed": true,
+      "reviewStatus": "sendable-with-user-rating-5",
+      "compositionRule": "Minimal centered payment form only; no extra content blocks on the page, only the interactive galaxy background."
+    },
+    {
+      "id": "anca-galaxy-clean-page",
+      "title": "Clean Galaxy Page",
+      "reference": "Anca Projects hero-canvas mouse-reactive starfield, refined as a page rather than popup",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/Anca Projects/index.html",
+      "artifact": "index.html?variant=anca-galaxy-clean-page&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-anca-galaxy-clean-page.png",
+      "sonyaSendAllowed": true,
+      "reviewStatus": "sendable-with-user-rating-5",
+      "compositionRule": "Cleaner page composition: no close/X control, no popup chrome, borderless transparent glass payment surface, reduced internal borders, and the same payment copy/UX."
+    },
+    {
+      "id": "night-lunar-checkout",
+      "title": "Night Lunar Checkout",
+      "reference": "Early AIM Night Design Pursuit payment page: minimal centered checkout, four states, dark interactive starfield",
+      "artifact": "runs/2026-05-27-night-lunar-checkout/index.html",
+      "readme": "runs/2026-05-27-night-lunar-checkout/README.md",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-night-lunar-checkout.png",
+      "compositionRule": "Dark payment page canvas with one compact centered payment form, no plan selector, no internal state switcher, and the four-state flow form -> redirecting -> paid/failed.",
+      "reviewStatus": "reworked-after-user-feedback",
+      "selfRating": 6
+    },
+    {
+      "id": "night-quiet-orbit",
+      "title": "Quiet Orbit Checkout",
+      "reference": "AIM Night Design Pursuit 2026-05-28: single-card minimal checkout with subtle orbit atmosphere; Galaxy 5/10 constraints applied.",
+      "artifact": "runs/2026-05-28-night-quiet-orbit/index.html",
+      "readme": "runs/2026-05-28-night-quiet-orbit/README.md",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-night-quiet-orbit.png",
+      "compositionRule": "Centered compact payment form with external review arrows only; no plan selector, no extra demo interface, and paid/open-bot merged into one success state.",
+      "reviewStatus": "reworked-after-user-feedback",
+      "selfRating": 6
+    },
+    {
+      "id": "x26-practice-blackhole",
+      "title": "AIM Payment Gravity",
+      "reference": "X26 workshop presentation slide 3 Practice: ParticleSystem black-hole/bowl mechanic and sparse right-side labels, adapted as a dark payment canvas.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/ParticleSystem.tsx",
+      "artifact": "index.html?variant=x26-practice-blackhole&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-practice-blackhole.png",
+      "compositionRule": "Keep the current compact payment form and four-state UX; use the Practice slide only for particle-field motion, sparse axis composition, and mouse-reactive depth. Do not keep reference labels such as the slide title or reference-only words.",
+      "status": "promising-archive-candidate-after-better-replacement",
+      "archiveCandidate": true,
+      "userRatings": {
+        "anka": 7.5
+      },
+      "reviewDisposition": "Anka rated 7.5/10: keep the mouse-dependent glow spread/direction, but the field motion is still weaker than the original X26 interaction and should be superseded by a stronger variant before archiving."
+    },
+    {
+      "id": "x26-stay-vortex-card",
+      "title": "AIM Vortex Checkout",
+      "reference": "X26 workshop presentation slide 4 Stay: VortexSystem black-hole disk mechanics only, adapted into a circular payment surface. Visible reference text and the rotated Idea label are removed.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/VortexSystem.tsx",
+      "artifact": "index.html?variant=x26-stay-vortex-card&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-stay-vortex-card.png",
+      "compositionRule": "Make the checkout card itself behave like a round black-hole object on desktop; preserve payment copy, discount rules, cancel no-op, and the exact four states.",
+      "status": "promising-archive-candidate-after-better-replacement",
+      "archiveCandidate": true,
+      "userRatings": {
+        "anka": 7.5
+      },
+      "reviewDisposition": "Anka rated the adjacent X26-derived direction around 7.5/10: promising but not approved; archive after a clearly stronger replacement is accepted."
+    },
+    {
+      "id": "x26-slow-storm",
+      "title": "AIM Slow Storm",
+      "reference": "X26 workshop presentation slide 6 Storm: cloud/lightning particle storm, slowed down and made mouse-reactive for payment-page ambience.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/StormSystem.tsx",
+      "artifact": "index.html?variant=x26-slow-storm&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-slow-storm.png",
+      "compositionRule": "Use storm motion as the decorative field only; keep one compact payment object, no added product/tariff entities, and no internal reviewer controls."
+    },
+    {
+      "id": "x26-inkfield-dark",
+      "title": "AIM Dark Inkfield",
+      "reference": "X26 workshop presentation slide 9 Inkfield: autonomous brush/ink field with mouse pull, adapted to a darker green-black payment page.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/InkFieldSlide.tsx",
+      "artifact": "index.html?variant=x26-inkfield-dark&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-inkfield-dark.png",
+      "compositionRule": "Use the Inkfield brush mechanics as an interactive dark background; do not copy presentation copy into the payment form."
+    },
+    {
+      "id": "aim-event-horizon",
+      "title": "AIM Event Horizon",
+      "reference": "X26 workshop presentation slide 3 Practice / ParticleSystem math reused more directly: bowl/even-horizon strand formula, pointer rotation, velocity wake, and mouse-dependent glow. No visible reference copy is reused.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/ParticleSystem.tsx",
+      "artifact": "index.html?variant=aim-event-horizon&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-aim-event-horizon.png",
+      "compositionRule": "New stronger candidate after Anka 7.5/10 feedback: keep one compact payment form and the exact four-state UX, preserve the successful mouse-dependent glow, and replace simple vertical sway with pointer-inertia bowl/vortex motion.",
+      "reviewStatus": "new-candidate-after-anka-7-5-feedback",
+      "selfRating": 8
+    }
+  ],
+  "validation": {
+    "required": [
+      "manifest parses",
+      "all listed paths exist",
+      "local preview route returns 200",
+      "desktop and mobile no horizontal overflow",
+      "no MAIN LAB / ADVANCED / PREMIUM selector inside payment page form",
+      "cancel buttons do not navigate or reset to unrelated forms",
+      "copied payment labels match current component",
+      "Telegram aim + promo ponchik discount behavior keeps input focus while typing",
+      "Anca Galaxy Form starfield canvas renders and responds to mouse movement",
+      "image assets load",
+      "no live React files changed"
+    ]
+  }
+}

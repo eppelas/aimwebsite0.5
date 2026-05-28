@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Page Design Lab</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        color-scheme: light;
+        --bg: #f6f5f1;
+        --paper: #fffdf8;
+        --paper-2: #efeee8;
+        --ink: #11120f;
+        --muted: #65655d;
+        --soft: rgba(17, 18, 15, 0.1);
+        --line: rgba(17, 18, 15, 0.18);
+        --green: #4f8f2f;
+        --red: #c7432f;
+        --blue: #315f8c;
+        --split: 50%;
+        --chrome: 86px;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      html,
+      body {
+        width: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      button,
+      select {
+        font: inherit;
+      }
+
+      .mode-switch {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        z-index: 120;
+        display: flex;
+        gap: 6px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.88);
+        backdrop-filter: blur(10px);
+      }
+
+      .mode-switch a {
+        min-width: 92px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 30px;
+        border: 1px solid var(--ink);
+        background: var(--paper);
+        color: var(--ink);
+        font: 800 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      body.gallery-mode .mode-switch a[data-mode="gallery"],
+      body.compare-mode .mode-switch a[data-mode="compare"],
+      .mode-switch a:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .gallery {
+        display: none;
+        min-height: 100vh;
+        padding: 58px 18px 28px;
+      }
+
+      body.gallery-mode .gallery {
+        display: block;
+      }
+
+      body.gallery-mode .compare,
+      body.gallery-mode .hint {
+        display: none;
+      }
+
+      .gallery-header {
+        max-width: 1540px;
+        margin: 0 auto 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 520px);
+        gap: 18px;
+        align-items: end;
+        padding-right: 220px;
+      }
+
+      .eyebrow,
+      .note,
+      .meta,
+      .pill,
+      .card-title,
+      .toolbar,
+      .hint {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .eyebrow {
+        margin: 0 0 9px;
+        color: var(--red);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 920px;
+        font-size: clamp(32px, 6vw, 86px);
+        line-height: 0.9;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.55;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .filters {
+        max-width: 1540px;
+        margin: 0 auto 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .filter-button {
+        border: 1px solid var(--ink);
+        background: var(--paper);
+        color: var(--ink);
+        padding: 8px 10px;
+        cursor: pointer;
+        font: 800 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .filter-button[aria-pressed="true"],
+      .filter-button:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 14px;
+        max-width: 1540px;
+        margin: 0 auto;
+      }
+
+      .gallery-card {
+        min-width: 0;
+        border: 1px solid var(--line);
+        background: var(--paper);
+      }
+
+      .gallery-card.is-full {
+        grid-column: 1 / -1;
+      }
+
+      .card-title {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 0 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .card-title span:last-child {
+        color: var(--muted);
+        font-size: 9px;
+      }
+
+      .frame-wrap {
+        height: 720px;
+        background: var(--paper-2);
+      }
+
+      .gallery-card:not(.is-full) .frame-wrap {
+        height: 620px;
+      }
+
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: var(--paper);
+      }
+
+      .meta {
+        display: grid;
+        gap: 7px;
+        padding: 10px 12px 12px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.45;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .pill {
+        display: inline-flex;
+        border: 1px solid rgba(17, 18, 15, 0.2);
+        padding: 3px 6px;
+        color: var(--ink);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .compare {
+        display: grid;
+        grid-template-columns: minmax(260px, var(--split)) 8px minmax(260px, 1fr);
+        width: 100vw;
+        height: 100vh;
+        background: var(--ink);
+        overflow: hidden;
+      }
+
+      .pane {
+        position: relative;
+        min-width: 0;
+        overflow: hidden;
+        background: var(--paper);
+      }
+
+      .toolbar {
+        position: absolute;
+        inset: 0 0 auto;
+        z-index: 80;
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) 34px;
+        gap: 6px;
+        align-items: center;
+        height: var(--chrome);
+        padding: 6px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .toolbar-center {
+        display: grid;
+        grid-template-rows: 32px 35px;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .pane-tabs {
+        display: flex;
+        gap: 4px;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .pane-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-button,
+      .nav-button,
+      .device-button {
+        border: 1px solid var(--ink);
+        background: var(--paper);
+        color: var(--ink);
+        cursor: pointer;
+        font: 800 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .nav-button {
+        height: 74px;
+        font-size: 22px;
+      }
+
+      .tab-button {
+        flex: 0 0 152px;
+        height: 35px;
+        overflow: hidden;
+        padding: 0 8px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .device-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+
+      .device-button[aria-pressed="true"],
+      .tab-button[aria-pressed="true"],
+      .tab-button:hover,
+      .nav-button:hover,
+      .device-button:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .stage {
+        position: absolute;
+        inset: var(--chrome) 0 0;
+        overflow: hidden;
+        background: var(--paper-2);
+      }
+
+      .variant-layer {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+
+      .variant-layer.active {
+        display: block;
+      }
+
+      .pane[data-device="mobile"] .variant-layer.active {
+        display: grid;
+        place-items: center;
+        padding: 18px;
+      }
+
+      .pane[data-device="mobile"] iframe {
+        width: min(390px, 100%);
+        height: min(844px, 100%);
+        border: 1px solid rgba(17, 18, 15, 0.22);
+        box-shadow: 0 16px 54px rgba(0, 0, 0, 0.16);
+      }
+
+      .splitter {
+        position: relative;
+        z-index: 100;
+        width: 8px;
+        cursor: col-resize;
+        background: var(--ink);
+        touch-action: none;
+      }
+
+      .splitter::before {
+        content: "";
+        position: absolute;
+        inset: 0 -10px;
+      }
+
+      body.is-resizing {
+        cursor: col-resize;
+        user-select: none;
+      }
+
+      .hint {
+        position: fixed;
+        left: 50%;
+        bottom: 12px;
+        z-index: 140;
+        transform: translateX(-50%);
+        padding: 6px 9px;
+        background: rgba(17, 18, 15, 0.78);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      .empty {
+        max-width: 1540px;
+        margin: 28px auto;
+        border: 1px dashed var(--line);
+        padding: 24px;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 900px) {
+        .gallery-header {
+          grid-template-columns: 1fr;
+          padding-right: 0;
+        }
+
+        .gallery-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .gallery-card.is-full {
+          grid-column: auto;
+        }
+
+        .compare {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr 8px 1fr;
+        }
+
+        .splitter {
+          width: 100%;
+          height: 8px;
+          cursor: row-resize;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .mode-switch {
+          left: 8px;
+          right: 8px;
+        }
+
+        .mode-switch a {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .gallery {
+          padding: 56px 8px 18px;
+        }
+
+        h1 {
+          font-size: 34px;
+        }
+
+        .gallery-grid {
+          gap: 10px;
+        }
+
+        .frame-wrap,
+        .gallery-card:not(.is-full) .frame-wrap {
+          height: 720px;
+        }
+
+        :root {
+          --chrome: 112px;
+        }
+
+        .toolbar {
+          grid-template-columns: 30px minmax(0, 1fr) 30px;
+        }
+
+        .nav-button {
+          height: 100px;
+        }
+      }
+
+      /* The default homepage review surface behaves like AIM Style Gallery:
+         compact direction cards first, full-page opening on demand, compare as a secondary tool. */
+      body.gallery-mode {
+        background:
+          linear-gradient(rgba(17, 18, 15, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(17, 18, 15, 0.035) 1px, transparent 1px),
+          var(--bg);
+        background-size: 28px 28px;
+      }
+
+      .gallery {
+        padding: 24px 20px 52px;
+      }
+
+      .mode-switch {
+        border-color: rgba(17, 18, 15, 0.16);
+        box-shadow: 0 10px 28px rgba(17, 18, 15, 0.08);
+      }
+
+      .mode-switch a[aria-current="page"] {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .gallery-header {
+        max-width: 1180px;
+        min-height: 238px;
+        margin: 0 auto 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+        gap: 22px;
+        align-items: end;
+        padding: 34px 0 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .gallery-header h1 {
+        max-width: 760px;
+        font-size: clamp(42px, 7vw, 104px);
+        line-height: 0.86;
+        letter-spacing: 0;
+      }
+
+      .note {
+        max-width: 360px;
+        font-size: 10px;
+      }
+
+      .filters,
+      .gallery-grid {
+        max-width: 1180px;
+      }
+
+      .filters {
+        margin-bottom: 18px;
+      }
+
+      .filter-button {
+        border-color: rgba(17, 18, 15, 0.28);
+        background: rgba(255, 253, 248, 0.82);
+      }
+
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+      }
+
+      .gallery-card,
+      .gallery-card.is-full {
+        grid-column: auto;
+      }
+
+      .gallery-card {
+        min-height: 380px;
+        display: flex;
+        flex-direction: column;
+        padding: 14px;
+        border-color: rgba(17, 18, 15, 0.18);
+        background: rgba(255, 253, 248, 0.84);
+        color: inherit;
+        text-decoration: none;
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .gallery-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(17, 18, 15, 0.42);
+        background: #fffdf8;
+      }
+
+      .card-title {
+        min-height: auto;
+        display: block;
+        padding: 0;
+        border-bottom: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: clamp(23px, 2.4vw, 38px);
+        line-height: 0.96;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .card-kicker,
+      .card-summary,
+      .card-path,
+      .card-actions,
+      .coverage-count {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .card-kicker {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 18px;
+        color: var(--red);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .card-kicker-main {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .card-kicker-meta {
+        display: inline-flex;
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        max-width: 55%;
+      }
+
+      .card-date {
+        color: var(--red);
+      }
+
+      .rating-badge {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 22px;
+        border: 1px solid rgba(17, 18, 15, 0.24);
+        padding: 0 7px;
+        background: rgba(255, 253, 248, 0.72);
+        color: var(--ink);
+        cursor: default;
+        outline: 0;
+        white-space: nowrap;
+      }
+
+      .rating-badge:focus-visible {
+        border-color: var(--ink);
+        box-shadow: 0 0 0 2px rgba(17, 18, 15, 0.12);
+      }
+
+      .rating-badge.is-empty {
+        color: rgba(17, 18, 15, 0.48);
+      }
+
+      .rating-badge.is-strong {
+        border-color: rgba(79, 143, 47, 0.62);
+        color: var(--green);
+      }
+
+      .rating-badge.is-weak {
+        border-color: rgba(199, 67, 47, 0.5);
+        color: var(--red);
+      }
+
+      .rating-popover {
+        position: absolute;
+        top: calc(100% + 7px);
+        right: 0;
+        z-index: 20;
+        min-width: 178px;
+        border: 1px solid rgba(17, 18, 15, 0.24);
+        padding: 9px 10px;
+        background: rgba(255, 253, 248, 0.98);
+        box-shadow: 0 14px 34px rgba(17, 18, 15, 0.14);
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        line-height: 1.6;
+        opacity: 0;
+        pointer-events: none;
+        text-transform: none;
+        transform: translateY(-3px);
+        transition:
+          opacity 120ms ease,
+          transform 120ms ease;
+      }
+
+      .rating-popover::before {
+        content: "";
+        position: absolute;
+        top: -7px;
+        right: 12px;
+        width: 10px;
+        height: 10px;
+        border-top: 1px solid rgba(17, 18, 15, 0.24);
+        border-left: 1px solid rgba(17, 18, 15, 0.24);
+        background: rgba(255, 253, 248, 0.98);
+        transform: rotate(45deg);
+      }
+
+      .rating-badge:hover .rating-popover,
+      .rating-badge:focus .rating-popover,
+      .rating-badge:focus-within .rating-popover {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .preview-link {
+        display: block;
+        margin: 0 0 14px;
+        overflow: hidden;
+        border: 1px solid rgba(17, 18, 15, 0.14);
+        background: var(--paper-2);
+        aspect-ratio: 16 / 10;
+      }
+
+      .preview-shot {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        transform: scale(1.01);
+        transition: transform 180ms ease;
+      }
+
+      .gallery-card:hover .preview-shot {
+        transform: scale(1.035);
+      }
+
+      .preview-placeholder {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        place-items: center;
+        padding: 16px;
+        color: var(--muted);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        line-height: 1.5;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .card-summary {
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .coverage-count {
+        margin-top: auto;
+        padding-top: 24px;
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .card-path {
+        margin-top: 8px;
+        overflow-wrap: anywhere;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.45;
+      }
+
+      .card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 12px;
+      }
+
+      .card-actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        border: 1px solid rgba(17, 18, 15, 0.34);
+        padding: 0 9px;
+        color: var(--ink);
+        background: rgba(255, 253, 248, 0.5);
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .card-actions a:hover {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .frame-wrap,
+      .meta,
+      .pill-row {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        .gallery-header {
+          grid-template-columns: 1fr;
+          min-height: auto;
+          padding-top: 64px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .gallery {
+          padding: 54px 10px 28px;
+        }
+
+        .gallery-header h1 {
+          font-size: 44px;
+        }
+
+        .gallery-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .card-kicker {
+          align-items: flex-start;
+        }
+
+        .card-kicker-meta {
+          max-width: 62%;
+        }
+
+        .rating-popover {
+          right: -4px;
+          max-width: calc(100vw - 40px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="mode-switch" aria-label="Homepage design lab view mode">
+      <a href="index.html?view=gallery&lane=pages" data-mode="gallery" data-lane="pages">pages</a>
+      <a href="index.html?view=gallery&lane=elements" data-mode="gallery" data-lane="elements">elements</a>
+      <a href="index.html?view=compare" data-mode="compare">compare</a>
+    </nav>
+
+    <main class="gallery" aria-label="AIM homepage design gallery">
+      <header class="gallery-header">
+        <div>
+          <p class="eyebrow">review-only / page experiments</p>
+          <h1>AIM Page Design Lab</h1>
+        </div>
+        <p class="note">
+          Быстрый индекс полноценных страниц: homepage concepts и payment page concepts со скриншотами для ориентации. Elements живут отдельной вкладкой, compare — для shortlist.
+        </p>
+      </header>
+      <section class="filters" aria-label="Variant filters"></section>
+      <section class="gallery-grid" aria-label="Homepage design variants"></section>
+    </main>
+
+    <main class="compare" aria-label="AIM homepage design comparison">
+      <section class="pane" data-pane="left" aria-label="Левый вариант homepage design">
+        <div class="toolbar">
+          <button class="nav-button" type="button" data-action="prev" aria-label="Предыдущий левый вариант">‹</button>
+          <div class="toolbar-center">
+            <div class="device-row">
+              <button class="device-button" type="button" data-device="desktop" aria-pressed="true">desktop</button>
+              <button class="device-button" type="button" data-device="mobile" aria-pressed="false">mobile</button>
+            </div>
+            <div class="pane-tabs" aria-label="Левые варианты"></div>
+          </div>
+          <button class="nav-button" type="button" data-action="next" aria-label="Следующий левый вариант">›</button>
+        </div>
+        <div class="stage"></div>
+      </section>
+
+      <div class="splitter" role="separator" aria-orientation="vertical" aria-label="Изменить ширину сравнения" tabindex="0"></div>
+
+      <section class="pane" data-pane="right" aria-label="Правый вариант homepage design">
+        <div class="toolbar">
+          <button class="nav-button" type="button" data-action="prev" aria-label="Предыдущий правый вариант">‹</button>
+          <div class="toolbar-center">
+            <div class="device-row">
+              <button class="device-button" type="button" data-device="desktop" aria-pressed="true">desktop</button>
+              <button class="device-button" type="button" data-device="mobile" aria-pressed="false">mobile</button>
+            </div>
+            <div class="pane-tabs" aria-label="Правые варианты"></div>
+          </div>
+          <button class="nav-button" type="button" data-action="next" aria-label="Следующий правый вариант">›</button>
+        </div>
+        <div class="stage"></div>
+      </section>
+    </main>
+    <div class="hint">A/D left · ←/→ right · drag divider</div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const viewMode = params.get("view") === "compare" ? "compare" : "gallery";
+      const includeHiddenVariants = params.get("include") === "hidden";
+      document.body.classList.add(`${viewMode}-mode`);
+
+      const state = {
+        variants: [],
+        visibleVariants: [],
+        filter: params.get("lane") || (viewMode === "gallery" ? "pages" : "all"),
+        left: 0,
+        right: 1,
+        leftDevice: params.get("leftDevice") === "mobile" ? "mobile" : params.get("device") === "mobile" ? "mobile" : "desktop",
+        rightDevice: params.get("rightDevice") === "mobile" ? "mobile" : params.get("device") === "mobile" ? "mobile" : "desktop",
+        split: params.has("split") && Number.isFinite(Number(params.get("split"))) ? Math.min(78, Math.max(22, Number(params.get("split")))) : 50,
+      };
+
+      const manifestUrl = "manifest.json";
+      const paymentManifestUrl = "../v3-site-repo-aimwebsite0-5-payment-page-design-lab/manifest.json";
+      const paymentLabBase = "../v3-site-repo-aimwebsite0-5-payment-page-design-lab/";
+      const feedbackRegistryUrl = "../design-feedback-dashboard/data/design-feedback-registry.json";
+      const ratingReviewers = [
+        { id: "sonya", label: "Соня" },
+        { id: "sasha", label: "Саша" },
+        { id: "anka", label: "Анка" },
+      ];
+
+      document.querySelectorAll(".mode-switch a").forEach((link) => {
+        const linkUrl = new URL(link.href, window.location.href);
+        const isCurrent = linkUrl.searchParams.get("view") === viewMode
+          && (viewMode === "compare" || (linkUrl.searchParams.get("lane") || "pages") === state.filter);
+        if (isCurrent) link.setAttribute("aria-current", "page");
+      });
+
+      const escapeHtml = (value) => String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+      const getVariantIndex = (id, fallback) => {
+        const index = state.visibleVariants.findIndex((variant) => variant.id === id);
+        return index >= 0 ? index : Math.min(fallback, Math.max(0, state.visibleVariants.length - 1));
+      };
+
+      const safeId = (value) => String(value ?? "")
+        .replace(/[^a-z0-9_-]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase();
+
+      const isReviewVisibleVariant = (variant) => {
+        const status = String(variant.status || "").toLowerCase();
+        return variant.showInGallery !== false
+          && !status.includes("rejected")
+          && !status.includes("archived")
+          && !status.includes("hidden")
+          && String(variant.reviewDisposition || "").toLowerCase() !== "structure-only";
+      };
+
+      const normalizeRatingValue = (value) => {
+        if (value === null || value === undefined || value === "") return null;
+        if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, Math.min(10, value));
+        if (value && typeof value === "object") return normalizeRatingValue(value.rating ?? value.score ?? value.value);
+        const number = Number(value);
+        return Number.isFinite(number) ? Math.max(0, Math.min(10, number)) : null;
+      };
+
+      const normalizePathKey = (value) => String(value ?? "")
+        .toLowerCase()
+        .replace(window.location.origin.toLowerCase(), "")
+        .replace(/https?:\/\/(?:127\.0\.0\.1|localhost|192\.168\.\d+\.\d+):5123\//g, "")
+        .replace(/^\/?preview\//, "")
+        .replace(/^\/+/, "")
+        .replace(/\/index\.html$/, "/")
+        .replace(/\/index\.html\?/g, "/?")
+        .replace(/\/+/g, "/");
+
+      const variantMatchKeys = (variant) => {
+        const keys = new Set([
+          variant.id,
+          variant.originalId,
+          variant.path,
+          variant.artifact,
+          variant.artifactPath,
+          variant.previewImage,
+        ].filter(Boolean));
+
+        if (variant.category === "homepage" || variant.category === "elements") {
+          keys.add(`V3 Site Repo - aimwebsite0.5/homepage-design-lab/${variant.path}`);
+          keys.add(`homepage-design-lab/${variant.path}`);
+          keys.add(`v3-site-repo-aimwebsite0-5-homepage-design-lab/${variant.path}`);
+        }
+
+        if (variant.category === "payment") {
+          keys.add(`V3 Site Repo - aimwebsite0.5/payment-page-design-lab/${variant.path.split("/").pop() || ""}`);
+          keys.add(`V3 Site Repo - aimwebsite0.5/payment-page-design-lab/?variant=${variant.originalId}`);
+          keys.add(`V3 Site Repo - aimwebsite0.5/payment-page-design-lab/index.html?variant=${variant.originalId}`);
+          keys.add(`payment-page-design-lab/?variant=${variant.originalId}`);
+          keys.add(`payment-page-design-lab/index.html?variant=${variant.originalId}`);
+          keys.add(`v3-site-repo-aimwebsite0-5-payment-page-design-lab/index.html?variant=${variant.originalId}`);
+        }
+
+        return Array.from(keys).map(normalizePathKey).filter(Boolean);
+      };
+
+      const eventMatchesVariant = (event, variant) => {
+        const keys = variantMatchKeys(variant);
+        const haystacks = [
+          event.artifact,
+          event.artifactUrl,
+          event.id,
+          event.sonya?.candidateId,
+          event.sonya?.shortId,
+        ].map(normalizePathKey).filter(Boolean);
+
+        return haystacks.some((haystack) => keys.some((key) => haystack === key || haystack.includes(key) || key.includes(haystack)));
+      };
+
+      const reviewerIdForEvent = (event) => {
+        const source = `${event.source || ""} ${event.rater?.username || ""} ${event.rater?.displayName || ""} ${event.rater?.firstName || ""} ${event.rater?.lastName || ""} ${event.id || ""}`.toLowerCase();
+        if (source.includes("alex_named") || source.includes("саша") || source.includes("sasha")) return "sasha";
+        if (source.includes("stavenski") || source.includes("анка") || source.includes("anka")) return "anka";
+        if (source.includes("sonya") || source.includes("соня")) return "sonya";
+        return null;
+      };
+
+      const buildRatingLookup = (registry, variants) => {
+        const lookup = {};
+
+        variants.forEach((variant) => {
+          lookup[variant.id] = {
+            sonya: null,
+            sasha: null,
+            anka: null,
+            sources: {},
+          };
+        });
+
+        (Array.isArray(registry?.artifactRatings) ? registry.artifactRatings : []).forEach((item) => {
+          variants.forEach((variant) => {
+            const itemKeys = [
+              item.artifactId,
+              item.variantId,
+              item.id,
+              item.artifact,
+              item.path,
+              item.url,
+            ].map(normalizePathKey).filter(Boolean);
+            const variantKeys = variantMatchKeys(variant);
+            const matches = itemKeys.some((itemKey) => variantKeys.some((variantKey) => itemKey === variantKey || itemKey.includes(variantKey) || variantKey.includes(itemKey)));
+            if (!matches) return;
+            ratingReviewers.forEach((reviewer) => {
+              const rating = normalizeRatingValue(item.ratings?.[reviewer.id] ?? item[`${reviewer.id}Rating`] ?? item[reviewer.id]);
+              if (rating === null) return;
+              lookup[variant.id][reviewer.id] = rating;
+              lookup[variant.id].sources[reviewer.id] = item.updatedAt || item.date || "artifact rating";
+            });
+          });
+        });
+
+        (Array.isArray(registry?.feedbackEvents) ? registry.feedbackEvents : []).forEach((event) => {
+          variants.forEach((variant) => {
+            if (!eventMatchesVariant(event, variant)) return;
+
+            const sonyaScore = normalizeRatingValue(event.sonya?.score);
+            if (sonyaScore !== null) {
+              lookup[variant.id].sonya = sonyaScore;
+              lookup[variant.id].sources.sonya = event.updatedAt || event.date || event.id;
+            }
+
+            const reviewerId = reviewerIdForEvent(event);
+            const rating = normalizeRatingValue(event.rating);
+            if (!reviewerId || rating === null) return;
+            lookup[variant.id][reviewerId] = rating;
+            lookup[variant.id].sources[reviewerId] = event.updatedAt || event.date || event.id;
+          });
+        });
+
+        return lookup;
+      };
+
+      const ratingSummaryFor = (variant) => {
+        const ratings = state.ratings?.[variant.id] || {};
+        const values = ratingReviewers.map((reviewer) => ({ ...reviewer, rating: normalizeRatingValue(ratings[reviewer.id]) }));
+        const known = values.filter((item) => item.rating !== null);
+        const total = known.reduce((sum, item) => sum + item.rating, 0);
+        const totalRounded = Number.isInteger(total) ? total : Number(total.toFixed(1));
+        const stateClass = known.length === 0
+          ? "is-empty"
+          : known.length === ratingReviewers.length && total >= 24
+            ? "is-strong"
+            : known.length === ratingReviewers.length && total < 18
+              ? "is-weak"
+              : "";
+
+        return {
+          values,
+          knownCount: known.length,
+          total: totalRounded,
+          label: known.length ? `Σ ${totalRounded}/30` : "Σ —/30",
+          stateClass,
+        };
+      };
+
+      const renderRatingBadge = (variant) => {
+        const summary = ratingSummaryFor(variant);
+        const rows = summary.values.map((item) => `${escapeHtml(item.label)}: ${item.rating === null ? "—" : `${escapeHtml(item.rating)}/10`}`).join("<br>");
+        const aria = `Рейтинг ${variant.title}: ${summary.knownCount ? `${summary.label}; ` : "нет оценок; "}Соня ${summary.values[0].rating ?? "нет"}, Саша ${summary.values[1].rating ?? "нет"}, Анка ${summary.values[2].rating ?? "нет"}`;
+        return `
+          <span class="rating-badge ${summary.stateClass}" tabindex="0" role="button" aria-label="${escapeHtml(aria)}">
+            ${escapeHtml(summary.label)}
+            <span class="rating-popover" aria-hidden="true">${rows}</span>
+          </span>
+        `;
+      };
+
+      const normalizeHomepageVariants = (manifest) => (Array.isArray(manifest.variants) ? manifest.variants : []).map((variant) => {
+        const isElement = variant.lane === "elements";
+        return {
+          ...variant,
+          id: `${isElement ? "element" : "homepage"}-${variant.id}`,
+          originalId: variant.id,
+          category: isElement ? "elements" : "homepage",
+          previewImage: `assets/previews/${isElement ? "element" : "homepage"}-${safeId(variant.id)}.png`,
+          metricLabel: isElement
+            ? `${Array.isArray(variant.coversBlocks) ? variant.coversBlocks.length : 0} source blocks`
+            : `${Array.isArray(variant.coversBlocks) ? variant.coversBlocks.length : 0} homepage blocks`,
+        };
+      });
+
+      const paymentPathFor = (variant) => {
+        if (variant.artifact && variant.artifact.includes("?")) {
+          return `${paymentLabBase}${variant.artifact}`;
+        }
+        if (variant.artifact && variant.artifact.includes("/")) {
+          return `${paymentLabBase}${variant.artifact}`;
+        }
+        return `${paymentLabBase}index.html?variant=${encodeURIComponent(variant.id)}`;
+      };
+
+      const normalizePaymentVariants = (manifest) => (Array.isArray(manifest.variants) ? manifest.variants : []).map((variant) => ({
+        id: `payment-${variant.id}`,
+        originalId: variant.id,
+        lane: "payment",
+        category: "payment",
+        area: "payment",
+        title: variant.title,
+        date: manifest.updatedAt || "",
+        path: paymentPathFor(variant),
+        readme: variant.readme ? `${paymentLabBase}${variant.readme}` : `${paymentLabBase}README.md`,
+        summary: variant.compositionRule || variant.reference || "Payment page visual direction with current payment copy and UX preserved.",
+        previewImage: `assets/previews/payment-${safeId(variant.id)}.png`,
+        metricLabel: `${manifest.paymentUx?.paymentStates?.length || 5} payment states`,
+        coversBlocks: ["payment-page", "checkout", "form", "redirect", "paid", "failed"],
+      }));
+
+      const updateVisibleVariants = () => {
+        const orderedVariants = [...state.variants]
+          .filter((variant) => includeHiddenVariants || isReviewVisibleVariant(variant))
+          .reverse();
+        const filterMap = {
+          pages: new Set(["homepage", "payment"]),
+          full: new Set(["homepage"]),
+          homepage: new Set(["homepage"]),
+          payment: new Set(["payment"]),
+          elements: new Set(["elements"]),
+        };
+        state.visibleVariants = state.filter === "all"
+          ? orderedVariants
+          : filterMap[state.filter]
+            ? orderedVariants.filter((variant) => filterMap[state.filter].has(variant.category))
+            : orderedVariants.filter((variant) => variant.lane === state.filter || variant.area === state.filter || variant.category === state.filter);
+        if (!state.visibleVariants.length) {
+          state.visibleVariants = orderedVariants;
+        }
+      };
+
+      const updateUrl = () => {
+        const nextParams = new URLSearchParams(window.location.search);
+        nextParams.set("view", viewMode);
+        if (state.filter !== "all") nextParams.set("lane", state.filter);
+        else nextParams.delete("lane");
+        if (state.visibleVariants[state.left]) nextParams.set("left", state.visibleVariants[state.left].id);
+        if (state.visibleVariants[state.right]) nextParams.set("right", state.visibleVariants[state.right].id);
+        nextParams.set("split", String(Math.round(state.split)));
+        nextParams.set("leftDevice", state.leftDevice);
+        nextParams.set("rightDevice", state.rightDevice);
+        window.history.replaceState(null, "", `${window.location.pathname}?${nextParams.toString()}`);
+      };
+
+      const makeFrame = (variant) => {
+        const frame = document.createElement("iframe");
+        frame.src = variant.path;
+        frame.title = variant.title;
+        frame.loading = "eager";
+        return frame;
+      };
+
+      const renderFilters = () => {
+        const filters = document.querySelector(".filters");
+        if (!filters) return;
+        const filterSource = includeHiddenVariants ? state.variants : state.variants.filter(isReviewVisibleVariant);
+        const lanes = [
+          ["pages", "pages"],
+          ["homepage", "homepage"],
+          ["payment", "payment"],
+          ["elements", "elements"],
+          ["all", "all"],
+          ...Array.from(new Set(filterSource.map((variant) => variant.area).filter(Boolean))).map((area) => [area, area]),
+        ];
+        filters.textContent = "";
+        lanes.forEach(([value, label]) => {
+          const button = document.createElement("button");
+          button.className = "filter-button";
+          button.type = "button";
+          button.textContent = label;
+          button.setAttribute("aria-pressed", state.filter === value ? "true" : "false");
+          button.addEventListener("click", () => {
+            state.filter = value;
+            updateVisibleVariants();
+            renderFilters();
+            renderGallery();
+            updateUrl();
+          });
+          filters.append(button);
+        });
+      };
+
+      const renderGallery = () => {
+        const grid = document.querySelector(".gallery-grid");
+        if (!grid) return;
+        grid.textContent = "";
+        if (!state.visibleVariants.length) {
+          grid.innerHTML = '<div class="empty">No variants in manifest yet.</div>';
+          return;
+        }
+
+        state.visibleVariants.forEach((variant, index) => {
+          const card = document.createElement("article");
+          card.className = `gallery-card ${variant.category === "homepage" || variant.category === "payment" ? "is-full" : ""}`;
+          const serial = String(state.visibleVariants.length - index).padStart(2, "0");
+          const compareUrl = `index.html?view=compare&left=${encodeURIComponent(variant.id)}&right=${encodeURIComponent(state.visibleVariants[Math.min(index + 1, state.visibleVariants.length - 1)]?.id || variant.id)}`;
+          const cardType = variant.category === "payment" ? "payment" : variant.category === "elements" ? "element" : "homepage";
+          const previewMarkup = variant.previewImage
+            ? `<a class="preview-link" href="${escapeHtml(variant.path)}" aria-label="Open ${escapeHtml(variant.title)}"><img class="preview-shot" src="${escapeHtml(variant.previewImage)}" alt="Screenshot preview: ${escapeHtml(variant.title)}" loading="lazy" onerror="this.closest('.preview-link').innerHTML='<span class=&quot;preview-placeholder&quot;>preview missing<br>run capture script</span>'"></a>`
+            : `<a class="preview-link" href="${escapeHtml(variant.path)}"><span class="preview-placeholder">preview missing<br>run capture script</span></a>`;
+          card.innerHTML = `
+            <div class="card-kicker">
+              <span class="card-kicker-main">${cardType} ${serial}</span>
+              <span class="card-kicker-meta">
+                <span class="card-date">${escapeHtml(variant.date || "")}</span>
+                ${renderRatingBadge(variant)}
+              </span>
+            </div>
+            ${previewMarkup}
+            <h2 class="card-title">${escapeHtml(variant.title)}</h2>
+            <p class="card-summary">${escapeHtml(variant.summary || "")}</p>
+            <div class="coverage-count">${escapeHtml(variant.metricLabel || "review artifact")}</div>
+            <div class="card-path">${escapeHtml(variant.path)}</div>
+            <div class="card-actions">
+              <a href="${escapeHtml(variant.path)}">open page</a>
+              ${variant.readme ? `<a href="${escapeHtml(variant.readme)}">readme</a>` : ""}
+              <a href="${escapeHtml(compareUrl)}">compare</a>
+            </div>
+          `;
+          grid.append(card);
+        });
+      };
+
+      const setSplit = (value, shouldUpdateUrl = true) => {
+        state.split = Math.min(78, Math.max(22, value));
+        document.documentElement.style.setProperty("--split", `${state.split}%`);
+        if (shouldUpdateUrl) updateUrl();
+      };
+
+      const syncPaneDeviceControls = (pane) => {
+        const paneKey = pane.dataset.pane;
+        pane.dataset.device = state[`${paneKey}Device`];
+        pane.querySelectorAll(".device-button").forEach((button) => {
+          button.setAttribute("aria-pressed", button.dataset.device === state[`${paneKey}Device`] ? "true" : "false");
+        });
+      };
+
+      const renderPaneTabs = (pane) => {
+        const paneKey = pane.dataset.pane;
+        const tabs = pane.querySelector(".pane-tabs");
+        tabs.textContent = "";
+        state.visibleVariants.forEach((variant, index) => {
+          const tab = document.createElement("button");
+          tab.className = "tab-button";
+          tab.type = "button";
+          tab.dataset.variant = variant.id;
+          tab.textContent = variant.title;
+          tab.setAttribute("aria-pressed", state[paneKey] === index ? "true" : "false");
+          tab.addEventListener("click", () => setActivePaneVariant(paneKey, index));
+          tabs.append(tab);
+        });
+      };
+
+      const setActivePaneVariant = (paneKey, index) => {
+        const pane = document.querySelector(`[data-pane="${paneKey}"]`);
+        const variant = state.visibleVariants[index];
+        if (!pane || !variant) return;
+        state[paneKey] = index;
+        pane.querySelectorAll(".variant-layer").forEach((layer) => {
+          layer.classList.toggle("active", layer.dataset.variant === variant.id);
+        });
+        pane.querySelectorAll(".tab-button").forEach((button) => {
+          button.setAttribute("aria-pressed", button.dataset.variant === variant.id ? "true" : "false");
+        });
+        updateUrl();
+      };
+
+      const movePane = (paneKey, direction) => {
+        if (!state.visibleVariants.length) return;
+        const nextIndex = (state[paneKey] + direction + state.visibleVariants.length) % state.visibleVariants.length;
+        setActivePaneVariant(paneKey, nextIndex);
+      };
+
+      const setPaneDevice = (paneKey, device) => {
+        const pane = document.querySelector(`[data-pane="${paneKey}"]`);
+        state[`${paneKey}Device`] = device;
+        syncPaneDeviceControls(pane);
+        setActivePaneVariant(paneKey, state[paneKey]);
+      };
+
+      const buildPane = (pane) => {
+        const paneKey = pane.dataset.pane;
+        const stage = pane.querySelector(".stage");
+        stage.textContent = "";
+        state.visibleVariants.forEach((variant) => {
+          const layer = document.createElement("div");
+          layer.className = "variant-layer";
+          layer.dataset.variant = variant.id;
+          layer.append(makeFrame(variant));
+          stage.append(layer);
+        });
+
+        pane.querySelector('[data-action="prev"]').addEventListener("click", () => movePane(paneKey, -1));
+        pane.querySelector('[data-action="next"]').addEventListener("click", () => movePane(paneKey, 1));
+        pane.querySelectorAll(".device-button").forEach((button) => {
+          button.addEventListener("click", () => setPaneDevice(paneKey, button.dataset.device));
+        });
+        syncPaneDeviceControls(pane);
+        renderPaneTabs(pane);
+      };
+
+      const renderCompare = () => {
+        state.left = getVariantIndex(params.get("left"), 0);
+        state.right = getVariantIndex(params.get("right"), Math.min(1, Math.max(0, state.visibleVariants.length - 1)));
+        document.querySelectorAll(".pane").forEach(buildPane);
+        document.querySelectorAll(".pane").forEach((pane) => setActivePaneVariant(pane.dataset.pane, state[pane.dataset.pane]));
+        setSplit(state.split, false);
+      };
+
+      const setupSplitter = () => {
+        const splitter = document.querySelector(".splitter");
+        let isResizing = false;
+        const updateSplitFromPointer = (clientX) => {
+          const rect = document.querySelector(".compare").getBoundingClientRect();
+          setSplit(((clientX - rect.left) / rect.width) * 100);
+        };
+        splitter.addEventListener("pointerdown", (event) => {
+          isResizing = true;
+          document.body.classList.add("is-resizing");
+          splitter.setPointerCapture(event.pointerId);
+          updateSplitFromPointer(event.clientX);
+        });
+        splitter.addEventListener("pointermove", (event) => {
+          if (isResizing) updateSplitFromPointer(event.clientX);
+        });
+        const stopResize = (event) => {
+          if (!isResizing) return;
+          isResizing = false;
+          document.body.classList.remove("is-resizing");
+          try {
+            splitter.releasePointerCapture(event.pointerId);
+          } catch {}
+          updateUrl();
+        };
+        splitter.addEventListener("pointerup", stopResize);
+        splitter.addEventListener("pointercancel", stopResize);
+        splitter.addEventListener("dblclick", () => setSplit(50));
+      };
+
+      window.addEventListener("keydown", (event) => {
+        if (event.target?.matches?.("input, textarea, select, button")) return;
+        if (event.key === "a" || event.key === "A") movePane("left", -1);
+        if (event.key === "d" || event.key === "D") movePane("left", 1);
+        if (event.key === "ArrowLeft") movePane("right", -1);
+        if (event.key === "ArrowRight") movePane("right", 1);
+      });
+
+      Promise.all([
+        fetch(manifestUrl, { cache: "no-store" }).then((response) => {
+          if (!response.ok) throw new Error(`homepage manifest ${response.status}`);
+          return response.json();
+        }),
+        fetch(paymentManifestUrl, { cache: "no-store" }).then((response) => {
+          if (!response.ok) throw new Error(`payment manifest ${response.status}`);
+          return response.json();
+        }),
+        fetch(feedbackRegistryUrl, { cache: "no-store" }).then((response) => {
+          if (!response.ok) return {};
+          return response.json();
+        }).catch(() => ({})),
+      ])
+        .then(([manifest, paymentManifest, feedbackRegistry]) => {
+          state.variants = [
+            ...normalizeHomepageVariants(manifest),
+            ...normalizePaymentVariants(paymentManifest),
+          ];
+          state.ratings = buildRatingLookup(feedbackRegistry, state.variants);
+          updateVisibleVariants();
+          renderFilters();
+          if (viewMode === "gallery") {
+            renderGallery();
+          } else {
+            renderCompare();
+            setupSplitter();
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+          const grid = document.querySelector(".gallery-grid");
+          if (grid) grid.innerHTML = '<div class="empty">Manifest failed to load. Serve this folder through a local server.</div>';
+        });
+    </script>
+  </body>
+</html>

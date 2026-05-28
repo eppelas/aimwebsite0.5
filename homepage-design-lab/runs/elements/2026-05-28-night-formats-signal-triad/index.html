@@ -1,0 +1,929 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Element — Formats Signal Triad</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        color-scheme: light;
+        --bg: #f6f5f1;
+        --paper: #fffdf8;
+        --ink: #11120f;
+        --muted: #666760;
+        --line: rgba(17, 18, 15, 0.16);
+        --shadow: 0 24px 64px rgba(17, 18, 15, 0.08);
+        --accent: #315f8c;
+        --accent2: #4f8f2f;
+        --accent3: #c7432f;
+        --radius: 18px;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        overflow-x: hidden;
+        background: radial-gradient(1200px 680px at 14% -20%, rgba(49, 95, 140, 0.14), transparent 60%),
+          radial-gradient(840px 520px at 86% 10%, rgba(79, 143, 47, 0.12), transparent 55%),
+          radial-gradient(760px 520px at 72% 110%, rgba(199, 67, 47, 0.09), transparent 58%),
+          var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      a,
+      button {
+        font: inherit;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .skip {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+
+      .skip:focus {
+        left: 12px;
+        top: 12px;
+        width: auto;
+        height: auto;
+        padding: 10px 12px;
+        background: var(--paper);
+        border: 1px solid var(--ink);
+        z-index: 30;
+      }
+
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 28px 14px 40px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .kicker {
+        color: var(--muted);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+
+      .meta {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        min-width: 0;
+        color: var(--muted);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+
+      .badge {
+        border: 1px solid var(--line);
+        padding: 5px 8px;
+        background: rgba(255, 253, 248, 0.7);
+        backdrop-filter: blur(8px);
+        white-space: nowrap;
+      }
+
+      .formats {
+        margin-top: 20px;
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.72);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .formats-head {
+        padding: 18px 18px 0;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 16px;
+        align-items: end;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(34px, 5.3vw, 74px);
+        line-height: 0.92;
+        letter-spacing: -0.06em;
+        text-transform: uppercase;
+      }
+
+      .lead {
+        margin: 0 0 8px;
+        color: #34352f;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .lead strong {
+        font-weight: 900;
+      }
+
+      .hint {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .tabs {
+        position: relative;
+        margin: 16px 18px 0;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.42);
+        overflow: hidden;
+      }
+
+      .tablist {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .tab-indicator {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        width: calc((100% - 12px - 12px) / 3);
+        height: calc(100% - 12px);
+        border-radius: 999px;
+        background: radial-gradient(140% 160% at 20% 20%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.52));
+        border: 1px solid rgba(17, 18, 15, 0.14);
+        box-shadow: 0 18px 38px rgba(17, 18, 15, 0.1);
+        transform: translateX(calc(var(--active-index, 0) * 100%));
+        transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        z-index: 1;
+      }
+
+      .tab {
+        cursor: pointer;
+        border: 0;
+        background: transparent;
+        border-radius: 999px;
+        padding: 10px 10px;
+        min-width: 0;
+        color: rgba(17, 18, 15, 0.84);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 10px;
+        line-height: 1.1;
+        text-align: center;
+        white-space: normal;
+      }
+
+      .tab:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .tab[aria-selected="true"] {
+        color: var(--ink);
+      }
+
+      .tab small {
+        display: block;
+        margin-top: 5px;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: rgba(17, 18, 15, 0.56);
+      }
+
+      .stage {
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 0.92fr 1.08fr;
+        gap: 14px;
+      }
+
+      .signal-card,
+      .content-card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+      }
+
+      .signal-card {
+        position: relative;
+        min-height: 280px;
+      }
+
+      .signal-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 14px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .signal-title {
+        margin: 0;
+        font-weight: 900;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .signal-label {
+        margin: 0;
+        color: var(--muted);
+        font-weight: 900;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .signal-body {
+        padding: 14px;
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        gap: 12px;
+      }
+
+      .rhythm {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.65);
+        padding: 6px 8px;
+        border-radius: 999px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 9px;
+        color: rgba(17, 18, 15, 0.78);
+      }
+
+      .chip em {
+        font-style: normal;
+        color: rgba(17, 18, 15, 0.56);
+      }
+
+      .strip {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 9px 10px;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.3));
+      }
+
+      .strip-track {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 4px;
+        align-items: center;
+      }
+
+      .tick {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(17, 18, 15, 0.11);
+      }
+
+      .strip .runner {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        width: calc((100% - 20px) / 12);
+        height: 14px;
+        border-radius: 999px;
+        transform: translate(0, -50%);
+        background: radial-gradient(100% 120% at 30% 30%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.2));
+        border: 1px solid rgba(17, 18, 15, 0.16);
+        box-shadow: 0 10px 26px rgba(17, 18, 15, 0.12);
+        animation: runner var(--runner-speed, 2.6s) ease-in-out infinite;
+        will-change: transform;
+      }
+
+      .formats[data-active="lab"] .strip .runner {
+        --runner-steps: 11;
+        --runner-speed: 3.2s;
+        --runner-glow: rgba(49, 95, 140, 0.36);
+      }
+
+      .formats[data-active="sprint"] .strip .runner {
+        --runner-steps: 5;
+        --runner-speed: 2.3s;
+        --runner-glow: rgba(79, 143, 47, 0.34);
+      }
+
+      .formats[data-active="workshop"] .strip .runner {
+        --runner-steps: 1;
+        --runner-speed: 1.8s;
+        --runner-glow: rgba(199, 67, 47, 0.3);
+      }
+
+      .strip .runner::after {
+        content: "";
+        position: absolute;
+        inset: 1px;
+        border-radius: 999px;
+        background: radial-gradient(120% 160% at 20% 20%, var(--runner-glow, rgba(49, 95, 140, 0.36)), rgba(255, 255, 255, 0));
+        opacity: 0.95;
+      }
+
+      @keyframes runner {
+        0% {
+          transform: translate(0, -50%);
+        }
+        50% {
+          transform: translate(calc(var(--runner-steps, 11) * 100%), -50%);
+        }
+        100% {
+          transform: translate(0, -50%);
+        }
+      }
+
+      .signal-note {
+        margin: 0;
+        color: #34352f;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .signal-note strong {
+        font-weight: 900;
+      }
+
+      .legend {
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .legend-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .legend-key {
+        color: rgba(17, 18, 15, 0.62);
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 10px;
+        white-space: nowrap;
+      }
+
+      .legend-val {
+        text-align: right;
+        color: rgba(17, 18, 15, 0.92);
+        font-weight: 800;
+        font-size: 13px;
+      }
+
+      .content-card {
+        min-height: 280px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+
+      .content-top {
+        padding: 14px;
+        border-bottom: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: baseline;
+        min-width: 0;
+      }
+
+      .format-title {
+        margin: 0;
+        font-size: clamp(22px, 3.4vw, 40px);
+        line-height: 0.98;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+        min-width: 0;
+      }
+
+      .format-tag {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 9px;
+        color: rgba(17, 18, 15, 0.7);
+        white-space: nowrap;
+      }
+
+      .panels {
+        position: relative;
+        min-height: 0;
+      }
+
+      .panel {
+        position: absolute;
+        inset: 0;
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(6px);
+        transition: opacity 220ms ease, transform 220ms ease;
+      }
+
+      .panel.active {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+
+      .panel h3 {
+        margin: 0 0 8px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 10px;
+        color: rgba(17, 18, 15, 0.72);
+      }
+
+      .panel ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #34352f;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .panel li + li {
+        margin-top: 6px;
+      }
+
+      .panel p {
+        margin: 0;
+        color: #34352f;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .panel .box {
+        border: 1px dashed rgba(17, 18, 15, 0.22);
+        border-radius: 12px;
+        padding: 12px;
+        background: rgba(255, 253, 248, 0.55);
+      }
+
+      .panel .box .mono {
+        color: rgba(17, 18, 15, 0.72);
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 10px;
+      }
+
+      .panel .box .big {
+        margin-top: 6px;
+        font-weight: 900;
+        font-size: 18px;
+        letter-spacing: -0.03em;
+      }
+
+      .footer {
+        padding: 14px 18px 18px;
+        border-top: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .foot-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(17, 18, 15, 0.22);
+        background: rgba(255, 255, 255, 0.68);
+        color: var(--ink);
+        text-decoration: none;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 10px;
+        white-space: nowrap;
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: rgba(17, 18, 15, 0.5);
+        box-shadow: 0 18px 36px rgba(17, 18, 15, 0.08);
+      }
+
+      .btn:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .btn.primary {
+        background: linear-gradient(180deg, rgba(17, 18, 15, 0.92), rgba(17, 18, 15, 0.86));
+        color: #fff;
+        border-color: rgba(17, 18, 15, 0.9);
+      }
+
+      .btn.primary:hover {
+        box-shadow: 0 22px 46px rgba(17, 18, 15, 0.18);
+      }
+
+      @media (max-width: 860px) {
+        .formats-head {
+          grid-template-columns: 1fr;
+          padding-bottom: 4px;
+        }
+        .stage {
+          grid-template-columns: 1fr;
+        }
+        .signal-card,
+        .content-card {
+          min-height: auto;
+        }
+        .panel {
+          position: relative;
+          transform: none;
+        }
+        .panels {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .panel {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .wrap {
+          padding: 18px 9px 34px;
+        }
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .tabs {
+          margin-left: 14px;
+          margin-right: 14px;
+        }
+        .stage {
+          padding: 14px;
+        }
+        .formats-head {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+        .footer {
+          grid-template-columns: 1fr;
+          justify-items: stretch;
+        }
+        .actions {
+          justify-content: flex-start;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .tab-indicator,
+        .panel {
+          transition: none !important;
+        }
+        .strip .runner {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip mono" href="#formats">Перейти к блоку «Форматы»</a>
+    <main class="wrap">
+      <header class="topbar" aria-label="Prototype header">
+        <div class="kicker mono">AIM homepage element · formats explainer · review-only</div>
+        <div class="meta mono" aria-live="polite">
+          <span class="badge" id="activeBadge">active: lab</span>
+          <span class="badge">keys: 1/2/3</span>
+        </div>
+      </header>
+
+      <section class="formats" id="formats" data-active="lab" aria-label="Форматы AI Mindset">
+        <div class="formats-head">
+          <div>
+            <h1>Форматы</h1>
+            <p class="lead">Лаб, спринт и воркшоп — три способа учиться и строить. Этот блок не обещает «идеальный путь» — он помогает <strong>быстро выбрать форму</strong> под задачу.</p>
+          </div>
+          <div>
+            <p class="hint mono">Микро‑интеракция: переключение форматов меняет «ритм» и акценты. Полезно как на десктопе (hover), так и на мобильном (tap). Никаких отзывов и статистики.</p>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="Выбор формата">
+          <div class="tab-indicator" aria-hidden="true"></div>
+          <div class="tablist">
+            <button class="tab mono" type="button" role="tab" id="tab-lab" aria-selected="true" aria-controls="panel-lab" data-format="lab" data-index="0">
+              lab
+              <small>глубокая система</small>
+            </button>
+            <button class="tab mono" type="button" role="tab" id="tab-sprint" aria-selected="false" aria-controls="panel-sprint" data-format="sprint" data-index="1">
+              sprint
+              <small>короткий протокол</small>
+            </button>
+            <button class="tab mono" type="button" role="tab" id="tab-workshop" aria-selected="false" aria-controls="panel-workshop" data-format="workshop" data-index="2">
+              workshop
+              <small>один навык</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="stage">
+          <div class="signal-card" aria-label="Сигнал и ритм формата">
+            <div class="signal-top">
+              <p class="signal-title mono">Signal</p>
+              <p class="signal-label mono" id="signalLabel">rhythm: lab</p>
+            </div>
+            <div class="signal-body">
+              <div class="rhythm" aria-label="Краткие теги ритма">
+                <span class="chip mono" id="chipTempo">tempo: <em>steady</em></span>
+                <span class="chip mono" id="chipSync">sync: <em>weekly</em></span>
+                <span class="chip mono" id="chipOutput">output: <em>system</em></span>
+              </div>
+
+              <div class="strip" aria-label="Полоса ритма">
+                <div class="strip-track" aria-hidden="true">
+                  <span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span>
+                  <span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span><span class="tick"></span>
+                </div>
+                <span class="runner" aria-hidden="true"></span>
+              </div>
+
+              <p class="signal-note">Полоса сверху — не «прогресс‑бар». Это визуальный <strong>ритм участия</strong>: насколько часто синхрониться, как быстро получать обратную связь, сколько итераций комфортно.</p>
+
+              <div class="legend" aria-label="Короткая легенда">
+                <div class="legend-row">
+                  <span class="legend-key mono">когда</span>
+                  <span class="legend-val" id="legendWhen">8–12 недель</span>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-key mono">встречи</span>
+                  <span class="legend-val" id="legendMeet">1× в неделю</span>
+                </div>
+                <div class="legend-row">
+                  <span class="legend-key mono">выход</span>
+                  <span class="legend-val" id="legendOutput">модель / система</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-card" aria-label="Содержание и ориентиры">
+            <div class="content-top">
+              <h2 class="format-title" id="formatTitle">LAB</h2>
+              <span class="format-tag mono" id="formatTag">long / deep</span>
+            </div>
+            <div class="panels" aria-live="polite">
+              <article class="panel active" id="panel-lab" role="tabpanel" tabindex="0" aria-labelledby="tab-lab">
+                <div>
+                  <h3 class="mono">Когда подходит</h3>
+                  <ul>
+                    <li>Нужно построить <strong>личную систему</strong>: процессы, ассистенты, навыки.</li>
+                    <li>Хочется не «техники», а <strong>мышления</strong> и устойчивых решений.</li>
+                    <li>Есть задача, которую важно прожить в динамике: гипотезы → итерации → сборка.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="mono">Как устроено</h3>
+                  <div class="box">
+                    <div class="mono">Логика</div>
+                    <div class="big">Карта → практика → обратная связь</div>
+                    <p>Лаборатория держит единый контекст, поэтому удобно делать сложное: связки инструментов, привычки, архитектуру ассистентов.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel" id="panel-sprint" role="tabpanel" tabindex="0" aria-labelledby="tab-sprint">
+                <div>
+                  <h3 class="mono">Когда подходит</h3>
+                  <ul>
+                    <li>Нужно быстро проверить «работает/не работает» и собрать протокол.</li>
+                    <li>Есть конкретный фокус: сон, энергия, фокус, данные, рутина.</li>
+                    <li>Хочется короткого цикла с измеримой привычкой/метрикой (без обещаний результата).</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="mono">Как устроено</h3>
+                  <div class="box">
+                    <div class="mono">Логика</div>
+                    <div class="big">Один фокус → 2–3 итерации</div>
+                    <p>Спринт хорош, когда нужно «включить» AI‑инструмент в жизнь без долгой сборки: минимальный контур, быстрые проверки, фиксация.</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel" id="panel-workshop" role="tabpanel" tabindex="0" aria-labelledby="tab-workshop">
+                <div>
+                  <h3 class="mono">Когда подходит</h3>
+                  <ul>
+                    <li>Нужно освоить <strong>одну</strong> технику: промпт‑паттерн, сценарий, шаблон, инструмент.</li>
+                    <li>Есть ощущение «я почти понимаю, но нужна сборка руками».</li>
+                    <li>Хочется безопасного входа перед лабой/спринтом.</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="mono">Как устроено</h3>
+                  <div class="box">
+                    <div class="mono">Логика</div>
+                    <div class="big">Показ → практика → домашка</div>
+                    <p>Воркшоп — точечная передача навыка. Хорошо работает как «разгон» и как отдельный модуль для команды.</p>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer" aria-label="Block footer">
+          <p class="foot-note mono">Заметка: формулировки намеренно общие — этот блок объясняет механику форматов, а не продаёт конкретный продукт. Для прод‑версии можно привязать к реальным активным программам и ссылкам.</p>
+          <div class="actions" aria-label="Actions">
+            <a class="btn mono" href="https://aimindset.org/" rel="noreferrer">aimindset.org ↗</a>
+            <a class="btn primary mono" href="https://aimindset.org/ai-mindset" rel="noreferrer">main lab ↗</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const root = document.querySelector(".formats");
+        const tabs = Array.from(document.querySelectorAll(".tab"));
+
+        const activeBadge = document.getElementById("activeBadge");
+        const signalLabel = document.getElementById("signalLabel");
+        const chipTempo = document.getElementById("chipTempo");
+        const chipSync = document.getElementById("chipSync");
+        const chipOutput = document.getElementById("chipOutput");
+        const legendWhen = document.getElementById("legendWhen");
+        const legendMeet = document.getElementById("legendMeet");
+        const legendOutput = document.getElementById("legendOutput");
+        const formatTitle = document.getElementById("formatTitle");
+        const formatTag = document.getElementById("formatTag");
+
+        const model = {
+          lab: {
+            index: 0,
+            badge: "active: lab",
+            signal: "rhythm: lab",
+            tempo: "tempo: steady",
+            sync: "sync: weekly",
+            output: "output: system",
+            when: "8–12 недель",
+            meet: "1× в неделю",
+            out: "модель / система",
+            title: "LAB",
+            tag: "long / deep",
+          },
+          sprint: {
+            index: 1,
+            badge: "active: sprint",
+            signal: "rhythm: sprint",
+            tempo: "tempo: fast",
+            sync: "sync: 2× week",
+            output: "output: protocol",
+            when: "1–3 недели",
+            meet: "2× в неделю",
+            out: "протокол / привычка",
+            title: "SPRINT",
+            tag: "short / focused",
+          },
+          workshop: {
+            index: 2,
+            badge: "active: workshop",
+            signal: "rhythm: workshop",
+            tempo: "tempo: burst",
+            sync: "sync: live",
+            output: "output: skill",
+            when: "1 занятие",
+            meet: "live-сессия",
+            out: "навык / шаблон",
+            title: "WORKSHOP",
+            tag: "one skill",
+          },
+        };
+
+        function setActive(format) {
+          const data = model[format];
+          if (!data) return;
+
+          root.dataset.active = format;
+          root.style.setProperty("--active-index", String(data.index));
+
+          tabs.forEach((tab) => {
+            const isActive = tab.dataset.format === format;
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+            tab.tabIndex = isActive ? 0 : -1;
+          });
+
+          document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+          const panel = document.getElementById(`panel-${format}`);
+          if (panel) panel.classList.add("active");
+
+          activeBadge.textContent = data.badge;
+          signalLabel.textContent = data.signal;
+          chipTempo.textContent = data.tempo;
+          chipSync.textContent = data.sync;
+          chipOutput.textContent = data.output;
+          legendWhen.textContent = data.when;
+          legendMeet.textContent = data.meet;
+          legendOutput.textContent = data.out;
+          formatTitle.textContent = data.title;
+          formatTag.textContent = data.tag;
+        }
+
+        tabs.forEach((tab) => {
+          tab.addEventListener("click", () => setActive(tab.dataset.format));
+          tab.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              const dir = e.key === "ArrowRight" ? 1 : -1;
+              const currentIndex = Number(root.style.getPropertyValue("--active-index") || "0");
+              const nextIndex = (currentIndex + dir + tabs.length) % tabs.length;
+              tabs[nextIndex].focus();
+              setActive(tabs[nextIndex].dataset.format);
+            }
+          });
+        });
+
+        window.addEventListener("keydown", (e) => {
+          if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+          if (e.key === "1") setActive("lab");
+          if (e.key === "2") setActive("sprint");
+          if (e.key === "3") setActive("workshop");
+        });
+
+        setActive("lab");
+      })();
+    </script>
+  </body>
+</html>

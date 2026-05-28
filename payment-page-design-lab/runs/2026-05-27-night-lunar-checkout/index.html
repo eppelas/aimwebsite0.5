@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Lunar Checkout</title>
+    <style>
+
+      * { box-sizing: border-box; }
+      :root {
+        color-scheme: dark;
+        --bg: #060706;
+        --panel: rgba(8, 10, 9, 0.68);
+        --panel-soft: rgba(248, 246, 238, 0.045);
+        --ink: #f6f3ea;
+        --ink-dim: rgba(246, 243, 234, 0.56);
+        --ink-faint: rgba(246, 243, 234, 0.32);
+        --line: rgba(246, 243, 234, 0.15);
+        --line-soft: rgba(246, 243, 234, 0.08);
+        --accent: #9add42;
+        --accent-soft: rgba(154, 221, 66, 0.14);
+        --accent-2: #58c7e8;
+        --card-w: 444px;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+      }
+      html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+      body {
+        min-height: 100dvh;
+        background:
+          linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.032) 1px, transparent 1px),
+          var(--bg);
+        background-size: 32px 32px, 32px 32px, auto;
+      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      a { color: inherit; }
+      #field {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.78;
+      }
+      .ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+      .ambient::before,
+      .ambient::after {
+        content: "";
+        position: absolute;
+        border: 1px solid var(--line-soft);
+        transform: rotate(var(--rot, 0deg));
+        opacity: 0.72;
+      }
+      .ambient::before { width: min(66vw, 760px); height: min(66vw, 760px); left: -18vw; top: 18vh; border-radius: 50%; }
+      .ambient::after { width: min(52vw, 560px); height: min(36vw, 390px); right: -12vw; bottom: 12vh; }
+      .orbit-mark {
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        top: 50%;
+        width: min(72vw, 780px);
+        height: min(72vw, 780px);
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(246, 243, 234, 0.05);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .orbit-mark::before,
+      .orbit-mark::after {
+        content: "";
+        position: absolute;
+        inset: 14%;
+        border: 1px solid rgba(246, 243, 234, 0.04);
+        border-radius: 50%;
+      }
+      .orbit-mark::after { inset: 31%; border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+      .page-shell {
+        position: relative;
+        z-index: 2;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 60px 20px 76px;
+      }
+      .payment-card {
+        width: min(var(--card-w), calc(100vw - 32px));
+        min-height: 524px;
+        display: grid;
+        align-items: stretch;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 26px 80px rgba(0, 0, 0, 0.28);
+      }
+      .body-anca-galaxy-clean-page .payment-card,
+      .body-anca-galaxy-form .payment-card {
+        border-color: rgba(246, 243, 234, 0.06);
+        background: rgba(8, 9, 8, 0.48);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+      }
+      .body-night-quiet-orbit .payment-card { border-color: rgba(246, 243, 234, 0.095); background: rgba(7, 9, 8, 0.56); }
+      .body-night-lunar-checkout .payment-card { border-color: rgba(154, 221, 66, 0.22); background: rgba(5, 9, 6, 0.62); }
+      .card-grid {
+        background-image:
+          linear-gradient(to right, rgba(246, 243, 234, 0.034) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(246, 243, 234, 0.03) 1px, transparent 1px);
+        background-size: 24px 24px;
+        min-height: 100%;
+      }
+      .view { display: none; min-height: 100%; padding: 30px 30px 26px; }
+      .view.is-active { display: grid; grid-template-rows: auto 1fr auto; }
+      .kicker,
+      .label,
+      .method,
+      .ghost,
+      .primary,
+      .field-status,
+      .review-layer,
+      .review-note,
+      .state-tag,
+      .price-box,
+      .status-label {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        letter-spacing: 0;
+      }
+      .kicker { color: var(--accent); font-size: 10px; line-height: 1.2; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; }
+      h1, h2 { margin: 0; font-weight: 950; letter-spacing: 0; text-transform: uppercase; }
+      h1 { font-size: clamp(38px, 5.5vw, 58px); line-height: 0.92; max-width: 8ch; }
+      h2 { font-size: clamp(34px, 5vw, 52px); line-height: 0.94; max-width: 9ch; }
+      .order-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: end;
+        margin-top: 24px;
+        padding: 0 0 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .label { color: var(--ink-dim); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+      .price-box { text-align: right; }
+      .old-price { display: block; min-height: 15px; color: var(--ink-faint); text-decoration: line-through; font-size: 12px; font-weight: 900; }
+      .price { display: block; color: var(--ink); font-size: 34px; line-height: 1; font-weight: 950; }
+      .methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 21px 0 20px; }
+      .method {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        background: rgba(246, 243, 234, 0.035);
+        color: var(--ink-dim);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .method[aria-pressed="true"] {
+        border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+        background: var(--accent-soft);
+        color: var(--ink);
+      }
+      .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      label span.l { display: flex; gap: 4px; margin-bottom: 7px; align-items: baseline; }
+      .req { color: var(--accent); }
+      input {
+        width: 100%;
+        height: 42px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 243, 234, 0.035);
+        color: var(--ink);
+        padding: 0 10px;
+        outline: none;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      input::placeholder { color: rgba(246, 243, 234, 0.32); }
+      input:focus { border-color: color-mix(in srgb, var(--accent) 65%, transparent); background: rgba(246, 243, 234, 0.055); }
+      .promo { margin-top: 10px; max-width: 230px; }
+      .field-status { display: block; min-height: 20px; padding-top: 5px; color: var(--accent); font-size: 9px; line-height: 1.25; font-weight: 900; text-transform: uppercase; }
+      .actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px; }
+      .ghost {
+        min-height: 42px;
+        border: 0;
+        background: transparent;
+        color: var(--ink-faint);
+        padding: 0 12px;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: lowercase;
+      }
+      .ghost:hover, .ghost:focus-visible { color: var(--ink-dim); }
+      .primary {
+        display: inline-flex;
+        min-width: 156px;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(246, 243, 234, 0.18);
+        background: #f6f3ea;
+        color: #090b09;
+        padding: 0 18px;
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: lowercase;
+        text-decoration: none;
+      }
+      .primary:hover, .primary:focus-visible { background: var(--accent); border-color: var(--accent); color: #091006; }
+      .status-view { align-content: space-between; }
+      .status-copy { display: grid; gap: 18px; align-content: start; }
+      .status-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+      .status-body { margin: 0; max-width: 320px; color: var(--ink-dim); font-size: 18px; line-height: 1.28; }
+      .route-stage {
+        position: relative;
+        min-height: 154px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+        margin-top: 22px;
+      }
+      .route-stage img {
+        position: absolute;
+        width: 128px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.74;
+      }
+      .route-stage::after {
+        content: "";
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        bottom: 28px;
+        height: 1px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+      .route-labels {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-faint);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .state-tag {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        color: var(--ink-dim);
+        padding: 0 14px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .status-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
+      .review-layer {
+        position: fixed;
+        z-index: 5;
+        right: 18px;
+        bottom: 18px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: rgba(246, 243, 234, 0.52);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        pointer-events: auto;
+      }
+      .review-layer button {
+        width: 34px;
+        height: 30px;
+        border: 1px solid rgba(246, 243, 234, 0.12);
+        background: rgba(4, 5, 4, 0.44);
+        color: rgba(246, 243, 234, 0.72);
+      }
+      .review-label { min-width: 112px; text-align: center; }
+      .variant-nav { left: 18px; right: auto; }
+      .review-note {
+        position: fixed;
+        z-index: 4;
+        left: 18px;
+        bottom: 58px;
+        max-width: min(520px, calc(100vw - 36px));
+        color: rgba(246, 243, 234, 0.42);
+        font-size: 12px;
+        font-style: italic;
+        line-height: 1.35;
+        pointer-events: none;
+      }
+      .is-fixed-variant .variant-nav { display: none; }
+      .is-clean .review-layer { opacity: 0.55; }
+      .body-garden-ledger { --bg: #090c08; --accent: #b0d87c; --accent-2: #d9cf75; }
+      .body-noise-receipt { --bg: #070706; --accent: #e6dca4; --accent-2: #8ad036; }
+      .body-topographic-price { --bg: #050809; --accent: #76d1d8; --accent-2: #9add42; }
+      .body-constellation-route { --bg: #05070b; --accent: #8ec7ff; --accent-2: #9add42; }
+      .body-vault-access { --bg: #080806; --accent: #d5c480; --accent-2: #9add42; }
+      .body-signal-lines { --bg: #050807; --accent: #9add42; --accent-2: #57c4e6; }
+      .body-glitch-grid { --bg: #070708; --accent: #b8f35d; --accent-2: #f4f0df; }
+      .body-case-mosaic { --bg: #080807; --accent: #c6dc8a; --accent-2: #58c7e8; }
+      .body-terminal-orbit { --bg: #020402; --accent: #95ff55; --accent-2: #55cdf7; }
+      .body-anca-galaxy-form { --bg: #030504; --accent: #b8f35d; --accent-2: #5fd6ff; }
+      .body-anca-galaxy-clean-page { --bg: #030403; --accent: #f6f3ea; --accent-2: #9add42; }
+      .body-night-lunar-checkout { --bg: #020603; --accent: #9add42; --accent-2: #3db7ef; }
+      .body-night-quiet-orbit { --bg: #050605; --accent: #d9d6c8; --accent-2: #8ad036; }
+      .body-kinetic-type .ambient::before { border-radius: 0; --rot: -11deg; }
+      .body-garden-ledger .ambient::after { border-radius: 42%; --rot: 8deg; }
+      .body-noise-receipt .ambient::before { border-style: dashed; border-radius: 2px; --rot: 4deg; }
+      .body-topographic-price .orbit-mark { border-style: dashed; }
+      .body-constellation-route .ambient::after { border-radius: 50%; }
+      .body-vault-access .payment-card { box-shadow: inset 0 0 0 1px rgba(246,243,234,0.04), 0 28px 88px rgba(0,0,0,0.34); }
+      .body-glitch-grid .payment-card { transform: skewY(-0.3deg); }
+      .body-case-mosaic .ambient::before { background: url('../../assets/team-os-darya-product.png') center / cover; opacity: 0.08; border-radius: 0; }
+      @media (max-width: 620px) {
+        .page-shell { padding: 34px 12px 110px; align-items: start; }
+        .payment-card { width: calc(100vw - 24px); min-height: auto; }
+        .view { padding: 22px 18px 20px; }
+        h1 { max-width: none; font-size: 40px; }
+        h2 { max-width: none; font-size: 36px; }
+        .order-summary { grid-template-columns: 1fr; align-items: start; gap: 10px; }
+        .price-box { text-align: left; }
+        .methods { grid-template-columns: 1fr; }
+        .fields { grid-template-columns: 1fr; gap: 8px; }
+        .promo { max-width: none; }
+        .actions, .status-actions { justify-content: stretch; flex-direction: column-reverse; align-items: stretch; }
+        .primary, .ghost { width: 100%; }
+        .review-layer { left: 12px; right: 12px; bottom: 10px; justify-content: center; }
+        .variant-nav { bottom: 48px; }
+        .review-note { left: 12px; right: 12px; bottom: 86px; max-width: none; font-size: 11px; }
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="ambient" aria-hidden="true"></div>
+    <div class="orbit-mark" aria-hidden="true"></div>
+
+    <main class="page-shell">
+      <section class="payment-card" id="cardState" aria-label="Оплата заказа">
+        <div class="card-grid">
+          <form class="view" data-view="form" autocomplete="on">
+            <div>
+              <div class="kicker">итого к оплате</div>
+              <h1>ОПЛАТА ЗАКАЗА</h1>
+              <div class="order-summary" aria-label="Итого к оплате">
+                <div>
+                  <div class="label">итого к оплате:</div>
+                </div>
+                <div class="price-box">
+                  <span class="old-price" id="oldPrice" hidden></span>
+                  <span class="price" id="price">€890</span>
+                </div>
+              </div>
+
+              <div class="methods" role="group" aria-label="Способ оплаты">
+                <button class="method" type="button" data-method="usdt" aria-pressed="false">USDT</button>
+                <button class="method" type="button" data-method="card_ru" aria-pressed="false">РУ-КАРТЫ</button>
+                <button class="method" type="button" data-method="card_intl" aria-pressed="true">EU-КАРТЫ</button>
+              </div>
+
+              <div class="fields">
+                <label>
+                  <span class="l label"><span class="req">*</span><span>telegram</span></span>
+                  <input id="telegram" name="telegram" type="text" inputmode="text" placeholder="@user или телефон" autocomplete="off" />
+                  <span class="field-status" id="telegramStatus">&nbsp;</span>
+                </label>
+                <label>
+                  <span class="l label"><span>e-mail</span></span>
+                  <input id="email" name="email" type="email" inputmode="email" placeholder="mail@mail.com" autocomplete="email" />
+                </label>
+              </div>
+
+              <div class="promo" aria-label="Промокод">
+                <div class="label">промокод</div>
+                <input id="promo" name="promo" type="text" inputmode="text" placeholder="..." autocomplete="off" />
+                <span class="field-status" id="promoStatus">&nbsp;</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="noop">отмена</button>
+              <button class="primary" type="button" data-action="pay">оплатить</button>
+            </div>
+          </form>
+
+          <section class="view status-view" data-view="redirecting" aria-label="Переход к оплате">
+            <div class="status-copy">
+              <div class="status-label">переход к оплате</div>
+              <h2>ПЕРЕХОД К ОПЛАТЕ</h2>
+              <p class="status-body">банк открывается</p>
+              <div class="route-stage" aria-label="Маршрут оплаты">
+                <img src="../../assets/teamos-geo-animation.svg" alt="" aria-hidden="true" />
+                <div class="route-labels"><span>site</span><span>bank</span></div>
+              </div>
+            </div>
+            <div class="status-actions">
+              <button class="ghost" type="button" data-action="noop">отмена</button>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="paid" aria-label="Оплата получена">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА ПОЛУЧЕНА</h2>
+              <p class="status-body">Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.</p>
+              <div class="state-tag">откройте бота</div>
+            </div>
+            <div class="status-actions">
+              <a class="primary" href="https://t.me/prod_ai_mind_set_bot?start=payment_success" target="_blank" rel="noopener noreferrer">/присоединиться</a>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="failed" aria-label="Оплата не прошла">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА НЕ ПРОШЛА</h2>
+              <p class="status-body">Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно попробовать снова.</p>
+            </div>
+            <div class="status-actions">
+              <button class="primary" type="button" data-action="retry">попробовать снова</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="review-layer variant-nav" aria-label="Переключение визуальных вариантов">
+      <button type="button" data-variant-shift="-1" aria-label="Предыдущий вариант">‹</button>
+      <span class="review-label" id="variantLabel">variant</span>
+      <button type="button" data-variant-shift="1" aria-label="Следующий вариант">›</button>
+    </div>
+    <div class="review-layer" aria-label="Внешняя проверка состояния формы">
+      <button type="button" data-state-shift="-1" aria-label="Предыдущее состояние">‹</button>
+      <span class="review-label" id="stateLabel">оплата заказа</span>
+      <button type="button" data-state-shift="1" aria-label="Следующее состояние">›</button>
+    </div>
+    <p class="review-note">Для проверки скидок: в Telegram введите aim, в промокод — ponchik.</p>
+
+    <script>
+
+      (() => {
+        const variants = [{"id":"kinetic-type","title":"Kinetic Type Gate"},{"id":"garden-ledger","title":"Dark Garden Ledger"},{"id":"noise-receipt","title":"Noise Receipt Theater"},{"id":"topographic-price","title":"Topographic Price Field"},{"id":"constellation-route","title":"Constellation Route"},{"id":"vault-access","title":"Access Vault"},{"id":"signal-lines","title":"Signal Lines"},{"id":"glitch-grid","title":"Glitch Grid"},{"id":"case-mosaic","title":"Case Mosaic Checkout"},{"id":"terminal-orbit","title":"Terminal Orbit"},{"id":"anca-galaxy-form","title":"Anca Galaxy Form"},{"id":"anca-galaxy-clean-page","title":"Clean Galaxy Page"},{"id":"night-lunar-checkout","title":"Night Lunar Checkout"},{"id":"night-quiet-orbit","title":"Quiet Orbit Checkout"}];
+        const fixedVariant = "night-lunar-checkout";
+        const params = new URLSearchParams(window.location.search);
+        const requestedVariant = params.get('variant');
+        let variantIndex = Math.max(0, variants.findIndex((item) => item.id === (fixedVariant || requestedVariant)));
+        if (variantIndex < 0) variantIndex = 0;
+        const states = ['form', 'redirecting', 'paid', 'failed'];
+        const stateLabels = {
+          form: 'оплата заказа',
+          redirecting: 'переход к оплате',
+          paid: 'оплата получена',
+          failed: 'оплата не прошла',
+        };
+        let activeState = states.includes(params.get('status')) ? params.get('status') : 'form';
+        let nextOutcome = Number(window.sessionStorage.getItem('aim-payment-page-attempt') || '0');
+        const basePrice = 890;
+        let selectedMethod = params.get('paymentMethod') || 'card_intl';
+        let telegramDiscountState = 'idle';
+        let promoState = 'idle';
+        let telegramError = '';
+        let redirectTimer = null;
+
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+        const formatRoublePrice = (amount) => new Intl.NumberFormat('ru-RU').format(amount) + '\u00A0₽';
+        const hasTelegramContact = (value) => value.trim().length > 0;
+        const isKnownAlumniHandle = (value) => ['aim', '@aim'].includes(value.trim().toLowerCase());
+        const hasPromo = (value) => value.trim().toLowerCase() === 'ponchik';
+
+        const syncVariant = () => {
+          const variant = variants[variantIndex];
+          document.body.className = ['body-' + variant.id, fixedVariant ? 'is-fixed-variant' : '', params.get('clean') === '1' ? 'is-clean' : ''].filter(Boolean).join(' ');
+          $('#variantLabel').textContent = variant.title;
+          document.title = 'AIM Payment Page Lab / ' + variant.title;
+        };
+
+        const computeDiscountRate = () => {
+          if (telegramDiscountState === 'applied') return 0.2;
+          if (promoState === 'applied') return 0.05;
+          return 0;
+        };
+
+        const getDiscountedBase = () => Math.round(basePrice * (1 - computeDiscountRate()));
+        const getPrice = () => {
+          const discounted = getDiscountedBase();
+          if (selectedMethod === 'usdt') return Math.round(discounted * 0.95) + '\u00A0USDT';
+          if (selectedMethod === 'card_ru') return formatRoublePrice(discounted * 100);
+          return '€' + discounted;
+        };
+        const getOriginalPrice = () => {
+          const hasDiscount = computeDiscountRate() > 0;
+          if (!hasDiscount) return '';
+          if (selectedMethod === 'usdt') return Math.round(basePrice * 0.95) + '\u00A0USDT';
+          if (selectedMethod === 'card_ru') return formatRoublePrice(basePrice * 100);
+          return '€' + basePrice;
+        };
+
+        const updatePrice = () => {
+          $('#price').textContent = getPrice();
+          const original = getOriginalPrice();
+          $('#oldPrice').textContent = original;
+          $('#oldPrice').hidden = !original;
+        };
+
+        const updateMethod = () => {
+          $$('.method').forEach((button) => {
+            button.setAttribute('aria-pressed', button.dataset.method === selectedMethod ? 'true' : 'false');
+          });
+          updatePrice();
+        };
+
+        const updateTelegramStatus = () => {
+          const el = $('#telegramStatus');
+          if (telegramError) {
+            el.textContent = telegramError;
+            el.style.color = 'rgba(246, 243, 234, 0.52)';
+            return;
+          }
+          if (telegramDiscountState === 'applied') {
+            el.textContent = 'скидка Alumni 20% применена';
+            el.style.color = 'var(--accent)';
+            return;
+          }
+          el.innerHTML = '&nbsp;';
+        };
+
+        const updatePromoStatus = () => {
+          const el = $('#promoStatus');
+          if (promoState === 'idle') {
+            el.innerHTML = '&nbsp;';
+            return;
+          }
+          if (promoState === 'checking') {
+            el.textContent = 'ищу скидку';
+            el.style.color = 'rgba(246, 243, 234, 0.46)';
+            return;
+          }
+          if (promoState === 'applied') {
+            el.textContent = telegramDiscountState === 'applied' ? 'действует Alumni 20%' : 'промокод 5% применён';
+            el.style.color = telegramDiscountState === 'applied' ? 'rgba(246, 243, 234, 0.46)' : 'var(--accent)';
+            return;
+          }
+          el.textContent = 'промокод не применён';
+          el.style.color = 'rgba(246, 243, 234, 0.46)';
+        };
+
+        const setState = (nextState, options = {}) => {
+          if (redirectTimer && nextState !== 'redirecting') {
+            window.clearTimeout(redirectTimer);
+            redirectTimer = null;
+          }
+          activeState = nextState;
+          $$('.view').forEach((view) => view.classList.toggle('is-active', view.dataset.view === activeState));
+          $('#stateLabel').textContent = stateLabels[activeState];
+          $('#cardState').dataset.state = activeState;
+          if (activeState === 'redirecting' && options.autoResult) {
+            redirectTimer = window.setTimeout(() => {
+              nextOutcome += 1;
+              window.sessionStorage.setItem('aim-payment-page-attempt', String(nextOutcome));
+              setState(nextOutcome % 2 === 1 ? 'paid' : 'failed');
+            }, 2300);
+          }
+        };
+
+        const startPayment = () => {
+          const telegram = $('#telegram');
+          if (!hasTelegramContact(telegram.value)) {
+            telegramError = 'укажите telegram или телефон';
+            updateTelegramStatus();
+            telegram.focus();
+            return;
+          }
+          telegramError = '';
+          updateTelegramStatus();
+          setState('redirecting', { autoResult: true });
+        };
+
+        let tgTimer = null;
+        $('#telegram').addEventListener('input', (event) => {
+          if (telegramError && hasTelegramContact(event.target.value)) telegramError = '';
+          telegramDiscountState = event.target.value.trim() ? 'checking' : 'idle';
+          updateTelegramStatus();
+          if (tgTimer) window.clearTimeout(tgTimer);
+          tgTimer = window.setTimeout(() => {
+            const value = event.target.value.trim();
+            telegramDiscountState = value ? (isKnownAlumniHandle(value) ? 'applied' : 'not_applied') : 'idle';
+            updateTelegramStatus();
+            updatePromoStatus();
+            updatePrice();
+          }, 460);
+        });
+
+        let promoTimer = null;
+        $('#promo').addEventListener('input', (event) => {
+          promoState = event.target.value.trim() ? 'checking' : 'idle';
+          updatePromoStatus();
+          if (promoTimer) window.clearTimeout(promoTimer);
+          promoTimer = window.setTimeout(() => {
+            const value = event.target.value.trim();
+            promoState = value ? (hasPromo(value) ? 'applied' : 'not_applied') : 'idle';
+            updatePromoStatus();
+            updatePrice();
+          }, 420);
+        });
+
+        $$('.method').forEach((button) => {
+          button.addEventListener('click', () => {
+            selectedMethod = button.dataset.method;
+            updateMethod();
+          });
+        });
+        $$('[data-action="pay"]').forEach((button) => button.addEventListener('click', startPayment));
+        $$('[data-action="retry"]').forEach((button) => button.addEventListener('click', () => setState('form')));
+        $$('[data-action="noop"]').forEach((button) => button.addEventListener('click', (event) => event.preventDefault()));
+        $$('[data-state-shift]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const current = states.indexOf(activeState);
+            const dir = Number(button.dataset.stateShift);
+            setState(states[(current + dir + states.length) % states.length]);
+          });
+        });
+        $$('[data-variant-shift]').forEach((button) => {
+          button.addEventListener('click', () => {
+            if (fixedVariant) return;
+            const dir = Number(button.dataset.variantShift);
+            variantIndex = (variantIndex + dir + variants.length) % variants.length;
+            syncVariant();
+          });
+        });
+
+        syncVariant();
+        updateMethod();
+        updateTelegramStatus();
+        updatePromoStatus();
+        setState(activeState);
+
+        const canvas = $('#field');
+        const ctx = canvas.getContext('2d');
+        const particles = Array.from({ length: 180 }, (_, index) => ({
+          x: Math.random(), y: Math.random(), z: Math.random(), s: index % 11 === 0 ? 1.8 : 0.9 + Math.random() * 1.3, speed: 0.00025 + Math.random() * 0.00065,
+        }));
+        const pointer = { x: 0.5, y: 0.5 };
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+        window.addEventListener('resize', resize);
+        window.addEventListener('pointermove', (event) => {
+          pointer.x = event.clientX / Math.max(1, window.innerWidth);
+          pointer.y = event.clientY / Math.max(1, window.innerHeight);
+        });
+        resize();
+        const draw = () => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          ctx.clearRect(0, 0, w, h);
+          const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9add42';
+          const driftX = (pointer.x - 0.5) * 32;
+          const driftY = (pointer.y - 0.5) * 22;
+          particles.forEach((p, index) => {
+            p.y += p.speed;
+            if (p.y > 1.08) p.y = -0.08;
+            const depth = 0.55 + p.z * 0.85;
+            const x = p.x * w + driftX * depth + Math.sin((p.y + index) * 4.7) * 8 * p.z;
+            const y = p.y * h + driftY * depth;
+            ctx.globalAlpha = 0.18 + p.z * 0.32;
+            ctx.fillStyle = index % 13 === 0 ? accent : '#f6f3ea';
+            ctx.beginPath();
+            ctx.arc(x, y, p.s * depth, 0, Math.PI * 2);
+            ctx.fill();
+            if (index % 17 === 0) {
+              ctx.globalAlpha = 0.08;
+              ctx.strokeStyle = accent;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + (pointer.x - 0.5) * 100, y + (pointer.y - 0.5) * 80);
+              ctx.stroke();
+            }
+          });
+          ctx.globalAlpha = 1;
+          requestAnimationFrame(draw);
+        };
+        draw();
+      })();
+
+    </script>
+  </body>
+</html>

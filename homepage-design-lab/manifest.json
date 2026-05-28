@@ -1,0 +1,507 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-05-28",
+  "sourceOfTruth": "homepage-design-lab/manifest.json",
+  "contentSource": "https://aimindset.org/",
+  "structureSource": "/Users/viola/All/Yandex.Disk.localized/3 Process/5 Work/AI Mindset/Website content/aim-homepage-about-structure-from-transcript.md",
+  "reviewPolicy": "Review-only artifacts. Do not port into React, commit, push, or publish without explicit human review.",
+  "variants": [
+    {
+      "id": "2026-05-27-seed-light-system-index",
+      "lane": "full",
+      "title": "Light System Index",
+      "date": "2026-05-27",
+      "path": "runs/full/2026-05-27-seed-light-system-index/index.html",
+      "readme": "runs/full/2026-05-27-seed-light-system-index/README.md",
+      "summary": "Seed full-homepage prototype that maps the 13 MVP homepage blocks onto a readable light AIM OS-inspired system page.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://aim-os.netlify.app/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "http://localhost:5123/aim-site-hub/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "archived-pre-readability-gate",
+      "showInGallery": false,
+      "reviewDisposition": "Hidden after 2026-05-28 readability rejection; keep only as pre-gate audit material, not as an active design candidate."
+    },
+    {
+      "id": "2026-05-27-seed-product-card-system",
+      "lane": "elements",
+      "area": "ecosystem-products",
+      "title": "Product Card System",
+      "date": "2026-05-27",
+      "path": "runs/elements/2026-05-27-seed-product-card-system/index.html",
+      "readme": "runs/elements/2026-05-27-seed-product-card-system/README.md",
+      "summary": "Seed focused element prototype for homepage ecosystem/product cards with statuses and destination links.",
+      "sources": [
+        "https://aimindset.org/",
+        "http://localhost:5123/aim-site-hub/",
+        "Blocks Repo - ai-mindset-blocks"
+      ],
+      "coversBlocks": [
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview"
+      ],
+      "status": "archived-pre-readability-gate",
+      "showInGallery": false,
+      "reviewDisposition": "Hidden after 2026-05-28 readability rejection; keep only as pre-gate audit material, not as an active design candidate."
+    },
+    {
+      "id": "2026-05-27-burst-light-os-map",
+      "lane": "full",
+      "title": "Light OS Map",
+      "date": "2026-05-27",
+      "path": "runs/full/2026-05-27-burst-light-os-map/index.html",
+      "readme": "runs/full/2026-05-27-burst-light-os-map/README.md",
+      "summary": "Burst full-homepage prototype that turns the 13-block brief into a light AIM OS-inspired homepage map with readable product routing.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://aim-os.netlify.app/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "http://localhost:5123/aim-site-hub/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "archived-pre-readability-gate",
+      "showInGallery": false,
+      "reviewDisposition": "Hidden after 2026-05-28 readability rejection; keep only as pre-gate audit material, not as an active design candidate."
+    },
+    {
+      "id": "2026-05-27-burst-program-newspaper",
+      "lane": "full",
+      "title": "Program Newspaper",
+      "date": "2026-05-27",
+      "path": "runs/full/2026-05-27-burst-program-newspaper/index.html",
+      "readme": "runs/full/2026-05-27-burst-program-newspaper/README.md",
+      "summary": "Burst full-homepage prototype using a light editorial/newspaper grid to structure approach, ecosystem, active programs, proof, people, and footer.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://aim-os.netlify.app/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "http://localhost:5123/aim-site-hub/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "archived-pre-readability-gate",
+      "showInGallery": false,
+      "reviewDisposition": "Hidden after 2026-05-28 readability rejection; keep only as pre-gate audit material, not as an active design candidate."
+    },
+    {
+      "id": "2026-05-27-burst-hero-ecosystem-switchboard",
+      "lane": "elements",
+      "area": "hero-ecosystem",
+      "title": "Hero Ecosystem Switchboard",
+      "date": "2026-05-27",
+      "status": "rejected-structure-only",
+      "showInGallery": false,
+      "reviewDisposition": "This is an information-architecture wireframe, not a finished site design or element design candidate. Keep only as internal structure reference.",
+      "path": "runs/elements/2026-05-27-burst-hero-ecosystem-switchboard/index.html",
+      "readme": "runs/elements/2026-05-27-burst-hero-ecosystem-switchboard/README.md",
+      "summary": "Burst focused element prototype for a homepage hero that communicates AI Mindset as an ecosystem of routes rather than one lab page.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://aim-os.netlify.app/",
+        "http://localhost:5123/aim-site-hub/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview"
+      ]
+    },
+    {
+      "id": "2026-05-27-burst-cta-popup-stack",
+      "lane": "elements",
+      "area": "cta-popup",
+      "title": "CTA Popup Stack",
+      "date": "2026-05-27",
+      "path": "runs/elements/2026-05-27-burst-cta-popup-stack/index.html",
+      "readme": "runs/elements/2026-05-27-burst-cta-popup-stack/README.md",
+      "summary": "Burst focused element prototype for a homepage CTA block and routing popup that separates Health Sprint, Space, and Team Track entry points.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://health.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/payment-popup-compare.html",
+        "V3 Site Repo - aimwebsite0.5/case-popup-compare.html"
+      ],
+      "coversBlocks": [
+        "active-programs",
+        "formats",
+        "teams-consulting",
+        "space-preview",
+        "faq-conditions"
+      ],
+      "status": "archived-pre-readability-gate",
+      "showInGallery": false,
+      "reviewDisposition": "Hidden after 2026-05-28 readability rejection; keep only as pre-gate audit material, not as an active design candidate."
+    },
+    {
+      "id": "2026-05-27-ref-aim-living-system-page",
+      "lane": "full",
+      "title": "AIM Living System Page",
+      "date": "2026-05-27",
+      "path": "runs/full/2026-05-27-ref-aim-living-system-page/index.html",
+      "readme": "runs/full/2026-05-27-ref-aim-living-system-page/README.md",
+      "summary": "Source-rich light homepage prototype that turns AIM into a living ecosystem page with real products, links, case imagery, team imagery, motion, and no fake proof/archive placeholders.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://wearecollins.com/case-studies/san-francisco-symphony?gallery=true",
+        "https://www.associate.studio/artofnoise",
+        "https://aim-os.netlify.app/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/src/components/LabW26PageV3.tsx",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "referencePolicy": [
+        "Borrow only dynamic typography and text-rhythm behavior from the COLLINS/SF Symphony reference.",
+        "Borrow only variable typography, disciplined labels, immersive type scale, density/repetition, spatial tension, and sound-to-visual-system mechanics from Associate Studio / Cooper Hewitt Art of Noise.",
+        "Do not copy COLLINS/SF Symphony or Art of Noise fonts, imagery, assets, layouts, logos, exhibition identity, or copy."
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "rejected-readability-failure",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected after user review: unreadable over-literal AIM OS / beige-grid / monospaced Russian typography direction. Do not use as a positive style anchor or 8/10 example.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка / Viola",
+        "sentiment": "strong-negative",
+        "summary": "Hard to read, weak AI Mindset fit, too close to the rejected yellow/beige grid/system-card direction."
+      }
+    },
+    {
+      "id": "2026-05-27-night-context-orbit-homepage",
+      "lane": "full",
+      "title": "Night Context Orbit Homepage",
+      "date": "2026-05-27",
+      "path": "runs/full/2026-05-27-night-context-orbit-homepage/index.html",
+      "readme": "runs/full/2026-05-27-night-context-orbit-homepage/README.md",
+      "summary": "Early night full-homepage prototype with light theme, source-backed AIM ecosystem content, real case and speaker imagery, and a pointer-reactive context orbit.",
+      "sources": [
+        "https://aimindset.org/",
+        "website-ops/homepage-design-brief.json",
+        "website-ops/design-generator-feedback-handoff.jsonl",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "rejected-readability-failure",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected after user review: unreadable over-literal AIM OS / beige-grid / monospaced Russian typography direction. Do not use as a positive style anchor or 8/10 example.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка / Viola",
+        "sentiment": "strong-negative",
+        "summary": "Hard to read, weak AI Mindset fit, too close to the rejected yellow/beige grid/system-card direction."
+      }
+    },
+    {
+      "id": "2026-05-27-night-program-radar-cards",
+      "lane": "elements",
+      "area": "ecosystem-products",
+      "title": "Program Radar Cards",
+      "date": "2026-05-27",
+      "path": "runs/elements/2026-05-27-night-program-radar-cards/index.html",
+      "readme": "runs/elements/2026-05-27-night-program-radar-cards/README.md",
+      "summary": "Focused element prototype that turns active AIM programs and formats into a designed source-backed radar block instead of a sitemap.",
+      "sources": [
+        "https://aimindset.org/",
+        "website-ops/homepage-design-brief.json"
+      ],
+      "coversBlocks": [
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "teams-consulting",
+        "space-preview"
+      ],
+      "status": "rejected-readability-failure",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected after user review: unreadable over-literal AIM OS / beige-grid / monospaced Russian typography direction. Do not use as a positive style anchor or 8/10 example.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка / Viola",
+        "sentiment": "strong-negative",
+        "summary": "Hard to read, weak AI Mindset fit, too close to the rejected yellow/beige grid/system-card direction."
+      }
+    },
+    {
+      "id": "2026-05-28-night-signal-atlas-lens",
+      "lane": "full",
+      "title": "Signal Atlas Lens",
+      "date": "2026-05-28",
+      "path": "runs/full/2026-05-28-night-signal-atlas-lens/index.html",
+      "readme": "runs/full/2026-05-28-night-signal-atlas-lens/README.md",
+      "summary": "Light full-homepage prototype with a 13-block route map + a lens mechanic (All/Personal/Team/Community/Non-Profit) that re-weights emphasis across the same content without splitting into separate landing pages.",
+      "sources": [
+        "https://aimindset.org/",
+        "website-ops/homepage-design-brief.json",
+        "design-feedback-dashboard/data/design-feedback-registry.json",
+        "V3 Site Repo - aimwebsite0.5/src/components/LabW26PageV3.tsx",
+        "V3 Site Repo - aimwebsite0.5/src/components/ReviewsSection.tsx"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "rejected-readability-failure",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected after user review: unreadable over-literal AIM OS / beige-grid / monospaced Russian typography direction. Do not use as a positive style anchor or 8/10 example.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка / Viola",
+        "sentiment": "strong-negative",
+        "summary": "Hard to read, weak AI Mindset fit, too close to the rejected yellow/beige grid/system-card direction."
+      }
+    },
+    {
+      "id": "2026-05-28-night-formats-signal-triad",
+      "lane": "elements",
+      "area": "formats",
+      "title": "Formats Signal Triad",
+      "date": "2026-05-28",
+      "path": "runs/elements/2026-05-28-night-formats-signal-triad/index.html",
+      "readme": "runs/elements/2026-05-28-night-formats-signal-triad/README.md",
+      "summary": "Focused element prototype for the homepage “Formats” block (lab / sprint / workshop) as an accessible tri-tab console with a meaningful rhythm micro-interaction.",
+      "sources": [
+        "https://aimindset.org/",
+        "website-ops/homepage-design-brief.json",
+        "design-feedback-dashboard/data/design-feedback-registry.json"
+      ],
+      "coversBlocks": [
+        "formats"
+      ],
+      "status": "rejected-readability-failure",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected after user review: unreadable over-literal AIM OS / beige-grid / monospaced Russian typography direction. Do not use as a positive style anchor or 8/10 example.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка / Viola",
+        "sentiment": "strong-negative",
+        "summary": "Hard to read, weak AI Mindset fit, too close to the rejected yellow/beige grid/system-card direction."
+      }
+    },
+    {
+      "id": "2026-05-28-current-site-readable-baseline",
+      "lane": "full",
+      "title": "Current Site Readable Baseline",
+      "date": "2026-05-28",
+      "path": "runs/full/2026-05-28-current-site-readable-baseline/index.html",
+      "readme": "runs/full/2026-05-28-current-site-readable-baseline/README.md",
+      "summary": "Control prototype: close to current aimindset.org structure and content, with only readability and review-lab cleanup.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+    },
+    {
+      "id": "2026-05-28-editorial-field-notes-homepage",
+      "lane": "full",
+      "title": "Editorial Field Notes Homepage",
+      "date": "2026-05-28",
+      "path": "runs/full/2026-05-28-editorial-field-notes-homepage/index.html",
+      "readme": "runs/full/2026-05-28-editorial-field-notes-homepage/README.md",
+      "summary": "Editorial/product direction: quieter, more human-readable, with larger narrative sections and real case imagery.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+    },
+    {
+      "id": "2026-05-28-signal-field-homepage",
+      "lane": "full",
+      "title": "Signal Field Homepage",
+      "date": "2026-05-28",
+      "path": "runs/full/2026-05-28-signal-field-homepage/index.html",
+      "readme": "runs/full/2026-05-28-signal-field-homepage/README.md",
+      "summary": "Interactive signal-field direction: motion is atmospheric and peripheral, while text sits on calm readable surfaces.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+    },
+    {
+      "id": "2026-05-28-product-portal-homepage",
+      "lane": "full",
+      "title": "Product Portal Homepage",
+      "date": "2026-05-28",
+      "path": "runs/full/2026-05-28-product-portal-homepage/index.html",
+      "readme": "runs/full/2026-05-28-product-portal-homepage/README.md",
+      "summary": "Product-route direction: users choose lab/sprint/space/team/consulting quickly, with cases and next-step decisions nearby.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://health.aimindset.org/",
+        "https://selfdev.aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+    }
+  ]
+}

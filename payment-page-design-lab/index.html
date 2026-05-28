@@ -1,0 +1,1367 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Payment Page Lab</title>
+    <style>
+
+      * { box-sizing: border-box; }
+      :root {
+        color-scheme: dark;
+        --bg: #060706;
+        --panel: rgba(8, 10, 9, 0.68);
+        --panel-soft: rgba(248, 246, 238, 0.045);
+        --ink: #f6f3ea;
+        --ink-dim: rgba(246, 243, 234, 0.56);
+        --ink-faint: rgba(246, 243, 234, 0.32);
+        --line: rgba(246, 243, 234, 0.15);
+        --line-soft: rgba(246, 243, 234, 0.08);
+        --accent: #9add42;
+        --accent-soft: rgba(154, 221, 66, 0.14);
+        --accent-2: #58c7e8;
+        --card-w: 444px;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+      }
+      html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+      body {
+        min-height: 100dvh;
+        background:
+          linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255,255,255,0.032) 1px, transparent 1px),
+          var(--bg);
+        background-size: 32px 32px, 32px 32px, auto;
+      }
+      button, input { font: inherit; }
+      button { cursor: pointer; }
+      a { color: inherit; }
+      #field {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.78;
+      }
+      .ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+      .ambient::before,
+      .ambient::after {
+        content: "";
+        position: absolute;
+        border: 1px solid var(--line-soft);
+        transform: rotate(var(--rot, 0deg));
+        opacity: 0.72;
+      }
+      .ambient::before { width: min(66vw, 760px); height: min(66vw, 760px); left: -18vw; top: 18vh; border-radius: 50%; }
+      .ambient::after { width: min(52vw, 560px); height: min(36vw, 390px); right: -12vw; bottom: 12vh; }
+      .orbit-mark {
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        top: 50%;
+        width: min(72vw, 780px);
+        height: min(72vw, 780px);
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(246, 243, 234, 0.05);
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .orbit-mark::before,
+      .orbit-mark::after {
+        content: "";
+        position: absolute;
+        inset: 14%;
+        border: 1px solid rgba(246, 243, 234, 0.04);
+        border-radius: 50%;
+      }
+      .orbit-mark::after { inset: 31%; border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+      .x26-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 420ms ease;
+        overflow: hidden;
+      }
+      .x26-practice-layer {
+        color: rgba(246, 243, 234, 0.66);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 10px;
+        line-height: 1.55;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .x26-practice-numbers {
+        position: absolute;
+        left: clamp(22px, 4vw, 72px);
+        top: clamp(34px, 7vh, 82px);
+        opacity: 0;
+      }
+      .x26-practice-axis {
+        position: absolute;
+        right: clamp(24px, 8vw, 150px);
+        top: 50%;
+        display: grid;
+        gap: 46px;
+        transform: translateY(-50%);
+      }
+      .x26-practice-axis span {
+        position: relative;
+        display: block;
+        padding-left: 76px;
+        color: rgba(246, 243, 234, 0.54);
+      }
+      .x26-practice-axis span::before,
+      .x26-practice-axis span::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .x26-practice-axis span::before {
+        left: 0;
+        width: 56px;
+        height: 1px;
+        background: rgba(246, 243, 234, 0.24);
+      }
+      .x26-practice-axis span::after {
+        left: 0;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(246, 243, 234, 0.55);
+      }
+      .x26-stay-word {
+        display: grid;
+        place-items: center;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        font-size: clamp(30px, 4vw, 58px);
+        font-weight: 300;
+        letter-spacing: 0.38em;
+        text-transform: uppercase;
+        color: rgba(246, 243, 234, 0.42);
+      }
+      .x26-stay-word span {
+        transform: rotate(-15deg) translate(145px, -160px);
+      }
+      .x26-storm-word {
+        display: grid;
+        place-items: end center;
+        padding-bottom: min(22vh, 180px);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 22px;
+        letter-spacing: 0.22em;
+        color: rgba(246, 243, 234, 0.68);
+      }
+      .x26-ink-layer {
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        color: rgba(194, 255, 222, 0.52);
+        font-size: 10px;
+        line-height: 1.6;
+      }
+      .x26-ink-log {
+        position: absolute;
+        left: clamp(16px, 2.4vw, 34px);
+        top: clamp(16px, 3vh, 32px);
+        width: min(460px, calc(100vw - 32px));
+        white-space: nowrap;
+      }
+      .x26-ink-status {
+        position: absolute;
+        right: clamp(16px, 2.4vw, 34px);
+        top: clamp(16px, 3vh, 32px);
+        display: flex;
+        gap: 18px;
+        color: rgba(194, 255, 222, 0.42);
+      }
+      .page-shell {
+        position: relative;
+        z-index: 2;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 60px 20px 76px;
+      }
+      .payment-card {
+        width: min(var(--card-w), calc(100vw - 32px));
+        min-height: 524px;
+        display: grid;
+        align-items: stretch;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 26px 80px rgba(0, 0, 0, 0.28);
+      }
+      .body-anca-galaxy-clean-page .payment-card,
+      .body-anca-galaxy-form .payment-card {
+        border-color: rgba(246, 243, 234, 0.06);
+        background: rgba(8, 9, 8, 0.48);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+      }
+      .body-night-quiet-orbit .payment-card { border-color: rgba(246, 243, 234, 0.095); background: rgba(7, 9, 8, 0.56); }
+      .body-night-lunar-checkout .payment-card { border-color: rgba(154, 221, 66, 0.22); background: rgba(5, 9, 6, 0.62); }
+      .card-grid {
+        background-image:
+          linear-gradient(to right, rgba(246, 243, 234, 0.034) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(246, 243, 234, 0.03) 1px, transparent 1px);
+        background-size: 24px 24px;
+        min-height: 100%;
+      }
+      .view { display: none; min-height: 100%; padding: 30px 30px 26px; }
+      .view.is-active { display: grid; grid-template-rows: auto 1fr auto; }
+      .kicker,
+      .label,
+      .method,
+      .ghost,
+      .primary,
+      .field-status,
+      .review-layer,
+      .review-note,
+      .state-tag,
+      .price-box,
+      .status-label {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        letter-spacing: 0;
+      }
+      .kicker { color: var(--accent); font-size: 10px; line-height: 1.2; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; }
+      h1, h2 { margin: 0; font-weight: 950; letter-spacing: 0; text-transform: uppercase; }
+      h1 { font-size: clamp(38px, 5.5vw, 58px); line-height: 0.92; max-width: 8ch; }
+      h2 { font-size: clamp(34px, 5vw, 52px); line-height: 0.94; max-width: 9ch; }
+      .order-summary {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        align-items: end;
+        margin-top: 24px;
+        padding: 0 0 18px;
+        border-bottom: 1px solid var(--line);
+      }
+      .label { color: var(--ink-dim); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+      .price-box { text-align: right; }
+      .old-price { display: block; min-height: 15px; color: var(--ink-faint); text-decoration: line-through; font-size: 12px; font-weight: 900; }
+      .price { display: block; color: var(--ink); font-size: 34px; line-height: 1; font-weight: 950; }
+      .methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 21px 0 20px; }
+      .method {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        background: rgba(246, 243, 234, 0.035);
+        color: var(--ink-dim);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .method[aria-pressed="true"] {
+        border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+        background: var(--accent-soft);
+        color: var(--ink);
+      }
+      .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      label span.l { display: flex; gap: 4px; margin-bottom: 7px; align-items: baseline; }
+      .req { color: var(--accent); }
+      input {
+        width: 100%;
+        height: 42px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 243, 234, 0.035);
+        color: var(--ink);
+        padding: 0 10px;
+        outline: none;
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      input::placeholder { color: rgba(246, 243, 234, 0.32); }
+      input:focus { border-color: color-mix(in srgb, var(--accent) 65%, transparent); background: rgba(246, 243, 234, 0.055); }
+      .promo { margin-top: 10px; max-width: 230px; }
+      .field-status { display: block; min-height: 20px; padding-top: 5px; color: var(--accent); font-size: 9px; line-height: 1.25; font-weight: 900; text-transform: uppercase; }
+      .actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 20px; }
+      .ghost {
+        min-height: 42px;
+        border: 0;
+        background: transparent;
+        color: var(--ink-faint);
+        padding: 0 12px;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: lowercase;
+      }
+      .ghost:hover, .ghost:focus-visible { color: var(--ink-dim); }
+      .primary {
+        display: inline-flex;
+        min-width: 156px;
+        min-height: 44px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(246, 243, 234, 0.18);
+        background: #f6f3ea;
+        color: #090b09;
+        padding: 0 18px;
+        font-size: 11px;
+        font-weight: 950;
+        text-transform: lowercase;
+        text-decoration: none;
+      }
+      .primary:hover, .primary:focus-visible { background: var(--accent); border-color: var(--accent); color: #091006; }
+      .status-view { align-content: space-between; }
+      .status-copy { display: grid; gap: 18px; align-content: start; }
+      .status-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+      .status-body { margin: 0; max-width: 320px; color: var(--ink-dim); font-size: 18px; line-height: 1.28; }
+      .route-stage {
+        position: relative;
+        min-height: 154px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+        margin-top: 22px;
+      }
+      .route-stage img {
+        position: absolute;
+        width: 128px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.74;
+      }
+      .route-stage::after {
+        content: "";
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        bottom: 28px;
+        height: 1px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+      .route-labels {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-faint);
+        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .state-tag {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        color: var(--ink-dim);
+        padding: 0 14px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+      .status-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
+      .review-layer {
+        position: fixed;
+        z-index: 5;
+        right: 18px;
+        bottom: 18px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        color: rgba(246, 243, 234, 0.52);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        pointer-events: auto;
+      }
+      .review-layer button {
+        width: 34px;
+        height: 30px;
+        border: 1px solid rgba(246, 243, 234, 0.12);
+        background: rgba(4, 5, 4, 0.44);
+        color: rgba(246, 243, 234, 0.72);
+      }
+      .review-label { min-width: 112px; text-align: center; }
+      .variant-nav { left: 18px; right: auto; }
+      .review-note {
+        position: fixed;
+        z-index: 4;
+        left: 18px;
+        bottom: 58px;
+        max-width: min(520px, calc(100vw - 36px));
+        color: rgba(246, 243, 234, 0.42);
+        font-size: 12px;
+        font-style: italic;
+        line-height: 1.35;
+        pointer-events: none;
+      }
+      .is-fixed-variant .variant-nav { display: none; }
+      .is-clean .review-layer { opacity: 0.55; }
+      .body-garden-ledger { --bg: #090c08; --accent: #b0d87c; --accent-2: #d9cf75; }
+      .body-noise-receipt { --bg: #070706; --accent: #e6dca4; --accent-2: #8ad036; }
+      .body-topographic-price { --bg: #050809; --accent: #76d1d8; --accent-2: #9add42; }
+      .body-constellation-route { --bg: #05070b; --accent: #8ec7ff; --accent-2: #9add42; }
+      .body-vault-access { --bg: #080806; --accent: #d5c480; --accent-2: #9add42; }
+      .body-signal-lines { --bg: #050807; --accent: #9add42; --accent-2: #57c4e6; }
+      .body-glitch-grid { --bg: #070708; --accent: #b8f35d; --accent-2: #f4f0df; }
+      .body-case-mosaic { --bg: #080807; --accent: #c6dc8a; --accent-2: #58c7e8; }
+      .body-terminal-orbit { --bg: #020402; --accent: #95ff55; --accent-2: #55cdf7; }
+      .body-anca-galaxy-form { --bg: #030504; --accent: #b8f35d; --accent-2: #5fd6ff; }
+      .body-anca-galaxy-clean-page { --bg: #030403; --accent: #f6f3ea; --accent-2: #9add42; }
+      .body-night-lunar-checkout { --bg: #020603; --accent: #9add42; --accent-2: #3db7ef; }
+      .body-night-quiet-orbit { --bg: #050605; --accent: #d9d6c8; --accent-2: #8ad036; }
+      .body-aim-event-horizon { --bg: #000000; --panel: rgba(0, 0, 0, 0.27); --accent: #f6f3ea; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.12); --card-w: 398px; }
+      .body-x26-practice-blackhole { --bg: #000000; --panel: rgba(0, 0, 0, 0.3); --accent: #f6f3ea; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.13); --card-w: 410px; }
+      .body-x26-stay-vortex-card { --bg: #000000; --panel: rgba(0, 0, 0, 0.58); --accent: #e9f7d8; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.13); --card-w: 488px; }
+      .body-x26-slow-storm { --bg: #01040a; --panel: rgba(2, 8, 14, 0.52); --accent: #a9d8ff; --accent-2: #9add42; --line: rgba(177, 216, 255, 0.15); --card-w: 456px; }
+      .body-x26-inkfield-dark { --bg: #010705; --panel: rgba(2, 12, 8, 0.54); --accent: #2dd39a; --accent-2: #b5ffd6; --line: rgba(181, 255, 214, 0.14); --card-w: 430px; }
+      .body-kinetic-type .ambient::before { border-radius: 0; --rot: -11deg; }
+      .body-garden-ledger .ambient::after { border-radius: 42%; --rot: 8deg; }
+      .body-noise-receipt .ambient::before { border-style: dashed; border-radius: 2px; --rot: 4deg; }
+      .body-topographic-price .orbit-mark { border-style: dashed; }
+      .body-constellation-route .ambient::after { border-radius: 50%; }
+      .body-vault-access .payment-card { box-shadow: inset 0 0 0 1px rgba(246,243,234,0.04), 0 28px 88px rgba(0,0,0,0.34); }
+      .body-glitch-grid .payment-card { transform: skewY(-0.3deg); }
+      .body-case-mosaic .ambient::before { background: url('./assets/team-os-darya-product.png') center / cover; opacity: 0.08; border-radius: 0; }
+      .body-aim-event-horizon .ambient,
+      .body-aim-event-horizon .orbit-mark,
+      .body-x26-practice-blackhole .ambient,
+      .body-x26-practice-blackhole .orbit-mark,
+      .body-x26-stay-vortex-card .ambient,
+      .body-x26-stay-vortex-card .orbit-mark,
+      .body-x26-slow-storm .ambient,
+      .body-x26-slow-storm .orbit-mark,
+      .body-x26-inkfield-dark .ambient,
+      .body-x26-inkfield-dark .orbit-mark { opacity: 0; }
+      .body-aim-event-horizon .x26-practice-layer,
+      .body-x26-practice-blackhole .x26-practice-layer,
+      .body-x26-stay-vortex-card .x26-stay-word,
+      .body-x26-slow-storm .x26-storm-word,
+      .body-x26-inkfield-dark .x26-ink-layer { opacity: 1; }
+      .body-aim-event-horizon .page-shell { place-items: center; padding-top: 46px; }
+      .body-aim-event-horizon .payment-card {
+        background: rgba(0, 0, 0, 0.26);
+        border-color: rgba(246, 243, 234, 0.045);
+        box-shadow:
+          0 0 0 1px rgba(246, 243, 234, 0.012),
+          0 38px 120px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(11px);
+      }
+      .body-aim-event-horizon .card-grid { background-image: none; }
+      .body-aim-event-horizon .method,
+      .body-aim-event-horizon input,
+      .body-aim-event-horizon .route-stage { background: rgba(246, 243, 234, 0.025); }
+      .body-aim-event-horizon .x26-practice-axis span { color: rgba(246, 243, 234, 0.5); }
+      .body-x26-practice-blackhole .page-shell { place-items: center; padding-top: 48px; }
+      .body-x26-practice-blackhole .payment-card {
+        background: rgba(0, 0, 0, 0.25);
+        border-color: rgba(246, 243, 234, 0.052);
+        box-shadow: 0 0 0 1px rgba(246, 243, 234, 0.018), 0 36px 110px rgba(0, 0, 0, 0.44);
+        backdrop-filter: blur(10px);
+      }
+      .body-x26-practice-blackhole .card-grid { background-image: none; }
+      .body-x26-practice-blackhole .method,
+      .body-x26-practice-blackhole input,
+      .body-x26-practice-blackhole .route-stage { background: rgba(246, 243, 234, 0.025); }
+      .body-x26-stay-vortex-card .payment-card {
+        width: min(var(--card-w), calc(100vw - 32px));
+        min-height: min(var(--card-w), calc(100vw - 32px));
+        aspect-ratio: 1 / 1;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 46%, rgba(0, 0, 0, 0.98) 0 42%, rgba(0, 0, 0, 0.72) 56%, rgba(246, 243, 234, 0.045) 100%),
+          rgba(0, 0, 0, 0.48);
+        box-shadow:
+          0 0 0 1px rgba(246, 243, 234, 0.035),
+          0 0 90px rgba(246, 243, 234, 0.08),
+          0 48px 120px rgba(0, 0, 0, 0.64);
+        backdrop-filter: blur(8px);
+      }
+      .body-x26-stay-vortex-card .card-grid { border-radius: inherit; background-size: 36px 36px; }
+      .body-x26-stay-vortex-card .view { padding: 58px 54px 42px; }
+      .body-x26-stay-vortex-card h1 { font-size: clamp(30px, 4vw, 44px); }
+      .body-x26-stay-vortex-card h2 { font-size: clamp(28px, 3.6vw, 42px); }
+      .body-x26-stay-vortex-card .methods { gap: 6px; margin: 17px 0 16px; }
+      .body-x26-stay-vortex-card .method { min-height: 35px; }
+      .body-x26-stay-vortex-card input { height: 38px; }
+      .body-x26-slow-storm .payment-card {
+        border-color: rgba(169, 216, 255, 0.13);
+        border-radius: 42px 10px 42px 10px;
+        background: linear-gradient(160deg, rgba(2, 8, 14, 0.62), rgba(0, 0, 0, 0.38));
+        box-shadow: 0 40px 120px rgba(0, 0, 0, 0.52), inset 0 0 42px rgba(169, 216, 255, 0.025);
+      }
+      .body-x26-slow-storm .card-grid { background-size: 42px 42px; background-image: linear-gradient(to right, rgba(169,216,255,0.026) 1px, transparent 1px), linear-gradient(to bottom, rgba(169,216,255,0.022) 1px, transparent 1px); }
+      .body-x26-inkfield-dark .payment-card {
+        border-color: rgba(45, 211, 154, 0.14);
+        border-radius: 34px 12px 34px 12px;
+        background: rgba(2, 12, 8, 0.42);
+        box-shadow: 0 38px 110px rgba(0, 0, 0, 0.46), inset 0 0 70px rgba(45, 211, 154, 0.026);
+        backdrop-filter: blur(12px);
+      }
+      .body-x26-inkfield-dark .card-grid { background-image: none; }
+      .body-x26-inkfield-dark .method,
+      .body-x26-inkfield-dark input,
+      .body-x26-inkfield-dark .route-stage { background: rgba(181, 255, 214, 0.025); }
+      @media (max-width: 620px) {
+        .page-shell { padding: 34px 12px 110px; align-items: start; }
+        .payment-card { width: calc(100vw - 24px); min-height: auto; }
+        .view { padding: 22px 18px 20px; }
+        h1 { max-width: none; font-size: 40px; }
+        h2 { max-width: none; font-size: 36px; }
+        .order-summary { grid-template-columns: 1fr; align-items: start; gap: 10px; }
+        .price-box { text-align: left; }
+        .methods { grid-template-columns: 1fr; }
+        .fields { grid-template-columns: 1fr; gap: 8px; }
+        .promo { max-width: none; }
+        .actions, .status-actions { justify-content: stretch; flex-direction: column-reverse; align-items: stretch; }
+        .primary, .ghost { width: 100%; }
+        .review-layer { left: 12px; right: 12px; bottom: 10px; justify-content: center; }
+        .variant-nav { bottom: 48px; }
+        .review-note { left: 12px; right: 12px; bottom: 86px; max-width: none; font-size: 11px; }
+        .x26-practice-axis { display: none; }
+        .x26-practice-numbers { opacity: 0.24; }
+        .x26-stay-word span { transform: rotate(-15deg) translate(40px, -245px); font-size: 28px; }
+        .x26-storm-word { padding-bottom: 152px; font-size: 16px; }
+        .x26-ink-log { opacity: 0.42; }
+        .x26-ink-status { display: none; }
+        .body-aim-event-horizon .payment-card {
+          min-height: auto;
+        }
+        .body-x26-stay-vortex-card .payment-card {
+          min-height: 590px;
+          aspect-ratio: auto;
+          border-radius: 48% / 34%;
+        }
+        .body-x26-stay-vortex-card .view { padding: 44px 24px 34px; }
+        .body-x26-stay-vortex-card h1 { font-size: 34px; }
+        .body-x26-stay-vortex-card h2 { font-size: 32px; }
+        .body-x26-slow-storm .payment-card,
+        .body-x26-inkfield-dark .payment-card { border-radius: 28px 8px 28px 8px; }
+      }
+
+    </style>
+  </head>
+  <body>
+
+    <canvas id="field" aria-hidden="true"></canvas>
+    <div class="ambient" aria-hidden="true"></div>
+    <div class="orbit-mark" aria-hidden="true"></div>
+    <div class="x26-layer x26-practice-layer" aria-hidden="true">
+      <div class="x26-practice-numbers"></div>
+      <div class="x26-practice-axis"><span>AI MINDSET</span><span>ОПЛАТА</span><span>ДОСТУП</span></div>
+    </div>
+    <div class="x26-layer x26-stay-word" aria-hidden="true"></div>
+    <div class="x26-layer x26-storm-word" aria-hidden="true">signal</div>
+    <div class="x26-layer x26-ink-layer" aria-hidden="true">
+      <div class="x26-ink-log" id="x26InkLog">[pay] payment route ready<br />[bot] access handoff enabled<br />[aim] mouse pull enabled</div>
+      <div class="x26-ink-status"><span>strokes <b id="x26InkStrokes">0</b></span><span>particles <b id="x26InkParticles">0</b></span></div>
+    </div>
+
+    <main class="page-shell">
+      <section class="payment-card" id="cardState" aria-label="Оплата заказа">
+        <div class="card-grid">
+          <form class="view" data-view="form" autocomplete="on">
+            <div>
+              <div class="kicker">итого к оплате</div>
+              <h1>ОПЛАТА ЗАКАЗА</h1>
+              <div class="order-summary" aria-label="Итого к оплате">
+                <div>
+                  <div class="label">итого к оплате:</div>
+                </div>
+                <div class="price-box">
+                  <span class="old-price" id="oldPrice" hidden></span>
+                  <span class="price" id="price">€890</span>
+                </div>
+              </div>
+
+              <div class="methods" role="group" aria-label="Способ оплаты">
+                <button class="method" type="button" data-method="usdt" aria-pressed="false">USDT</button>
+                <button class="method" type="button" data-method="card_ru" aria-pressed="false">РУ-КАРТЫ</button>
+                <button class="method" type="button" data-method="card_intl" aria-pressed="true">EU-КАРТЫ</button>
+              </div>
+
+              <div class="fields">
+                <label>
+                  <span class="l label"><span class="req">*</span><span>telegram</span></span>
+                  <input id="telegram" name="telegram" type="text" inputmode="text" placeholder="@user или телефон" autocomplete="off" />
+                  <span class="field-status" id="telegramStatus">&nbsp;</span>
+                </label>
+                <label>
+                  <span class="l label"><span>e-mail</span></span>
+                  <input id="email" name="email" type="email" inputmode="email" placeholder="mail@mail.com" autocomplete="email" />
+                </label>
+              </div>
+
+              <div class="promo" aria-label="Промокод">
+                <div class="label">промокод</div>
+                <input id="promo" name="promo" type="text" inputmode="text" placeholder="..." autocomplete="off" />
+                <span class="field-status" id="promoStatus">&nbsp;</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="noop">отмена</button>
+              <button class="primary" type="button" data-action="pay">оплатить</button>
+            </div>
+          </form>
+
+          <section class="view status-view" data-view="redirecting" aria-label="Переход к оплате">
+            <div class="status-copy">
+              <div class="status-label">переход к оплате</div>
+              <h2>ПЕРЕХОД К ОПЛАТЕ</h2>
+              <p class="status-body">банк открывается</p>
+              <div class="route-stage" aria-label="Маршрут оплаты">
+                <img src="./assets/teamos-geo-animation.svg" alt="" aria-hidden="true" />
+                <div class="route-labels"><span>site</span><span>bank</span></div>
+              </div>
+            </div>
+            <div class="status-actions">
+              <button class="ghost" type="button" data-action="noop">отмена</button>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="paid" aria-label="Оплата получена">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА ПОЛУЧЕНА</h2>
+              <p class="status-body">Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.</p>
+              <div class="state-tag">откройте бота</div>
+            </div>
+            <div class="status-actions">
+              <a class="primary" href="https://t.me/prod_ai_mind_set_bot?start=payment_success" target="_blank" rel="noopener noreferrer">/присоединиться</a>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="failed" aria-label="Оплата не прошла">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА НЕ ПРОШЛА</h2>
+              <p class="status-body">Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно попробовать снова.</p>
+            </div>
+            <div class="status-actions">
+              <button class="primary" type="button" data-action="retry">попробовать снова</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="review-layer variant-nav" aria-label="Переключение визуальных вариантов">
+      <button type="button" data-variant-shift="-1" aria-label="Предыдущий вариант">‹</button>
+      <span class="review-label" id="variantLabel">variant</span>
+      <button type="button" data-variant-shift="1" aria-label="Следующий вариант">›</button>
+    </div>
+    <div class="review-layer" aria-label="Внешняя проверка состояния формы">
+      <button type="button" data-state-shift="-1" aria-label="Предыдущее состояние">‹</button>
+      <span class="review-label" id="stateLabel">оплата заказа</span>
+      <button type="button" data-state-shift="1" aria-label="Следующее состояние">›</button>
+    </div>
+    <p class="review-note">Для проверки скидок: в Telegram введите aim, в промокод — ponchik.</p>
+
+    <script>
+
+      (() => {
+        const variants = [{"id":"kinetic-type","title":"Kinetic Type Gate"},{"id":"garden-ledger","title":"Dark Garden Ledger"},{"id":"noise-receipt","title":"Noise Receipt Theater"},{"id":"topographic-price","title":"Topographic Price Field"},{"id":"constellation-route","title":"Constellation Route"},{"id":"vault-access","title":"Access Vault"},{"id":"signal-lines","title":"Signal Lines"},{"id":"glitch-grid","title":"Glitch Grid"},{"id":"case-mosaic","title":"Case Mosaic Checkout"},{"id":"terminal-orbit","title":"Terminal Orbit"},{"id":"anca-galaxy-form","title":"Anca Galaxy Form"},{"id":"anca-galaxy-clean-page","title":"Clean Galaxy Page"},{"id":"night-lunar-checkout","title":"Night Lunar Checkout"},{"id":"night-quiet-orbit","title":"Quiet Orbit Checkout"},{"id":"x26-practice-blackhole","title":"AIM Payment Gravity"},{"id":"x26-stay-vortex-card","title":"AIM Vortex Checkout"},{"id":"x26-slow-storm","title":"AIM Slow Storm"},{"id":"x26-inkfield-dark","title":"AIM Dark Inkfield"},{"id":"aim-event-horizon","title":"AIM Event Horizon"}];
+        const fixedVariant = null;
+        const params = new URLSearchParams(window.location.search);
+        const requestedVariant = params.get('variant');
+        let variantIndex = Math.max(0, variants.findIndex((item) => item.id === (fixedVariant || requestedVariant)));
+        if (variantIndex < 0) variantIndex = 0;
+        const states = ['form', 'redirecting', 'paid', 'failed'];
+        const stateLabels = {
+          form: 'оплата заказа',
+          redirecting: 'переход к оплате',
+          paid: 'оплата получена',
+          failed: 'оплата не прошла',
+        };
+        let activeState = states.includes(params.get('status')) ? params.get('status') : 'form';
+        let nextOutcome = Number(window.sessionStorage.getItem('aim-payment-page-attempt') || '0');
+        const basePrice = 890;
+        let selectedMethod = params.get('paymentMethod') || 'card_intl';
+        let telegramDiscountState = 'idle';
+        let promoState = 'idle';
+        let telegramError = '';
+        let redirectTimer = null;
+
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+        const formatRoublePrice = (amount) => new Intl.NumberFormat('ru-RU').format(amount) + '\u00A0₽';
+        const hasTelegramContact = (value) => value.trim().length > 0;
+        const isKnownAlumniHandle = (value) => ['aim', '@aim'].includes(value.trim().toLowerCase());
+        const hasPromo = (value) => value.trim().toLowerCase() === 'ponchik';
+
+        const syncVariant = () => {
+          const variant = variants[variantIndex];
+          document.body.className = ['body-' + variant.id, fixedVariant ? 'is-fixed-variant' : '', params.get('clean') === '1' ? 'is-clean' : ''].filter(Boolean).join(' ');
+          $('#variantLabel').textContent = variant.title;
+          document.title = 'AIM Payment Page Lab / ' + variant.title;
+        };
+
+        const computeDiscountRate = () => {
+          if (telegramDiscountState === 'applied') return 0.2;
+          if (promoState === 'applied') return 0.05;
+          return 0;
+        };
+
+        const getDiscountedBase = () => Math.round(basePrice * (1 - computeDiscountRate()));
+        const getPrice = () => {
+          const discounted = getDiscountedBase();
+          if (selectedMethod === 'usdt') return Math.round(discounted * 0.95) + '\u00A0USDT';
+          if (selectedMethod === 'card_ru') return formatRoublePrice(discounted * 100);
+          return '€' + discounted;
+        };
+        const getOriginalPrice = () => {
+          const hasDiscount = computeDiscountRate() > 0;
+          if (!hasDiscount) return '';
+          if (selectedMethod === 'usdt') return Math.round(basePrice * 0.95) + '\u00A0USDT';
+          if (selectedMethod === 'card_ru') return formatRoublePrice(basePrice * 100);
+          return '€' + basePrice;
+        };
+
+        const updatePrice = () => {
+          $('#price').textContent = getPrice();
+          const original = getOriginalPrice();
+          $('#oldPrice').textContent = original;
+          $('#oldPrice').hidden = !original;
+        };
+
+        const updateMethod = () => {
+          $$('.method').forEach((button) => {
+            button.setAttribute('aria-pressed', button.dataset.method === selectedMethod ? 'true' : 'false');
+          });
+          updatePrice();
+        };
+
+        const updateTelegramStatus = () => {
+          const el = $('#telegramStatus');
+          if (telegramError) {
+            el.textContent = telegramError;
+            el.style.color = 'rgba(246, 243, 234, 0.52)';
+            return;
+          }
+          if (telegramDiscountState === 'applied') {
+            el.textContent = 'скидка Alumni 20% применена';
+            el.style.color = 'var(--accent)';
+            return;
+          }
+          el.innerHTML = '&nbsp;';
+        };
+
+        const updatePromoStatus = () => {
+          const el = $('#promoStatus');
+          if (promoState === 'idle') {
+            el.innerHTML = '&nbsp;';
+            return;
+          }
+          if (promoState === 'checking') {
+            el.textContent = 'ищу скидку';
+            el.style.color = 'rgba(246, 243, 234, 0.46)';
+            return;
+          }
+          if (promoState === 'applied') {
+            el.textContent = telegramDiscountState === 'applied' ? 'действует Alumni 20%' : 'промокод 5% применён';
+            el.style.color = telegramDiscountState === 'applied' ? 'rgba(246, 243, 234, 0.46)' : 'var(--accent)';
+            return;
+          }
+          el.textContent = 'промокод не применён';
+          el.style.color = 'rgba(246, 243, 234, 0.46)';
+        };
+
+        const setState = (nextState, options = {}) => {
+          if (redirectTimer && nextState !== 'redirecting') {
+            window.clearTimeout(redirectTimer);
+            redirectTimer = null;
+          }
+          activeState = nextState;
+          $$('.view').forEach((view) => view.classList.toggle('is-active', view.dataset.view === activeState));
+          $('#stateLabel').textContent = stateLabels[activeState];
+          $('#cardState').dataset.state = activeState;
+          if (activeState === 'redirecting' && options.autoResult) {
+            redirectTimer = window.setTimeout(() => {
+              nextOutcome += 1;
+              window.sessionStorage.setItem('aim-payment-page-attempt', String(nextOutcome));
+              setState(nextOutcome % 2 === 1 ? 'paid' : 'failed');
+            }, 2300);
+          }
+        };
+
+        const startPayment = () => {
+          const telegram = $('#telegram');
+          if (!hasTelegramContact(telegram.value)) {
+            telegramError = 'укажите telegram или телефон';
+            updateTelegramStatus();
+            telegram.focus();
+            return;
+          }
+          telegramError = '';
+          updateTelegramStatus();
+          setState('redirecting', { autoResult: true });
+        };
+
+        let tgTimer = null;
+        $('#telegram').addEventListener('input', (event) => {
+          if (telegramError && hasTelegramContact(event.target.value)) telegramError = '';
+          telegramDiscountState = event.target.value.trim() ? 'checking' : 'idle';
+          updateTelegramStatus();
+          if (tgTimer) window.clearTimeout(tgTimer);
+          tgTimer = window.setTimeout(() => {
+            const value = event.target.value.trim();
+            telegramDiscountState = value ? (isKnownAlumniHandle(value) ? 'applied' : 'not_applied') : 'idle';
+            updateTelegramStatus();
+            updatePromoStatus();
+            updatePrice();
+          }, 460);
+        });
+
+        let promoTimer = null;
+        $('#promo').addEventListener('input', (event) => {
+          promoState = event.target.value.trim() ? 'checking' : 'idle';
+          updatePromoStatus();
+          if (promoTimer) window.clearTimeout(promoTimer);
+          promoTimer = window.setTimeout(() => {
+            const value = event.target.value.trim();
+            promoState = value ? (hasPromo(value) ? 'applied' : 'not_applied') : 'idle';
+            updatePromoStatus();
+            updatePrice();
+          }, 420);
+        });
+
+        $$('.method').forEach((button) => {
+          button.addEventListener('click', () => {
+            selectedMethod = button.dataset.method;
+            updateMethod();
+          });
+        });
+        $$('[data-action="pay"]').forEach((button) => button.addEventListener('click', startPayment));
+        $$('[data-action="retry"]').forEach((button) => button.addEventListener('click', () => setState('form')));
+        $$('[data-action="noop"]').forEach((button) => button.addEventListener('click', (event) => event.preventDefault()));
+        $$('[data-state-shift]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const current = states.indexOf(activeState);
+            const dir = Number(button.dataset.stateShift);
+            setState(states[(current + dir + states.length) % states.length]);
+          });
+        });
+        $$('[data-variant-shift]').forEach((button) => {
+          button.addEventListener('click', () => {
+            if (fixedVariant) return;
+            const dir = Number(button.dataset.variantShift);
+            variantIndex = (variantIndex + dir + variants.length) % variants.length;
+            syncVariant();
+          });
+        });
+
+        syncVariant();
+        updateMethod();
+        updateTelegramStatus();
+        updatePromoStatus();
+        setState(activeState);
+
+        const canvas = $('#field');
+        const ctx = canvas.getContext('2d');
+        const starParticles = Array.from({ length: 180 }, (_, index) => ({
+          x: Math.random(), y: Math.random(), z: Math.random(), s: index % 11 === 0 ? 1.8 : 0.9 + Math.random() * 1.3, speed: 0.00025 + Math.random() * 0.00065,
+        }));
+        const vortexParticles = Array.from({ length: 1100 }, (_, index) => ({
+          angle: Math.random() * Math.PI * 2,
+          offset: Math.random(),
+          depth: Math.random(),
+          speed: 0.000018 + Math.random() * 0.00005,
+          size: index % 23 === 0 ? 1.7 + Math.random() * 1.6 : 0.45 + Math.random() * 0.9,
+          type: index % 7 === 0 ? 'dust' : 'strand',
+        }));
+        const practiceRibbons = Array.from({ length: 86 }, (_, index) => ({
+          phase: Math.random() * Math.PI * 2,
+          radius: 0.32 + Math.random() * 0.42,
+          tilt: (Math.random() - 0.5) * 0.5,
+          speed: 0.000018 + Math.random() * 0.000025,
+          alpha: 0.06 + Math.random() * 0.12,
+          width: index % 17 === 0 ? 1.3 : 0.6 + Math.random() * 0.5,
+        }));
+        const stormParticles = Array.from({ length: 900 }, (_, index) => ({
+          angle: Math.random() * Math.PI * 2,
+          radius: Math.random(),
+          speed: 0.000004 + Math.random() * 0.000018,
+          seed: Math.random() * 1000 + index,
+          size: 0.5 + Math.random() * 2.2,
+        }));
+        const inkSplats = [];
+        const inkPalette = ['rgba(0,90,64,1)', 'rgba(0,120,84,1)', 'rgba(26,163,122,1)', 'rgba(0,140,96,1)', 'rgba(45,211,154,.9)'];
+        const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, vx: 0, vy: 0, energy: 0, lastMove: 0, down: false };
+        const inkCursor = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, strokes: 0, tick: 0 };
+        let previousCanvasMode = '';
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+        window.addEventListener('resize', resize);
+        window.addEventListener('pointermove', (event) => {
+          const now = performance.now();
+          const nx = event.clientX / Math.max(1, window.innerWidth);
+          const ny = event.clientY / Math.max(1, window.innerHeight);
+          const dt = Math.max(16, now - (pointer.lastMove || now));
+          pointer.vx = (nx - pointer.tx) / dt * 16;
+          pointer.vy = (ny - pointer.ty) / dt * 16;
+          pointer.tx = nx;
+          pointer.ty = ny;
+          pointer.lastMove = now;
+        });
+        window.addEventListener('pointerdown', () => { pointer.down = true; });
+        window.addEventListener('pointerup', () => { pointer.down = false; });
+        resize();
+        const activeVariantId = () => variants[variantIndex]?.id || '';
+        const accentColor = () => getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#9add42';
+        const syncPointer = () => {
+          const dx = pointer.tx - pointer.x;
+          const dy = pointer.ty - pointer.y;
+          pointer.x += dx * 0.105;
+          pointer.y += dy * 0.105;
+          pointer.energy = pointer.energy * 0.9 + Math.min(1, Math.hypot(pointer.vx, pointer.vy) * 12) * 0.1;
+          pointer.vx *= 0.92;
+          pointer.vy *= 0.92;
+        };
+
+        const modeChanged = (mode, w, h) => {
+          if (mode === previousCanvasMode) return false;
+          previousCanvasMode = mode;
+          ctx.clearRect(0, 0, w, h);
+          if (mode === 'x26-inkfield-dark') {
+            inkSplats.length = 0;
+            inkCursor.strokes = 0;
+            inkCursor.x = 0.5;
+            inkCursor.y = 0.5;
+            inkCursor.px = 0.5;
+            inkCursor.py = 0.5;
+          }
+          return true;
+        };
+
+        const drawDefaultField = (w, h, accent) => {
+          ctx.clearRect(0, 0, w, h);
+          const driftX = (pointer.x - 0.5) * 32;
+          const driftY = (pointer.y - 0.5) * 22;
+          starParticles.forEach((p, index) => {
+            p.y += p.speed;
+            if (p.y > 1.08) p.y = -0.08;
+            const depth = 0.55 + p.z * 0.85;
+            const x = p.x * w + driftX * depth + Math.sin((p.y + index) * 4.7) * 8 * p.z;
+            const y = p.y * h + driftY * depth;
+            ctx.globalAlpha = 0.18 + p.z * 0.32;
+            ctx.fillStyle = index % 13 === 0 ? accent : '#f6f3ea';
+            ctx.beginPath();
+            ctx.arc(x, y, p.s * depth, 0, Math.PI * 2);
+            ctx.fill();
+            if (index % 17 === 0) {
+              ctx.globalAlpha = 0.08;
+              ctx.strokeStyle = accent;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + (pointer.x - 0.5) * 100, y + (pointer.y - 0.5) * 80);
+              ctx.stroke();
+            }
+          });
+          ctx.globalAlpha = 1;
+        };
+
+        const drawVortexField = (w, h, now, accent, mode) => {
+          ctx.clearRect(0, 0, w, h);
+          const cx = w * (mode === 'practice' ? 0.5 : 0.5) + (pointer.x - 0.5) * 44;
+          const cy = h * (mode === 'practice' ? 0.48 : 0.5) + (pointer.y - 0.5) * 30;
+          const min = Math.min(w, h);
+          const mouseTiltX = (pointer.x - 0.5) * 0.22;
+          const mouseTiltY = (pointer.y - 0.5) * 0.18;
+
+          const glow = ctx.createRadialGradient(cx, cy, 4, cx, cy, min * 0.56);
+          glow.addColorStop(0, 'rgba(0,0,0,0.96)');
+          glow.addColorStop(0.24, 'rgba(0,0,0,0.72)');
+          glow.addColorStop(0.56, mode === 'practice' ? 'rgba(246,243,234,0.08)' : 'rgba(154,221,66,0.06)');
+          glow.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(cx, cy, min * 0.58, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (mode === 'practice') {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            practiceRibbons.forEach((ribbon, index) => {
+              const ringTilt = (pointer.x - 0.5) * 0.28 + ribbon.tilt;
+              ctx.globalAlpha = ribbon.alpha;
+              ctx.strokeStyle = index % 5 === 0 ? 'rgba(154,221,66,0.5)' : 'rgba(246,243,234,0.68)';
+              ctx.lineWidth = ribbon.width;
+              ctx.beginPath();
+              for (let step = 0; step <= 58; step += 1) {
+                const t = step / 58;
+                const phase = ribbon.phase + t * Math.PI * 2 + now * ribbon.speed;
+                const fold = Math.sin(t * Math.PI);
+                const breathing = 1 + Math.sin(now * 0.00019 + ribbon.phase) * 0.04;
+                const radius = min * ribbon.radius * breathing * (0.74 + fold * 0.34);
+                const lensX = Math.cos(phase) * radius * (1.18 + mouseTiltX * 0.55);
+                const lensY = Math.sin(phase + ringTilt) * radius * (0.13 + ribbon.radius * 0.13);
+                const wave = Math.sin(phase * 2.1 + now * 0.00021) * min * 0.018 * fold;
+                const x = cx + lensX;
+                const y = cy + lensY + wave + (pointer.y - 0.5) * min * 0.045;
+                if (step === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+              }
+              ctx.stroke();
+            });
+            for (let ring = 0; ring < 8; ring += 1) {
+              const drift = Math.sin(now * 0.00022 + ring) * min * 0.012;
+              ctx.globalAlpha = 0.06 + ring * 0.015;
+              ctx.strokeStyle = ring % 2 ? 'rgba(246,243,234,0.52)' : 'rgba(154,221,66,0.32)';
+              ctx.lineWidth = ring === 0 ? 1.1 : 0.7;
+              ctx.beginPath();
+              ctx.ellipse(
+                cx + drift,
+                cy + Math.cos(now * 0.00018 + ring) * min * 0.012,
+                min * (0.18 + ring * 0.052),
+                min * (0.034 + ring * 0.011),
+                (pointer.x - 0.5) * 0.34 + ring * 0.018,
+                0,
+                Math.PI * 2
+              );
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+
+          vortexParticles.forEach((p, index) => {
+            const life = (p.offset + now * p.speed) % 1;
+            let x;
+            let y;
+            let alpha;
+            if (mode === 'practice') {
+              const angle = p.angle + life * 5.8 + Math.sin(now * 0.00016 + p.depth * 4) * 0.35;
+              const lens = Math.sin(life * Math.PI);
+              const radius = min * (0.16 + p.depth * 0.54) * (0.9 + lens * 0.22 + Math.sin(p.angle * 3 + now * 0.0002) * 0.055);
+              x = cx + Math.cos(angle) * radius * (1.25 + mouseTiltX * 0.6);
+              y = cy + Math.sin(angle) * radius * (0.2 + p.depth * 0.1) + Math.cos(life * Math.PI * 2 + p.angle) * min * 0.035 + mouseTiltY * min * 0.09;
+              alpha = (0.08 + lens * 0.42) * (p.type === 'dust' ? 0.48 : 0.82);
+            } else {
+              const radius = min * (0.08 + Math.pow(life, 1.75) * 0.72);
+              const angle = p.angle + (1 - life) * 0.42 + now * 0.00002;
+              x = cx + Math.cos(angle) * radius * (1.35 + mouseTiltX);
+              y = cy + Math.sin(angle) * radius * (0.28 + mouseTiltY * 0.18);
+              alpha = Math.sin(life * Math.PI) * (p.type === 'dust' ? 0.16 : 0.42);
+            }
+            if (alpha <= 0.01) return;
+            ctx.globalAlpha = Math.min(0.74, alpha);
+            ctx.fillStyle = index % 11 === 0 ? accent : '#f6f3ea';
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            if (mode !== 'practice' && index % 19 === 0) {
+              ctx.globalAlpha = alpha * 0.22;
+              ctx.strokeStyle = '#f6f3ea';
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + Math.cos(p.angle) * 62, y + Math.sin(p.angle) * 12);
+              ctx.stroke();
+            }
+          });
+
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = '#000';
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, min * (mode === 'practice' ? 0.13 : 0.14), min * (mode === 'practice' ? 0.055 : 0.11), (pointer.x - 0.5) * 0.2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = mode === 'practice' ? 'rgba(246,243,234,0.18)' : 'rgba(154,221,66,0.18)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, min * (mode === 'practice' ? 0.22 : 0.2), min * (mode === 'practice' ? 0.052 : 0.08), (pointer.x - 0.5) * 0.3, 0, Math.PI * 2);
+          ctx.stroke();
+        };
+
+        const projectBowlPoint = (particle, life, min, now, energy, extraAngle = 0) => {
+          const radialOffset = (particle.depth - 0.5) * 2;
+          const theta = life * 1.6;
+          const layerOffset = radialOffset * Math.pow(1 - life, 2) * 0.8;
+          const baseRadius = min * (0.27 + particle.depth * 0.09 + layerOffset * 0.08);
+          const r = baseRadius * Math.cos(theta);
+          const bowlY = -Math.pow(Math.max(0, Math.sin(theta)), 1.5) * min * 0.255 + radialOffset * min * 0.025;
+          const angle = particle.angle + life * 6 + radialOffset * 2 + extraAngle + energy * 0.55;
+          const x3 = Math.cos(angle) * r;
+          const z3 = Math.sin(angle) * r;
+          const y3 = bowlY;
+          const rotX = -(pointer.y - 0.5) * 0.82 + 0.28 + pointer.vy * 0.34;
+          const rotZ = (pointer.x - 0.5) * 0.84 + pointer.vx * 0.52;
+          const yX = y3 * Math.cos(rotX) - z3 * Math.sin(rotX);
+          const zX = y3 * Math.sin(rotX) + z3 * Math.cos(rotX);
+          const xZ = x3 * Math.cos(rotZ) - zX * Math.sin(rotZ);
+          const zZ = x3 * Math.sin(rotZ) + zX * Math.cos(rotZ);
+          return { x: xZ, y: yX, z: zZ };
+        };
+
+        const drawEventHorizonField = (w, h, now, accent) => {
+          ctx.clearRect(0, 0, w, h);
+          const min = Math.min(w, h);
+          const cx = w * 0.5 + (pointer.x - 0.5) * min * 0.05;
+          const cy = h * 0.51 + (pointer.y - 0.5) * min * 0.035;
+          const energy = Math.min(1, pointer.energy);
+          const wakeX = pointer.vx * min * (0.42 + energy * 0.7);
+          const wakeY = pointer.vy * min * (0.3 + energy * 0.55);
+          const mouseX = cx + (pointer.x - 0.5) * min * 0.42 + wakeX * 0.18;
+          const mouseY = cy + (pointer.y - 0.5) * min * 0.3 + wakeY * 0.18;
+
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          const glowRadius = min * (0.22 + energy * 0.28);
+          const glow = ctx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, glowRadius);
+          glow.addColorStop(0, `rgba(246,243,234,${0.22 + energy * 0.16})`);
+          glow.addColorStop(0.24, `rgba(154,221,66,${0.06 + energy * 0.13})`);
+          glow.addColorStop(0.6, 'rgba(246,243,234,0.035)');
+          glow.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(mouseX, mouseY, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          const dir = Math.atan2(pointer.vy || pointer.y - 0.5, pointer.vx || pointer.x - 0.5);
+          ctx.translate(mouseX, mouseY);
+          ctx.rotate(dir);
+          const wake = ctx.createRadialGradient(0, 0, 0, 0, 0, min * (0.14 + energy * 0.2));
+          wake.addColorStop(0, `rgba(246,243,234,${0.08 + energy * 0.22})`);
+          wake.addColorStop(0.42, `rgba(154,221,66,${0.025 + energy * 0.12})`);
+          wake.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = wake;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, min * (0.18 + energy * 0.34), min * (0.028 + energy * 0.05), 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.save();
+          ctx.globalCompositeOperation = 'lighter';
+          practiceRibbons.slice(0, 72).forEach((ribbon, index) => {
+            ctx.globalAlpha = 0.035 + ribbon.alpha * (0.42 + energy * 0.38);
+            ctx.strokeStyle = index % 6 === 0 ? 'rgba(154,221,66,0.5)' : 'rgba(246,243,234,0.58)';
+            ctx.lineWidth = ribbon.width * (0.64 + energy * 0.32);
+            ctx.beginPath();
+            for (let step = 0; step <= 84; step += 1) {
+              const life = step / 84;
+              const local = {
+                angle: ribbon.phase + now * ribbon.speed * (1.2 + energy),
+                depth: Math.max(0.02, Math.min(0.98, ribbon.radius + ribbon.tilt * 0.25)),
+              };
+              const fold = Math.sin(life * Math.PI);
+              const point = projectBowlPoint(local, life, min, now, energy, index * 0.047 + Math.sin(now * 0.00018 + index) * 0.16);
+              const pull = Math.pow(1 - life, 1.55) * fold;
+              const x = cx + point.x * (1.18 + energy * 0.08) + wakeX * pull * 0.12;
+              const y = cy + point.y * 0.64 + point.z * 0.052 + wakeY * pull * 0.1;
+              if (step === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          });
+
+          vortexParticles.forEach((p, index) => {
+            const life = (p.offset + now * p.speed * (1.4 + energy * 4.2)) % 1;
+            const fadeIn = Math.min(1, life / 0.12);
+            const fadeOut = Math.min(1, (1 - life) / 0.28);
+            const fade = Math.sin(life * Math.PI) * fadeIn * fadeOut;
+            if (fade <= 0.01) return;
+            const point = projectBowlPoint(p, life, min, now, energy, Math.sin(now * 0.00014 + p.angle) * 0.12);
+            const pull = Math.pow(1 - life, 1.45) * Math.sin(life * Math.PI);
+            const x = cx + point.x * 1.2 + wakeX * pull * 0.09;
+            const y = cy + point.y * 0.65 + point.z * 0.058 + wakeY * pull * 0.08;
+            const zDepth = Math.max(0, Math.min(1, 0.5 + point.z / min));
+            ctx.globalAlpha = Math.min(0.68, (0.08 + fade * 0.48) * (0.55 + zDepth * 0.45));
+            ctx.fillStyle = index % 17 === 0 ? accent : '#f6f3ea';
+            ctx.beginPath();
+            ctx.arc(x, y, p.size * (0.55 + fade * 0.75 + energy * 0.18), 0, Math.PI * 2);
+            ctx.fill();
+            if (index % 43 === 0) {
+              const tail = projectBowlPoint(p, Math.max(0, life - 0.028), min, now, energy, -0.08);
+              ctx.globalAlpha *= 0.45;
+              ctx.strokeStyle = index % 2 ? 'rgba(246,243,234,0.55)' : 'rgba(154,221,66,0.34)';
+              ctx.lineWidth = 0.75;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(cx + tail.x * 1.2, cy + tail.y * 0.65 + tail.z * 0.058);
+              ctx.stroke();
+            }
+          });
+          ctx.restore();
+
+          ctx.save();
+          const core = ctx.createRadialGradient(cx, cy - min * 0.012, 0, cx, cy - min * 0.012, min * 0.22);
+          core.addColorStop(0, 'rgba(0,0,0,1)');
+          core.addColorStop(0.48, 'rgba(0,0,0,0.98)');
+          core.addColorStop(0.76, 'rgba(0,0,0,0.35)');
+          core.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = core;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, min * 0.26, min * 0.12, (pointer.x - 0.5) * 0.18, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(246,243,234,0.13)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, min * 0.34, min * 0.074, (pointer.x - 0.5) * 0.36 + pointer.vx * 0.16, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          ctx.globalAlpha = 1;
+        };
+
+        const drawStormField = (w, h, now, accent) => {
+          ctx.clearRect(0, 0, w, h);
+          const cx = w * 0.5 + (pointer.x - 0.5) * 80;
+          const cy = h * 0.52 + (pointer.y - 0.5) * 52;
+          const min = Math.min(w, h);
+          const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, min * 0.76);
+          cloud.addColorStop(0, 'rgba(0,0,0,0.78)');
+          cloud.addColorStop(0.38, 'rgba(25,42,58,0.22)');
+          cloud.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = cloud;
+          ctx.beginPath();
+          ctx.arc(cx, cy, min * 0.82, 0, Math.PI * 2);
+          ctx.fill();
+
+          stormParticles.forEach((p, index) => {
+            const radius = min * (0.1 + Math.pow(p.radius, 1.45) * 0.76);
+            const angle = p.angle + now * p.speed;
+            const wave = Math.sin(now * 0.00042 + p.seed * 0.19 + radius * 0.018) * 30;
+            const turbulence = Math.sin(now * 0.00028 + p.seed) * 0.5 + 0.5;
+            const x = cx + Math.cos(angle) * radius * 1.18;
+            const y = cy + Math.sin(angle) * radius * 0.34 + wave * turbulence;
+            ctx.globalAlpha = 0.07 + turbulence * 0.28;
+            ctx.fillStyle = index % 37 === 0 ? '#f6f3ea' : (index % 9 === 0 ? accent : 'rgba(160,190,220,0.95)');
+            ctx.beginPath();
+            ctx.arc(x, y, p.size * (1.15 + turbulence * 1.1), 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          for (let ring = 0; ring < 5; ring += 1) {
+            const drift = Math.sin(now * 0.00028 + ring) * 20;
+            ctx.globalAlpha = 0.055 + ring * 0.018;
+            ctx.strokeStyle = ring % 2 ? 'rgba(169,216,255,0.75)' : 'rgba(154,221,66,0.45)';
+            ctx.lineWidth = ring === 0 ? 1.2 : 0.8;
+            ctx.beginPath();
+            ctx.ellipse(cx + drift, cy + ring * 13 - 22, min * (0.22 + ring * 0.09), min * (0.055 + ring * 0.012), (pointer.x - 0.5) * 0.34, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          for (let i = 0; i < 7; i += 1) {
+            const phase = Math.sin(now * 0.00034 + i * 1.73);
+            if (phase < 0.05) continue;
+            const angle = i * 0.92 + now * 0.00004 + pointer.x * 0.28;
+            const length = min * (0.26 + i * 0.035);
+            let x = cx + Math.cos(angle) * min * 0.11;
+            let y = cy + Math.sin(angle) * min * 0.05;
+            ctx.globalAlpha = Math.min(0.52, (phase - 0.03) * 0.42);
+            ctx.strokeStyle = i % 2 ? accent : '#cfe8ff';
+            ctx.lineWidth = i % 2 ? 1 : 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            for (let step = 0; step < 6; step += 1) {
+              x += Math.cos(angle + Math.sin(step + now * 0.001) * 0.22) * length / 6;
+              y += Math.sin(angle) * length / 16 + (Math.random() - 0.5) * 7;
+              ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        };
+
+        const emitInkSegment = (x0, y0, x1, y1, pressure, color) => {
+          const dx = x1 - x0;
+          const dy = y1 - y0;
+          const distance = Math.hypot(dx, dy);
+          if (distance < 0.002) return;
+          const width = 20 + pressure * 58;
+          const density = Math.min(90, Math.ceil(distance * 1500 * (0.45 + pressure)));
+          for (let i = 0; i < density; i += 1) {
+            const u = i / Math.max(1, density);
+            const px = x0 + dx * u;
+            const py = y0 + dy * u;
+            const cluster = 2 + Math.floor(Math.random() * 5 + pressure * 3);
+            for (let c = 0; c < cluster; c += 1) {
+              const angle = Math.random() * Math.PI * 2;
+              const spread = Math.pow(Math.random(), 0.58) * width / Math.max(1, Math.min(window.innerWidth, window.innerHeight));
+              inkSplats.push({
+                x: px + Math.cos(angle) * spread,
+                y: py + Math.sin(angle) * spread,
+                r: (0.8 + Math.random() * 4.2) * (0.8 + pressure * 0.7),
+                a: 0.12 + Math.random() * 0.46,
+                color,
+                vx: (Math.random() - 0.5) * 0.00055 + dx * 0.018,
+                vy: (Math.random() - 0.5) * 0.00055 + dy * 0.018,
+              });
+            }
+          }
+          if (inkSplats.length > 5200) inkSplats.splice(0, inkSplats.length - 5200);
+        };
+
+        const drawInkField = (w, h, now) => {
+          ctx.fillStyle = 'rgba(1, 7, 5, 0.09)';
+          ctx.fillRect(0, 0, w, h);
+          const t = now * 0.00045;
+          let targetX = 0.5 + Math.sin(t * 0.8) * 0.26;
+          let targetY = 0.5 + Math.sin(t * 1.6) * 0.15 + Math.cos(t * 0.42) * 0.1;
+          if (Math.floor(now / 10000) % 3 === 1) {
+            targetX = 0.5 + Math.cos(t * 1.2) * 0.24 * Math.sin(t * 0.22);
+            targetY = 0.5 + Math.sin(t * 1.2) * 0.24 * Math.cos(t * 0.3);
+          }
+          const pull = Math.max(0, 1 - (now - pointer.lastMove) / 3000);
+          targetX = targetX * (1 - pull) + pointer.x * pull;
+          targetY = targetY * (1 - pull) + pointer.y * pull;
+          inkCursor.px = inkCursor.x;
+          inkCursor.py = inkCursor.y;
+          inkCursor.x += (targetX - inkCursor.x) * 0.095;
+          inkCursor.y += (targetY - inkCursor.y) * 0.095;
+          if (inkCursor.tick++ % (pointer.down ? 1 : 3) === 0) {
+            emitInkSegment(inkCursor.px, inkCursor.py, inkCursor.x, inkCursor.y, pointer.down ? 1 : 0.55, inkPalette[inkCursor.strokes % inkPalette.length]);
+            if (inkCursor.tick % 190 === 0) inkCursor.strokes += 1;
+          }
+
+          inkSplats.forEach((s) => {
+            s.x += s.vx;
+            s.y += s.vy;
+            ctx.globalAlpha = s.a;
+            ctx.fillStyle = s.color;
+            ctx.beginPath();
+            ctx.arc(s.x * w, s.y * h, s.r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+          ctx.globalAlpha = 1;
+          const cursorGlow = ctx.createRadialGradient(inkCursor.x * w, inkCursor.y * h, 0, inkCursor.x * w, inkCursor.y * h, 42);
+          cursorGlow.addColorStop(0, 'rgba(181,255,214,0.24)');
+          cursorGlow.addColorStop(1, 'rgba(181,255,214,0)');
+          ctx.fillStyle = cursorGlow;
+          ctx.beginPath();
+          ctx.arc(inkCursor.x * w, inkCursor.y * h, 42, 0, Math.PI * 2);
+          ctx.fill();
+          const particlesEl = $('#x26InkParticles');
+          const strokesEl = $('#x26InkStrokes');
+          if (particlesEl) particlesEl.textContent = String(inkSplats.length);
+          if (strokesEl) strokesEl.textContent = String(Math.max(1, inkCursor.strokes));
+        };
+
+        const draw = (now = performance.now()) => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          syncPointer();
+          const variant = activeVariantId();
+          const accent = accentColor();
+          modeChanged(variant, w, h);
+          if (variant === 'aim-event-horizon') {
+            drawEventHorizonField(w, h, now, accent);
+          } else if (variant === 'x26-practice-blackhole') {
+            drawVortexField(w, h, now, accent, 'practice');
+          } else if (variant === 'x26-stay-vortex-card') {
+            drawVortexField(w, h, now, accent, 'stay');
+          } else if (variant === 'x26-slow-storm') {
+            drawStormField(w, h, now, accent);
+          } else if (variant === 'x26-inkfield-dark') {
+            drawInkField(w, h, now);
+          } else {
+            drawDefaultField(w, h, accent);
+          }
+          requestAnimationFrame(draw);
+        };
+        draw();
+      })();
+
+    </script>
+  </body>
+</html>

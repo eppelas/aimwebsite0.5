@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Homepage Ref - Dynamic Typography Stage</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f2e8;
+        --sheet: #fffdf7;
+        --ink: #12120f;
+        --muted: #63645d;
+        --line: rgba(18, 18, 15, 0.18);
+        --red: #c6402f;
+        --green: #4b8d39;
+        --blue: #2f668e;
+        --yellow: #d2a230;
+        --beat: 0;
+        --display-size: 132px;
+        --body: Inter, Arial, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --serif: Georgia, "Times New Roman", serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        min-height: 100%;
+        overflow-x: hidden;
+        background:
+          linear-gradient(90deg, rgba(18, 18, 15, 0.055) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(18, 18, 15, 0.055) 1px, transparent 1px),
+          var(--bg);
+        background-size: 32px 32px;
+        color: var(--ink);
+        font-family: var(--body);
+      }
+
+      a { color: inherit; }
+      h1, h2, h3, p { margin: 0; }
+
+      .mono,
+      .eyebrow,
+      .button,
+      .pill,
+      .index,
+      .score-label,
+      .route-label {
+        font-family: var(--mono);
+      }
+
+      .page {
+        width: min(1480px, calc(100vw - 28px));
+        margin: 0 auto;
+      }
+
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        min-height: 58px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 242, 232, 0.88);
+        backdrop-filter: blur(14px);
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        background: var(--ink);
+        color: #fff;
+        font-weight: 900;
+        text-decoration: none;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        justify-content: flex-end;
+      }
+
+      .button,
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        border: 1px solid var(--ink);
+        background: var(--sheet);
+        padding: 8px 10px;
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .button.dark,
+      .pill.dark {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .hero {
+        min-height: 760px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 16px;
+        padding: 22px 0 34px;
+      }
+
+      .stage {
+        position: relative;
+        min-height: 760px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+      }
+
+      .stage-score {
+        position: absolute;
+        inset: 22px;
+        display: grid;
+        grid-template-rows: repeat(9, 1fr);
+        pointer-events: none;
+      }
+
+      .stage-score span {
+        border-top: 1px solid rgba(18, 18, 15, 0.12);
+      }
+
+      .stage-score span:nth-child(3) { border-color: rgba(198, 64, 47, 0.34); }
+      .stage-score span:nth-child(5) { border-color: rgba(47, 102, 142, 0.3); }
+      .stage-score span:nth-child(7) { border-color: rgba(75, 141, 57, 0.3); }
+
+      .color-block {
+        position: absolute;
+        border: 1px solid var(--ink);
+        opacity: 0.82;
+        pointer-events: none;
+        z-index: 1;
+        padding: 10px;
+        display: flex;
+        align-items: end;
+      }
+
+      .color-block::after {
+        content: attr(data-label);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 900;
+        line-height: 1.05;
+        text-transform: uppercase;
+      }
+
+      .color-block.red { right: 8%; top: 12%; width: 18%; height: 16%; background: var(--red); }
+      .color-block.blue { left: 6%; bottom: 15%; width: 22%; height: 12%; background: var(--blue); }
+      .color-block.green { right: 10%; bottom: 11%; width: 25%; height: 13%; background: var(--green); }
+      .color-block.yellow { right: 34%; bottom: 29%; width: 13%; height: 8%; background: var(--yellow); opacity: 0.34; }
+
+      .hero-copy {
+        position: relative;
+        z-index: 3;
+        min-height: 760px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 36px;
+        padding: 52px;
+      }
+
+      .eyebrow {
+        color: var(--red);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .wordmark {
+        display: grid;
+        gap: 8px;
+        margin-top: 28px;
+      }
+
+      .word-row {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: end;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .wordmark .letter {
+        display: inline-grid;
+        place-items: center;
+        min-width: 0.58em;
+        height: 0.95em;
+        color: var(--ink);
+        font-family: var(--serif);
+        font-size: var(--display-size);
+        font-weight: 700;
+        line-height: 0.86;
+        transform:
+          scaleX(calc(0.82 + var(--tone, 0.5) * 0.28 + var(--beat) * 0.08))
+          scaleY(calc(0.88 + var(--lift, 0.25) * 0.28))
+          skewY(calc((var(--tone, 0.5) - 0.5) * 5deg));
+        transform-origin: center 74%;
+        transition: transform 220ms ease;
+      }
+
+      .wordmark .letter:nth-child(2n) { --tone: 0.72; --lift: 0.42; }
+      .wordmark .letter:nth-child(3n) { --tone: 0.28; --lift: 0.18; }
+      .wordmark .letter:nth-child(5n) { --tone: 0.9; --lift: 0.34; }
+
+      .stage:hover .letter:nth-child(odd) { --tone: 0.95; --lift: 0.48; }
+      .stage:hover .letter:nth-child(even) { --tone: 0.15; --lift: 0.22; }
+
+      .lead {
+        max-width: 760px;
+        font-size: 29px;
+        line-height: 1.12;
+        color: #30312b;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: end;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .side-score {
+        min-height: 760px;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+        padding: 18px;
+      }
+
+      .score-label {
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-transform: uppercase;
+      }
+
+      .routes {
+        display: grid;
+        grid-template-rows: repeat(13, 1fr);
+        gap: 8px;
+      }
+
+      .route {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 9px;
+        align-items: center;
+      }
+
+      .route-label {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .route-line {
+        position: relative;
+        height: 11px;
+        border: 1px solid var(--line);
+        background: #eee9dc;
+      }
+
+      .route-line::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: calc(var(--w) * 1%);
+        background: var(--ink);
+        transform: scaleY(calc(0.72 + var(--beat) * 0.32));
+        transform-origin: left center;
+      }
+
+      .route:nth-child(3n) .route-line { border-color: rgba(198, 64, 47, 0.45); }
+      .route:nth-child(4n) .route-line { border-color: rgba(75, 141, 57, 0.45); }
+      .route:nth-child(5n) .route-line { border-color: rgba(47, 102, 142, 0.45); }
+
+      .section {
+        padding: 56px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 18px;
+      }
+
+      .index {
+        width: fit-content;
+        padding: 10px 12px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        max-width: 980px;
+        font-family: var(--serif);
+        font-size: 70px;
+        font-weight: 700;
+        line-height: 0.96;
+      }
+
+      .section-head p {
+        max-width: 760px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.38;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .tile,
+      .program {
+        border: 1px solid var(--line);
+        background: var(--sheet);
+      }
+
+      .tile {
+        min-height: 190px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px;
+      }
+
+      .tile h3,
+      .program h3 {
+        font-size: 27px;
+        line-height: 1;
+      }
+
+      .tile p,
+      .program p {
+        color: var(--muted);
+        line-height: 1.42;
+      }
+
+      .label {
+        color: var(--red);
+        font: 900 10px/1 var(--mono);
+        text-transform: uppercase;
+      }
+
+      .program-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .program {
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+      }
+
+      .num {
+        display: grid;
+        place-items: center;
+        min-height: 58px;
+        background: var(--ink);
+        color: #fff;
+        font: 900 18px/1 var(--mono);
+      }
+
+      .quote {
+        margin: 18px 0;
+        border-left: 6px solid var(--green);
+        padding-left: 18px;
+        font-family: var(--serif);
+        font-size: 64px;
+        line-height: 0.98;
+      }
+
+      .footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        padding: 38px 0 56px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      @property --beat {
+        syntax: "<number>";
+        inherits: true;
+        initial-value: 0;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        @keyframes scorePulse {
+          0%, 100% { --beat: 0; }
+          48% { --beat: 1; }
+        }
+
+        body { animation: scorePulse 6.5s ease-in-out infinite; }
+      }
+
+      @media (max-width: 980px) {
+        :root { --display-size: 96px; }
+        .hero,
+        .section-head,
+        .grid,
+        .footer {
+          grid-template-columns: 1fr;
+        }
+        .side-score { min-height: auto; }
+        .routes { grid-template-rows: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+
+      @media (max-width: 640px) {
+        :root { --display-size: 58px; }
+        .page { width: min(100% - 16px, 720px); }
+        .top { grid-template-columns: auto 1fr; padding: 8px 0; }
+        .nav { grid-column: 1 / -1; justify-content: flex-start; }
+        .hero,
+        .stage,
+        .hero-copy,
+        .side-score {
+          min-height: auto;
+        }
+        .hero-copy { padding: 24px; }
+        .word-row { gap: 3px; }
+        .lead { font-size: 21px; }
+        h2 { font-size: 42px; }
+        .quote { font-size: 36px; }
+        .program { grid-template-columns: 58px minmax(0, 1fr); }
+        .program .button { grid-column: 2; width: fit-content; }
+        .routes { grid-template-columns: 1fr; }
+        .color-block.red { right: 12%; top: 76px; width: 66px; height: 80px; }
+        .color-block.blue { left: 28px; bottom: 94px; width: 88px; height: 42px; }
+        .color-block.green { right: 36px; bottom: 42px; width: 92px; height: 58px; }
+        .color-block.yellow { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="top">
+        <a class="mark mono" href="https://aimindset.org/">AIM</a>
+        <strong class="mono">dynamic typography stage / review-only</strong>
+        <nav class="nav">
+          <a class="button" href="#ecosystem">ecosystem</a>
+          <a class="button" href="#active">active</a>
+          <a class="button" href="#proof">proof</a>
+          <a class="button dark" href="https://aimindset.org/">source</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" id="hero">
+          <div class="stage" aria-label="Dynamic typography homepage stage">
+            <div class="stage-score" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span class="color-block red" data-label="main lab"></span>
+            <span class="color-block blue" data-label="space"></span>
+            <span class="color-block green" data-label="team track"></span>
+            <span class="color-block yellow" data-label="sprint"></span>
+            <div class="hero-copy">
+              <div>
+                <p class="eyebrow">COLLINS/SF Symphony reference: behavior, not assets</p>
+                <h1 class="wordmark" aria-label="AI Mindset">
+                  <span class="word-row" aria-hidden="true">
+                    <span class="letter">A</span><span class="letter">I</span>
+                  </span>
+                  <span class="word-row" aria-hidden="true">
+                    <span class="letter">M</span><span class="letter">I</span><span class="letter">N</span><span class="letter">D</span><span class="letter">S</span><span class="letter">E</span><span class="letter">T</span>
+                  </span>
+                </h1>
+                <p class="lead">Экосистема практиков, где AI становится изменяемой системой мышления: labs, sprints, Space, teams и non-profit направления.</p>
+              </div>
+              <div class="hero-actions">
+                <div class="stats">
+                  <span class="pill dark">15+ лабораторий</span>
+                  <span class="pill">700+ участников</span>
+                  <span class="pill">23+ страны</span>
+                </div>
+                <div class="nav">
+                  <a class="button dark" href="https://aimindset.org/">открыть источник</a>
+                  <a class="button" href="https://health.aimindset.org/">health sprint</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="side-score" aria-label="Homepage structure score">
+            <p class="score-label">13 homepage blocks<br />as a living score</p>
+            <div class="routes">
+              <div class="route" style="--w: 94"><span class="route-label">01</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 62"><span class="route-label">02</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 88"><span class="route-label">03</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 76"><span class="route-label">04</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 52"><span class="route-label">05</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 73"><span class="route-label">06</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 48"><span class="route-label">07</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 58"><span class="route-label">08</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 66"><span class="route-label">09</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 42"><span class="route-label">10</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 38"><span class="route-label">11</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 55"><span class="route-label">12</span><span class="route-line"></span></div>
+              <div class="route" style="--w: 78"><span class="route-label">13</span><span class="route-line"></span></div>
+            </div>
+            <p class="score-label">type carries rhythm; UI carries choice</p>
+          </aside>
+        </section>
+
+        <section class="section" id="approach">
+          <div class="section-head">
+            <span class="index">01 / approach</span>
+            <div>
+              <h2>Мышление меняет форму.</h2>
+              <p>Динамическая типографика здесь не украшение: буквы ведут себя как контекст, который расширяется, сжимается и реагирует на среду.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">context</span><h3>Контекст-инжиниринг</h3><p>Новая валюта - структурировать данные, заметки, задачи и решения так, чтобы AI понимал человека.</p></article>
+            <article class="tile"><span class="label">practice</span><h3>Создавать, а не потреблять</h3><p>AI Mindset строится вокруг live-сборки и реальных проектов, а не вокруг записанного курса.</p></article>
+            <article class="tile"><span class="label">system</span><h3>Экзоскелет мышления</h3><p>AI становится продолжением личного или командного мышления, если получает правильный контекст.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="ecosystem">
+          <div class="section-head">
+            <span class="index">02 / ecosystem</span>
+            <div>
+              <h2>Лабы, спринты, Space, teams.</h2>
+              <p>Главная сразу показывает не одну лабораторию, а систему входов для разных задач и уровней вовлечения.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">main lab</span><h3>AI Mindset {main lab}</h3><p>Квартальная лаборатория на стыке человеческого и машинного.</p></article>
+            <article class="tile"><span class="label">sprint</span><h3>Personal Operational System</h3><p>Короткий интенсив про внимание, задачи, знания и персональных агентов.</p></article>
+            <article class="tile"><span class="label">space</span><h3>Community Space</h3><p>Практическое AI-сообщество: live-demo, разборы кейсов, нетворкинг и гайды.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="active">
+          <div class="section-head">
+            <span class="index">03 / active</span>
+            <div>
+              <h2>Активные программы без шума.</h2>
+              <p>Динамика не мешает выбору. Активные входы вынесены в простой список с проверяемыми source links.</p>
+            </div>
+          </div>
+          <div class="program-list">
+            <article class="program"><span class="num">01</span><div><h3>Health Sprint</h3><p>Персональный health-протокол с AI.</p></div><a class="button" href="https://health.aimindset.org/">open</a></article>
+            <article class="program"><span class="num">02</span><div><h3>Selfdev Sprint</h3><p>Система агентов для внимания, задач и знаний.</p></div><a class="button" href="https://selfdev.aimindset.org/">open</a></article>
+            <article class="program"><span class="num">03</span><div><h3>Space / Team Track</h3><p>Community и командные форматы как отдельные входы в экосистему.</p></div><a class="button" href="https://aimindset.org/">source</a></article>
+          </div>
+        </section>
+
+        <section class="section" id="formats">
+          <div class="section-head">
+            <span class="index">04 / formats</span>
+            <div><h2>Lab / sprint / workshop.</h2><p>Форматы объясняются как разная амплитуда одной системы: глубина, длительность, задача, команда.</p></div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">lab</span><h3>Длинная сборка</h3><p>Квартальная лаборатория и реальные проекты.</p></article>
+            <article class="tile"><span class="label">sprint</span><h3>Сжатый протокол</h3><p>Две недели вокруг конкретной темы и результата.</p></article>
+            <article class="tile"><span class="label">workshop</span><h3>Короткий навык</h3><p>Практика на 2 часа: от идеи до работающего артефакта.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="proof">
+          <div class="section-head">
+            <span class="index">05 / proof</span>
+            <div><h2>Доказательства как кадры.</h2><p>Кейсы, отзывы и работы на homepage должны быть короткими сигналами, а не полным архивом.</p></div>
+          </div>
+          <p class="quote">Любую задачу я сначала проверяю: можно ли ее автоматизировать с помощью AI?</p>
+          <div class="grid">
+            <article class="tile"><span class="label">cases</span><h3>Кейсы участников</h3><p>Видимые работы и результаты, которые ведут к подробным страницам.</p></article>
+            <article class="tile"><span class="label">reviews</span><h3>Отзывы</h3><p>Короткая подборка proof, которую нельзя переписывать без source check.</p></article>
+            <article class="tile"><span class="label">archive</span><h3>Старые проекты</h3><p>Архив остается доступным, но не должен перегружать первый экран.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="people">
+          <div class="section-head">
+            <span class="index">06 / people</span>
+            <div><h2>Люди вокруг системы.</h2><p>Короткая врезка про команду, друзей, экспертов, амбассадоров и community, с переходом на будущую About.</p></div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">short about</span><h3>Кто мы</h3><p>Практики, которые собирают AI-среду и помогают людям строить свои системы.</p></article>
+            <article class="tile"><span class="label">team preview</span><h3>Команда</h3><p>Фасилитаторы, эксперты и люди вокруг лабораторий.</p></article>
+            <article class="tile"><span class="label">audience</span><h3>700+ участников</h3><p>Фаундеры, продакты, дизайнеры, разработчики, руководители и авторы.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="directions">
+          <div class="section-head">
+            <span class="index">07 / directions</span>
+            <div><h2>Teams / Space / Non-Profit.</h2><p>На главной эти направления короткие, но видимые: для бизнеса, сообщества и impact-проектов.</p></div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">business</span><h3>Teams + consulting</h3><p>Для команд из 3+ человек и задач компании.</p></article>
+            <article class="tile"><span class="label">community</span><h3>Space preview</h3><p>Практическое AI-сообщество по заявке.</p></article>
+            <article class="tile"><span class="label">impact</span><h3>For Non-Profit</h3><p>Отдельное направление с ясным названием.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <div class="section-head">
+            <span class="index">08 / faq</span>
+            <div><h2>Условия, FAQ, архив.</h2><p>Низ страницы закрывает вопросы выбора, заявки, юридических ссылок и старых материалов.</p></div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">next step</span><h3>Что выбрать?</h3><p>Если неясно, какой формат подходит, начинаем с активной программы или заявки.</p></article>
+            <article class="tile"><span class="label">legal</span><h3>Privacy / agreement</h3><p>Footer должен сохранять публичные юридические ссылки старого сайта.</p></article>
+            <article class="tile"><span class="label">contacts</span><h3>Telegram / YouTube / Substack</h3><p>Социальные ссылки и архив остаются доступными внизу страницы.</p></article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div>
+          <strong class="mono">AI Mindset</strong><br />
+          <span>Review-only dynamic typography homepage prototype. Production copy and links must be rechecked against source before porting.</span>
+        </div>
+        <nav class="nav">
+          <a class="button" href="https://aimindset.org/">source</a>
+          <a class="button" href="https://wearecollins.com/case-studies/san-francisco-symphony?gallery=true">reference</a>
+        </nav>
+      </footer>
+    </div>
+  </body>
+</html>

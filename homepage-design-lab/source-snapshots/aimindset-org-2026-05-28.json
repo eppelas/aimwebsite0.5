@@ -1,0 +1,157 @@
+{
+  "capturedAt": "2026-05-28",
+  "sourceUrl": "https://aimindset.org/",
+  "note": "Manual source-fidelity snapshot for baseline-first homepage design run.",
+  "source": {
+    "title": "AI Mindset. экосистема AI практиков",
+    "stats": [
+      "15+ лабораторий",
+      "700+ участников",
+      "23+ страны"
+    ],
+    "intro": "мы не “учим пользоваться AI”. мы создаем среду, где люди выходят за рамки промптов, строят осмысленные и глубоко личные системы. превращаем AI в экзоскелет мышления вместе с вами",
+    "approach": [
+      [
+        "контекст-инжиниринг",
+        "новая валюта — не данные, а умение их структурировать. контекст = это данные + структура + осмысление."
+      ],
+      [
+        "AI как экзоскелет",
+        "когда AI знает вас — он перестаёт быть инструментом и становится напарником по мышлению."
+      ],
+      [
+        "создавать, а не потреблять",
+        "у нас нет предзаписанного контента. всё рождается в моменте. мы верим в обучение через создание."
+      ],
+      [
+        "mindset важнее инструментов",
+        "мы не гоняемся за инструментами. не верим в идеальные промпты. технологии меняются, а способ мышления остаётся"
+      ],
+      [
+        "среда важна",
+        "у нас есть предприниматели, топ-менеджеры, продакты, программисты, дизайнеры, футурологи, авторы популярных медиа из 23-х стран."
+      ]
+    ],
+    "productsIntro": "сезонные лаборатории раз в квартал, двухнедельные спринты и мастер-классы — три формата для практики AI. от личного контекста до командной операционной системы.",
+    "products": [
+      [
+        "AI Mindset {main lab}",
+        "in progress",
+        "1 квартал = 1 лаборатория на стыке человеческого и машинного. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя.",
+        "https://aimindset.org/ai-mindset-lab"
+      ],
+      [
+        "Personal Operational System {sprint}",
+        "2-14 марта. open",
+        "за 2 недели ты создашь Personal Operational System: систему агентов для управления вниманием, задачами и знаниями. от хаоса инструментов к рабочей AI-системе, заточенной под тебя.",
+        "https://aimindset.org/pos"
+      ],
+      [
+        "AI-Native orgs",
+        "23 марта - 11 апреля",
+        "агентоцентричные организации. от персонального AI-стека до инфраструктуры всей компании за 3 недели со Степаном Гершуни",
+        "https://ai-native.aimindset.org/"
+      ],
+      [
+        "{space}",
+        "free, application-based",
+        "практическое AI-сообщество для фаундеров и специалистов. live-demo четверг 18:00 CET, разбор кейсов, нетворкинг, гайды и практики",
+        "https://aimindset.org/space"
+      ],
+      [
+        "{classes}",
+        "later",
+        "короткие воркшопы по навыкам: вайб-кодинг, презентации. от идеи до результата за 2 часа.",
+        "https://luma.com/"
+      ],
+      [
+        "{team track}",
+        "always",
+        "каждый наш продукт может пройти 3+ человека из команды с решением задач вашей компании.",
+        "https://aimindset.org/team-track"
+      ],
+      [
+        "{personal consulting}",
+        "individual",
+        "индивидуальные консультации по AI-стратегии, внедрениям, инструментам и автоматизациям.",
+        "https://t.me/prod_ai_mind_set"
+      ]
+    ],
+    "proof": [
+      "не будет никакой магии, кроме той, которую вы создадите сами.",
+      "люди из домена всегда знают лучше, чем люди из технологий. выбираешь свою реальную задачу → создаёшь рабочий проект полностью под себя. а мы всегда рядом, чтобы помочь.",
+      "самое интересное происходит, когда человек делает то, что считал невозможным.",
+      "не десять задач в минуту вместо одной. делать то, что было заблокировано."
+    ],
+    "cases": [
+      [
+        "Team Operation System",
+        "командная операционная система и агентный контур для реальных процессов.",
+        "../../../../public/assets/cases/community-night/team-os-darya-product.png"
+      ],
+      [
+        "Meeting Pipeline",
+        "разбор встреч, задачи и follow-up в одном рабочем пайплайне.",
+        "../../../../public/assets/cases/community-night/meeting-pipeline-natasha-product.png"
+      ],
+      [
+        "Agent Meditation",
+        "личный AI-контур для практики, внимания и повторяемых сценариев.",
+        "../../../../public/assets/cases/community-night/agent-meditation-daniil-product.png"
+      ]
+    ],
+    "people": [
+      [
+        "Александр Поваляев",
+        "основатель AI Mindset",
+        "../../../../public/assets/speakers/alexander-povalyaev.jpg"
+      ],
+      [
+        "Анка Ставенски",
+        "design / AI products",
+        "../../../../public/assets/speakers/anka-stavenski.jpg"
+      ],
+      [
+        "Степан Гершуни",
+        "AI-native orgs",
+        "../../../../public/assets/speakers/stepan-gershuni.jpg"
+      ]
+    ],
+    "footerLinks": [
+      [
+        "x26 {lab}",
+        "https://aimindset.org/ai-mindset-lab"
+      ],
+      [
+        "health {sprint}",
+        "https://health.aimindset.org/"
+      ],
+      [
+        "selfdev {sprint}",
+        "https://selfdev.aimindset.org/"
+      ],
+      [
+        "ai-native {sprint}",
+        "https://ai-native.aimindset.org/"
+      ],
+      [
+        "community {space}",
+        "https://aimindset.org/space"
+      ],
+      [
+        "join",
+        "https://join.aimindset.org/waitlist"
+      ],
+      [
+        "публичный договор-оферта",
+        "https://docs.google.com/document/d/e/2PACX-1vRfnWZMiHbq8fvnnI0gACZuHtvJkZHJM0_kRWPZBwzBuzVQRLz2aqrwOO4qZfJUW2EkYc8rGt0f5QrJ/pub"
+      ],
+      [
+        "политика конфиденциальности",
+        "https://aimindset.org/confpolicy"
+      ]
+    ],
+    "cover": "https://images.spr.so/cdn-cgi/imagedelivery/j42No7y-dcokJuNgXeA0ig/e1f5930d-d6c7-4196-a8a4-6e6c0e1f4dca/lab_cover/w=1920,quality=90,fit=scale-down",
+    "logoRound": "https://images.spr.so/cdn-cgi/imagedelivery/j42No7y-dcokJuNgXeA0ig/c2cf9d18-5eb7-4c96-9c5b-10114949eb2e/logo_round/w=1920,quality=90,fit=scale-down"
+  }
+}

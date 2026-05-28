@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Element Burst - CTA Popup Stack</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f2e9;
+        --sheet: #fffdf8;
+        --ink: #12130f;
+        --muted: #67675f;
+        --line: rgba(18, 19, 15, 0.18);
+        --red: #c74430;
+        --green: #4c8e3a;
+        --blue: #2e648d;
+        font-family: Inter, Arial, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      a { color: inherit; }
+      .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .surface {
+        width: min(1160px, 100%);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 420px;
+        gap: 14px;
+      }
+      .block, .popup {
+        border: 1px solid var(--line);
+        background: var(--sheet);
+        box-shadow: 0 22px 70px rgba(18, 19, 15, 0.11);
+      }
+      .block { min-height: 620px; padding: clamp(24px, 4vw, 52px); display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+      .eyebrow, .pill, .button, .price { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .eyebrow { margin: 0 0 14px; color: var(--red); font-size: 11px; font-weight: 900; letter-spacing: 0.16em; text-transform: uppercase; }
+      h1, h2, h3, p { margin: 0; }
+      h1 { max-width: 660px; font-size: clamp(44px, 7vw, 92px); line-height: 0.86; letter-spacing: -0.06em; text-transform: uppercase; }
+      .lead { margin-top: 18px; max-width: 620px; color: #34342d; font-size: clamp(18px, 2vw, 26px); line-height: 1.18; }
+      .programs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .program { min-height: 158px; border: 1px solid var(--line); background: #f2efe5; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; }
+      .program h2 { font-size: 23px; line-height: 0.96; letter-spacing: -0.03em; }
+      .program p { color: var(--muted); font-size: 13px; line-height: 1.35; }
+      .pill { display: inline-flex; width: fit-content; border: 1px solid var(--line); padding: 5px 7px; font-size: 9px; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+      .popup { align-self: start; position: sticky; top: 18px; }
+      .popup-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 0 14px; border-bottom: 1px solid var(--line); }
+      .x { width: 28px; height: 28px; border: 0; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; }
+      .popup-body { padding: 18px; display: grid; gap: 14px; }
+      .route { border: 1px solid var(--ink); background: var(--ink); color: #fff; padding: 16px; }
+      .route h2 { font-size: 32px; line-height: 0.92; letter-spacing: -0.04em; text-transform: uppercase; }
+      .route p { margin-top: 12px; color: rgba(255,255,255,0.7); line-height: 1.35; }
+      .option { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; border: 1px solid var(--line); padding: 12px; }
+      .option h3 { font-size: 18px; line-height: 1; }
+      .option p { color: var(--muted); font-size: 12px; line-height: 1.3; margin-top: 5px; }
+      .price { font-size: 14px; font-weight: 900; color: var(--green); white-space: nowrap; }
+      .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .button { display: inline-flex; justify-content: center; align-items: center; min-height: 38px; border: 1px solid var(--ink); background: var(--sheet); padding: 8px 10px; text-decoration: none; font-size: 10px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
+      .button.dark { background: var(--ink); color: #fff; }
+      .fine { color: var(--muted); font-size: 11px; line-height: 1.4; }
+      @media (max-width: 860px) {
+        body { padding: 8px; }
+        .surface, .programs { grid-template-columns: 1fr; }
+        .popup { position: static; }
+        .block { min-height: auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="surface">
+      <section class="block" aria-label="Homepage CTA block">
+        <div>
+          <p class="eyebrow">active programs / CTA block</p>
+          <h1>Выберите формат для своей AI-системы.</h1>
+          <p class="lead">Главная должна вести к активной программе, Space или разговору с командой без перегруза старым архивом.</p>
+        </div>
+        <div class="programs">
+          <article class="program"><span class="pill">sprint</span><h2>Health Sprint</h2><p>Персональный health-протокол с AI.</p></article>
+          <article class="program"><span class="pill">selfdev</span><h2>Personal OS</h2><p>Агенты для внимания, задач и знаний.</p></article>
+          <article class="program"><span class="pill">community</span><h2>Space</h2><p>Практическое AI-сообщество по заявке.</p></article>
+        </div>
+      </section>
+
+      <aside class="popup" aria-label="Join popup concept">
+        <div class="popup-head">
+          <strong class="mono">AIM / JOIN</strong>
+          <button class="x" type="button" aria-label="Закрыть">×</button>
+        </div>
+        <div class="popup-body">
+          <div class="route">
+            <h2>Куда вам сейчас?</h2>
+            <p>Этот popup не продает всё сразу: он помогает выбрать ближайший вход в экосистему.</p>
+          </div>
+          <article class="option">
+            <div><h3>Health Sprint</h3><p>8-22 июня 2026 · €190 / €290</p></div>
+            <span class="price">active</span>
+          </article>
+          <article class="option">
+            <div><h3>Space</h3><p>Free, application-based community.</p></div>
+            <span class="price">apply</span>
+          </article>
+          <article class="option">
+            <div><h3>Team Track</h3><p>3+ человека из команды с задачами компании.</p></div>
+            <span class="price">always</span>
+          </article>
+          <div class="buttons">
+            <a class="button dark" href="https://aimindset.org/">source site</a>
+            <a class="button" href="https://health.aimindset.org/">health</a>
+          </div>
+          <p class="fine">Review-only popup concept. Exact form URLs, prices and availability must be verified from source before production use.</p>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Homepage Ref - Dynamic Typography Score</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f8f5eb;
+        --sheet: #fffdf7;
+        --ink: #11120f;
+        --muted: #66665e;
+        --line: rgba(17, 18, 15, 0.17);
+        --soft: rgba(17, 18, 15, 0.065);
+        --red: #c6422f;
+        --green: #4a8e38;
+        --blue: #2f668f;
+        --yellow: #d1a42e;
+        --pulse: 0;
+        font-family: Inter, Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html,
+      body {
+        width: 100%;
+        margin: 0;
+        overflow-x: hidden;
+        background:
+          linear-gradient(90deg, var(--soft) 1px, transparent 1px),
+          linear-gradient(180deg, var(--soft) 1px, transparent 1px),
+          var(--bg);
+        background-size: 30px 30px;
+        color: var(--ink);
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      a { color: inherit; }
+      h1, h2, h3, p { margin: 0; }
+
+      .mono,
+      .button,
+      .eyebrow,
+      .ticker,
+      .pill,
+      .index,
+      .score-label {
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .page {
+        width: min(1480px, calc(100vw - 28px));
+        margin: 0 auto;
+      }
+
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 14px;
+        align-items: center;
+        min-height: 58px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(248, 245, 235, 0.86);
+        backdrop-filter: blur(16px);
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        font-weight: 900;
+        text-decoration: none;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 7px;
+      }
+
+      .button,
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--ink);
+        background: var(--sheet);
+        min-height: 31px;
+        padding: 7px 10px;
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+
+      .button.dark {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 18px;
+        min-height: 760px;
+        padding: 22px 0 30px;
+      }
+
+      .type-stage {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 760px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+      }
+
+      .type-frame {
+        position: absolute;
+        inset: 18px;
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        pointer-events: none;
+        opacity: 0.15;
+      }
+
+      .type-frame span {
+        overflow: hidden;
+        color: transparent;
+        -webkit-text-stroke: 1px var(--ink);
+        font-size: clamp(70px, 10vw, 190px);
+        font-weight: 900;
+        line-height: 0.8;
+        letter-spacing: -0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        transform: translateX(calc(var(--pulse) * -18px));
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 42px;
+        min-height: 760px;
+        padding: clamp(26px, 5vw, 70px);
+      }
+
+      .eyebrow {
+        color: var(--red);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .dynamic-title {
+        display: grid;
+        gap: 1px;
+        margin-top: 22px;
+        max-width: 980px;
+      }
+
+      .word {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        min-width: 0;
+        font-size: clamp(56px, 12vw, 164px);
+        font-weight: 900;
+        line-height: 0.78;
+        letter-spacing: -0.08em;
+        text-transform: uppercase;
+      }
+
+      .letter {
+        display: inline-block;
+        min-width: 0.42em;
+        transform:
+          scaleX(calc(0.86 + var(--stretch, 0) * 0.22 + var(--pulse) * 0.08))
+          scaleY(calc(0.92 + var(--lift, 0) * 0.2));
+        transform-origin: 50% 72%;
+        transition: transform 180ms ease;
+        font-variation-settings: "wdth" calc(76 + var(--stretch, 0) * 42), "wght" 900;
+      }
+
+      .letter:nth-child(3n) { --stretch: 0.35; --lift: 0.2; }
+      .letter:nth-child(4n) { --stretch: 0.72; --lift: 0.08; }
+      .letter:nth-child(5n) { --stretch: 0.15; --lift: 0.34; }
+
+      .type-stage:hover .letter:nth-child(odd) { --stretch: 0.95; --lift: 0.42; }
+      .type-stage:hover .letter:nth-child(even) { --stretch: 0.08; --lift: 0.12; }
+
+      .lead {
+        max-width: 740px;
+        color: #30312b;
+        font-size: clamp(20px, 2.2vw, 34px);
+        line-height: 1.12;
+        letter-spacing: -0.035em;
+      }
+
+      .hero-bottom {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: end;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .score {
+        min-height: 760px;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+        padding: 16px;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 16px;
+      }
+
+      .score-bars {
+        display: grid;
+        grid-template-rows: repeat(13, 1fr);
+        gap: 7px;
+      }
+
+      .bar {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+      }
+
+      .bar span:first-child {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .bar span:last-child {
+        height: 10px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(90deg, var(--ink), var(--ink)) 0 0 / calc(var(--w) * 1%) 100% no-repeat,
+          #f1ede1;
+        transform: scaleY(calc(0.7 + var(--pulse) * 0.35));
+        transform-origin: left center;
+      }
+
+      .bar:nth-child(3n) span:last-child { border-color: rgba(198, 66, 47, 0.5); }
+      .bar:nth-child(4n) span:last-child { border-color: rgba(74, 142, 56, 0.5); }
+      .bar:nth-child(5n) span:last-child { border-color: rgba(47, 102, 143, 0.5); }
+
+      .section {
+        padding: 56px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section-head {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 22px;
+        align-items: start;
+        margin-bottom: 18px;
+      }
+
+      .index {
+        width: fit-content;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
+        padding: 10px 12px;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        font-size: clamp(42px, 6vw, 88px);
+        line-height: 0.88;
+        letter-spacing: -0.065em;
+        text-transform: uppercase;
+      }
+
+      .section-head p {
+        max-width: 780px;
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.35;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .tile {
+        min-height: 190px;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 18px;
+      }
+
+      .tile h3 {
+        font-size: 28px;
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+      }
+
+      .tile p {
+        color: var(--muted);
+        line-height: 1.42;
+      }
+
+      .label {
+        color: var(--red);
+        font: 900 10px/1 "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .program-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .program {
+        display: grid;
+        grid-template-columns: 82px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        border: 1px solid var(--line);
+        background: var(--sheet);
+        padding: 14px;
+      }
+
+      .program h3 {
+        font-size: 26px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .program p {
+        margin-top: 4px;
+        color: var(--muted);
+      }
+
+      .program .num {
+        display: grid;
+        place-items: center;
+        min-height: 58px;
+        background: var(--ink);
+        color: #fff;
+        font: 900 18px/1 "IBM Plex Mono", monospace;
+      }
+
+      .quote {
+        margin: 18px 0;
+        border-left: 5px solid var(--green);
+        padding-left: 18px;
+        font-size: clamp(28px, 5vw, 76px);
+        line-height: 0.95;
+        letter-spacing: -0.07em;
+      }
+
+      .footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        padding: 38px 0 56px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        @keyframes pulse {
+          0%, 100% { --pulse: 0; }
+          50% { --pulse: 1; }
+        }
+
+        @property --pulse {
+          syntax: "<number>";
+          inherits: true;
+          initial-value: 0;
+        }
+
+        body {
+          animation: pulse 5.6s ease-in-out infinite;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .page { width: min(100% - 16px, 760px); }
+        .top { grid-template-columns: auto 1fr; padding: 8px 0; }
+        .nav { grid-column: 1 / -1; justify-content: flex-start; }
+        .hero,
+        .section-head,
+        .grid,
+        .footer {
+          grid-template-columns: 1fr;
+        }
+        .hero,
+        .type-stage,
+        .hero-copy,
+        .score {
+          min-height: auto;
+        }
+        .type-frame {
+          inset: 10px;
+          opacity: 0.09;
+        }
+        .word {
+          font-size: clamp(52px, 20vw, 92px);
+        }
+        .score {
+          display: none;
+        }
+        .program {
+          grid-template-columns: 58px minmax(0, 1fr);
+        }
+        .program .button {
+          grid-column: 2;
+          width: fit-content;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="top">
+        <a class="mark mono" href="https://aimindset.org/">AIM</a>
+        <strong class="mono">dynamic typography score / review-only</strong>
+        <nav class="nav">
+          <a class="button" href="#ecosystem">ecosystem</a>
+          <a class="button" href="#active">active</a>
+          <a class="button" href="#proof">proof</a>
+          <a class="button dark" href="https://aimindset.org/">source</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero" id="hero">
+          <div class="type-stage" aria-label="Dynamic typography homepage hero">
+            <div class="type-frame" aria-hidden="true">
+              <span>AI MINDSET AI MINDSET</span>
+              <span>CONTEXT SYSTEMS PRACTICE</span>
+              <span>LABS SPRINTS SPACE TEAMS</span>
+              <span>BUILD WHAT WAS BLOCKED</span>
+            </div>
+            <div class="hero-copy">
+              <div>
+                <p class="eyebrow">reference / dynamic typography behavior</p>
+                <h1 class="dynamic-title" aria-label="AI Mindset">
+                  <span class="word" aria-hidden="true">
+                    <span class="letter">A</span><span class="letter">I</span>
+                  </span>
+                  <span class="word" aria-hidden="true">
+                    <span class="letter">M</span><span class="letter">i</span><span class="letter">n</span><span class="letter">d</span><span class="letter">s</span><span class="letter">e</span><span class="letter">t</span>
+                  </span>
+                </h1>
+                <p class="lead">Экосистема практиков, где AI становится не инструментом, а изменяемой системой мышления: labs, sprints, Space, teams и non-profit направления.</p>
+              </div>
+              <div class="hero-bottom">
+                <div class="stats">
+                  <span class="pill">15+ лабораторий</span>
+                  <span class="pill">700+ участников</span>
+                  <span class="pill">23+ страны</span>
+                </div>
+                <div class="nav">
+                  <a class="button dark" href="https://aimindset.org/">открыть источник</a>
+                  <a class="button" href="https://health.aimindset.org/">health sprint</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="score" aria-label="Homepage block score">
+            <p class="score-label">13 homepage blocks / rhythm map</p>
+            <div class="score-bars">
+              <div class="bar" style="--w: 96"><span>01</span><span></span></div>
+              <div class="bar" style="--w: 68"><span>02</span><span></span></div>
+              <div class="bar" style="--w: 86"><span>03</span><span></span></div>
+              <div class="bar" style="--w: 72"><span>04</span><span></span></div>
+              <div class="bar" style="--w: 54"><span>05</span><span></span></div>
+              <div class="bar" style="--w: 78"><span>06</span><span></span></div>
+              <div class="bar" style="--w: 47"><span>07</span><span></span></div>
+              <div class="bar" style="--w: 58"><span>08</span><span></span></div>
+              <div class="bar" style="--w: 62"><span>09</span><span></span></div>
+              <div class="bar" style="--w: 40"><span>10</span><span></span></div>
+              <div class="bar" style="--w: 38"><span>11</span><span></span></div>
+              <div class="bar" style="--w: 52"><span>12</span><span></span></div>
+              <div class="bar" style="--w: 74"><span>13</span><span></span></div>
+            </div>
+            <p class="score-label">text behaves like a system, not decoration</p>
+          </aside>
+        </section>
+
+        <section class="section" id="approach">
+          <div class="section-head">
+            <span class="index">01 / approach</span>
+            <div>
+              <h2>Мышление меняет форму.</h2>
+              <p>В этом варианте динамическая типографика служит смыслу: буквы ведут себя как контекст, который расширяется, сжимается и реагирует на среду.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">context</span><h3>Контекст-инжиниринг</h3><p>Новая валюта — структурировать данные, заметки, задачи и решения так, чтобы AI понимал человека.</p></article>
+            <article class="tile"><span class="label">practice</span><h3>Создавать, а не потреблять</h3><p>AI Mindset строится вокруг live-сборки и реальных проектов, а не вокруг записанного курса.</p></article>
+            <article class="tile"><span class="label">system</span><h3>Экзоскелет мышления</h3><p>AI становится продолжением личного или командного мышления, если получает правильный контекст.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="ecosystem">
+          <div class="section-head">
+            <span class="index">02 / ecosystem</span>
+            <div>
+              <h2>Лабы, спринты, Space, teams.</h2>
+              <p>Главная должна сразу показывать не одну лабораторию, а систему входов для разных задач и уровней вовлечения.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">main lab</span><h3>AI Mindset {main lab}</h3><p>Квартальная лаборатория на стыке человеческого и машинного.</p></article>
+            <article class="tile"><span class="label">sprint</span><h3>Personal Operational System</h3><p>Короткий интенсив про внимание, задачи, знания и персональных агентов.</p></article>
+            <article class="tile"><span class="label">space</span><h3>Community Space</h3><p>Практическое AI-сообщество: live-demo, разборы кейсов, нетворкинг и гайды.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="active">
+          <div class="section-head">
+            <span class="index">03 / active</span>
+            <div>
+              <h2>Активные программы без шума.</h2>
+              <p>Динамика не должна мешать выбору. Активные входы вынесены в простой список с проверяемыми source links.</p>
+            </div>
+          </div>
+          <div class="program-list">
+            <article class="program"><span class="num">01</span><div><h3>Health Sprint</h3><p>Персональный health-протокол с AI.</p></div><a class="button" href="https://health.aimindset.org/">open</a></article>
+            <article class="program"><span class="num">02</span><div><h3>Selfdev Sprint</h3><p>Система агентов для внимания, задач и знаний.</p></div><a class="button" href="https://selfdev.aimindset.org/">open</a></article>
+            <article class="program"><span class="num">03</span><div><h3>Space / Team Track</h3><p>Community и командные форматы как отдельные входы в экосистему.</p></div><a class="button" href="https://aimindset.org/">source</a></article>
+          </div>
+        </section>
+
+        <section class="section" id="formats">
+          <div class="section-head">
+            <span class="index">04 / formats</span>
+            <div>
+              <h2>Lab / sprint / workshop.</h2>
+              <p>Форматы объясняются как разная амплитуда одной системы: глубина, длительность, задача, команда.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">lab</span><h3>Длинная сборка</h3><p>Квартальная лаборатория и реальные проекты.</p></article>
+            <article class="tile"><span class="label">sprint</span><h3>Сжатый протокол</h3><p>Две недели вокруг конкретной темы и результата.</p></article>
+            <article class="tile"><span class="label">workshop</span><h3>Короткий навык</h3><p>Практика на 2 часа: от идеи до работающего артефакта.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="proof">
+          <div class="section-head">
+            <span class="index">05 / proof</span>
+            <div>
+              <h2>Доказательства как кадры.</h2>
+              <p>Кейсы, отзывы и работы на homepage должны быть короткими сигналами, а не полным архивом.</p>
+            </div>
+          </div>
+          <p class="quote">«Любую задачу я сначала проверяю: можно ли её автоматизировать с помощью AI?»</p>
+          <div class="grid">
+            <article class="tile"><span class="label">cases</span><h3>Кейсы участников</h3><p>Видимые работы и результаты, которые ведут к подробным страницам.</p></article>
+            <article class="tile"><span class="label">reviews</span><h3>Отзывы</h3><p>Короткая подборка proof, которую нельзя переписывать без source check.</p></article>
+            <article class="tile"><span class="label">archive</span><h3>Старые проекты</h3><p>Архив остается доступным, но не должен перегружать первый экран.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="people">
+          <div class="section-head">
+            <span class="index">06 / people</span>
+            <div>
+              <h2>Люди вокруг системы.</h2>
+              <p>Короткая врезка про команду, друзей, экспертов, амбассадоров и community, с переходом на будущую About.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">short about</span><h3>Кто мы</h3><p>Практики, которые собирают AI-среду и помогают людям строить свои системы.</p></article>
+            <article class="tile"><span class="label">team preview</span><h3>Команда</h3><p>Фасилитаторы, эксперты и люди вокруг лабораторий.</p></article>
+            <article class="tile"><span class="label">audience</span><h3>700+ участников</h3><p>Фаундеры, продакты, дизайнеры, разработчики, руководители и авторы.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="directions">
+          <div class="section-head">
+            <span class="index">07 / directions</span>
+            <div>
+              <h2>Teams / Space / Non-Profit.</h2>
+              <p>На главной эти направления должны быть короткими, но видимыми: для бизнеса, сообщества и impact-проектов.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">business</span><h3>Teams + consulting</h3><p>Для команд из 3+ человек и задач компании.</p></article>
+            <article class="tile"><span class="label">community</span><h3>Space preview</h3><p>Практическое AI-сообщество по заявке.</p></article>
+            <article class="tile"><span class="label">impact</span><h3>For Non-Profit</h3><p>Отдельное направление с ясным названием.</p></article>
+          </div>
+        </section>
+
+        <section class="section" id="faq">
+          <div class="section-head">
+            <span class="index">08 / faq</span>
+            <div>
+              <h2>Условия, FAQ, архив.</h2>
+              <p>Низ страницы закрывает вопросы выбора, заявки, юридических ссылок и старых материалов.</p>
+            </div>
+          </div>
+          <div class="grid">
+            <article class="tile"><span class="label">next step</span><h3>Что выбрать?</h3><p>Если неясно, какой формат подходит, начинаем с активной программы или заявки.</p></article>
+            <article class="tile"><span class="label">legal</span><h3>Privacy / agreement</h3><p>Footer должен сохранять публичные юридические ссылки старого сайта.</p></article>
+            <article class="tile"><span class="label">contacts</span><h3>Telegram / YouTube / Substack</h3><p>Социальные ссылки и архив остаются доступными внизу страницы.</p></article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div>
+          <strong class="mono">AI Mindset</strong><br />
+          <span>Review-only dynamic typography homepage prototype. Production copy and links must be rechecked against source before porting.</span>
+        </div>
+        <nav class="nav">
+          <a class="button" href="https://aimindset.org/">source</a>
+          <a class="button" href="https://wearecollins.com/case-studies/san-francisco-symphony?gallery=true">reference</a>
+        </nav>
+      </footer>
+    </div>
+  </body>
+</html>
