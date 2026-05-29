@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AIM Page Design Lab</title>
+    <link rel="icon" href="data:," />
     <style>
       * {
         box-sizing: border-box;
@@ -39,6 +40,7 @@
       }
 
       button,
+      input,
       select {
         font: inherit;
       }
@@ -149,6 +151,16 @@
         gap: 8px;
       }
 
+      .filter-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .filter-group + .filter-group {
+        margin-left: auto;
+      }
+
       .filter-button {
         border: 1px solid var(--ink);
         background: var(--paper);
@@ -164,6 +176,10 @@
       .filter-button:hover {
         background: var(--ink);
         color: #fff;
+      }
+
+      .filter-button.is-sort {
+        border-style: dashed;
       }
 
       .gallery-grid {
@@ -411,7 +427,25 @@
         color: var(--muted);
         font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .empty strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--ink);
+        font-size: 13px;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
+      }
+
+      .empty a {
+        display: inline-flex;
+        margin-top: 12px;
+        border-bottom: 1px solid currentColor;
+        color: var(--ink);
+        font-weight: 900;
+        text-decoration: none;
       }
 
       @media (max-width: 900px) {
@@ -705,6 +739,95 @@
         transform: translateY(0);
       }
 
+      .rating-editor {
+        margin-top: 10px;
+        border: 1px solid rgba(17, 18, 15, 0.18);
+        background: rgba(255, 253, 248, 0.62);
+        font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .rating-editor summary {
+        min-height: 30px;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+        cursor: pointer;
+        color: var(--ink);
+        font-size: 9px;
+        font-weight: 900;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        user-select: none;
+      }
+
+      .rating-controls {
+        display: grid;
+        gap: 8px;
+        padding: 0 10px 10px;
+      }
+
+      .rating-input-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(90px, 0.8fr);
+        gap: 6px;
+      }
+
+      .rating-rater,
+      .rating-custom {
+        min-width: 0;
+        height: 30px;
+        border: 1px solid rgba(17, 18, 15, 0.28);
+        border-radius: 0;
+        padding: 0 8px;
+        background: rgba(255, 253, 248, 0.88);
+        color: var(--ink);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .rating-custom[hidden] {
+        display: none;
+      }
+
+      .rating-score-grid {
+        display: grid;
+        grid-template-columns: repeat(11, minmax(22px, 1fr));
+        gap: 3px;
+      }
+
+      .rating-score-grid button {
+        min-width: 0;
+        height: 28px;
+        border: 1px solid rgba(17, 18, 15, 0.24);
+        border-radius: 0;
+        padding: 0;
+        background: rgba(255, 253, 248, 0.76);
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .rating-score-grid button:hover,
+      .rating-score-grid button:focus-visible {
+        background: var(--ink);
+        color: #fff;
+      }
+
+      .rating-score-grid button:disabled {
+        cursor: progress;
+        opacity: 0.5;
+      }
+
+      .site-rating-status {
+        min-height: 14px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        line-height: 1.4;
+      }
+
       .preview-link {
         display: block;
         margin: 0 0 14px;
@@ -837,6 +960,14 @@
           right: -4px;
           max-width: calc(100vw - 40px);
         }
+
+        .rating-input-row {
+          grid-template-columns: 1fr;
+        }
+
+        .rating-score-grid {
+          grid-template-columns: repeat(6, minmax(34px, 1fr));
+        }
       }
     </style>
   </head>
@@ -901,16 +1032,19 @@
       const viewMode = params.get("view") === "compare" ? "compare" : "gallery";
       const includeHiddenVariants = params.get("include") === "hidden";
       document.body.classList.add(`${viewMode}-mode`);
+      if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
 
       const state = {
         variants: [],
         visibleVariants: [],
         filter: params.get("lane") || (viewMode === "gallery" ? "pages" : "all"),
+        sort: ["rating", "date"].includes(params.get("sort")) ? params.get("sort") : "default",
         left: 0,
         right: 1,
         leftDevice: params.get("leftDevice") === "mobile" ? "mobile" : params.get("device") === "mobile" ? "mobile" : "desktop",
         rightDevice: params.get("rightDevice") === "mobile" ? "mobile" : params.get("device") === "mobile" ? "mobile" : "desktop",
         split: params.has("split") && Number.isFinite(Number(params.get("split"))) ? Math.min(78, Math.max(22, Number(params.get("split")))) : 50,
+        ratings: {},
       };
 
       const manifestUrl = "manifest.json";
@@ -922,6 +1056,51 @@
         { id: "sasha", label: "Саша" },
         { id: "anka", label: "Анка" },
       ];
+      const siteRatingReviewers = [
+        { id: "anka", label: "Анка" },
+        { id: "sasha", label: "Саша" },
+        { id: "guest", label: "Другой" },
+      ];
+      const knownRatingReviewerIds = new Set(ratingReviewers.map((reviewer) => reviewer.id));
+      const scrollStoragePrefix = "aim-page-design-lab-scroll:";
+      let hasRestoredGalleryScroll = false;
+
+      const scrollStorageKey = () => `${scrollStoragePrefix}${window.location.pathname}${window.location.search}`;
+
+      const saveGalleryScroll = () => {
+        if (viewMode !== "gallery") return;
+        try {
+          window.sessionStorage.setItem(scrollStorageKey(), String(Math.round(window.scrollY || 0)));
+        } catch {}
+      };
+
+      const restoreGalleryScroll = () => {
+        if (viewMode !== "gallery" || hasRestoredGalleryScroll) return;
+        hasRestoredGalleryScroll = true;
+        let stored = null;
+        try {
+          stored = window.sessionStorage.getItem(scrollStorageKey());
+        } catch {}
+        const y = Number(stored);
+        if (!Number.isFinite(y) || y <= 0) return;
+        const restore = () => window.scrollTo({ top: y, left: 0, behavior: "auto" });
+        requestAnimationFrame(() => {
+          restore();
+          setTimeout(restore, 120);
+          setTimeout(restore, 450);
+        });
+      };
+
+      window.addEventListener("pagehide", saveGalleryScroll);
+      window.addEventListener("beforeunload", saveGalleryScroll);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") saveGalleryScroll();
+      });
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest?.("a[href]");
+        if (!link) return;
+        saveGalleryScroll();
+      }, { capture: true });
 
       document.querySelectorAll(".mode-switch a").forEach((link) => {
         const linkUrl = new URL(link.href, window.location.href);
@@ -1023,6 +1202,31 @@
         return null;
       };
 
+      const externalRaterLabel = (value) => {
+        const label = value?.label || value?.rater?.displayName || value?.rater?.username || value?.rater?.firstName || value?.rater?.id || "Другой";
+        return String(label).replace(/^@/, "") || "Другой";
+      };
+
+      const externalRaterId = (value) => {
+        const source = value?.raterId || value?.id || value?.rater?.id || value?.rater?.username || externalRaterLabel(value);
+        return safeId(source || "guest");
+      };
+
+      const upsertExternalRating = (target, value, source) => {
+        const rating = normalizeRatingValue(value?.rating ?? value?.score ?? value?.value);
+        if (rating === null) return;
+        target.externalRatings ||= [];
+        const record = {
+          id: externalRaterId(value),
+          label: externalRaterLabel(value),
+          rating,
+          source: source || value?.updatedAt || value?.date || "external rating",
+        };
+        const index = target.externalRatings.findIndex((item) => item.id === record.id);
+        if (index >= 0) target.externalRatings[index] = { ...target.externalRatings[index], ...record };
+        else target.externalRatings.push(record);
+      };
+
       const buildRatingLookup = (registry, variants) => {
         const lookup = {};
 
@@ -1032,6 +1236,7 @@
             sasha: null,
             anka: null,
             sources: {},
+            externalRatings: [],
           };
         });
 
@@ -1054,6 +1259,9 @@
               lookup[variant.id][reviewer.id] = rating;
               lookup[variant.id].sources[reviewer.id] = item.updatedAt || item.date || "artifact rating";
             });
+            (Array.isArray(item.externalRatings) ? item.externalRatings : []).forEach((external) => {
+              upsertExternalRating(lookup[variant.id], external, external.updatedAt || item.updatedAt || "artifact rating");
+            });
           });
         });
 
@@ -1069,7 +1277,16 @@
 
             const reviewerId = reviewerIdForEvent(event);
             const rating = normalizeRatingValue(event.rating);
-            if (!reviewerId || rating === null) return;
+            if (rating === null) return;
+            if (!reviewerId || !knownRatingReviewerIds.has(reviewerId)) {
+              upsertExternalRating(lookup[variant.id], {
+                id: event.rater?.id || event.id,
+                label: externalRaterLabel(event),
+                rating,
+                rater: event.rater,
+              }, event.updatedAt || event.date || event.id);
+              return;
+            }
             lookup[variant.id][reviewerId] = rating;
             lookup[variant.id].sources[reviewerId] = event.updatedAt || event.date || event.id;
           });
@@ -1081,30 +1298,46 @@
       const ratingSummaryFor = (variant) => {
         const ratings = state.ratings?.[variant.id] || {};
         const values = ratingReviewers.map((reviewer) => ({ ...reviewer, rating: normalizeRatingValue(ratings[reviewer.id]) }));
+        const externalValues = (Array.isArray(ratings.externalRatings) ? ratings.externalRatings : [])
+          .map((item) => ({ ...item, rating: normalizeRatingValue(item.rating) }))
+          .filter((item) => item.rating !== null);
         const known = values.filter((item) => item.rating !== null);
-        const total = known.reduce((sum, item) => sum + item.rating, 0);
-        const totalRounded = Number.isInteger(total) ? total : Number(total.toFixed(1));
-        const stateClass = known.length === 0
+        const allRatings = [...known, ...externalValues];
+        const average = allRatings.length
+          ? allRatings.reduce((sum, item) => sum + item.rating, 0) / allRatings.length
+          : null;
+        const averageRounded = average === null
+          ? null
+          : Number.isInteger(average)
+            ? average
+            : Number(average.toFixed(1));
+        const stateClass = allRatings.length === 0
           ? "is-empty"
-          : known.length === ratingReviewers.length && total >= 24
+          : average >= 8
             ? "is-strong"
-            : known.length === ratingReviewers.length && total < 18
+            : average < 6
               ? "is-weak"
               : "";
 
         return {
           values,
+          externalValues,
           knownCount: known.length,
-          total: totalRounded,
-          label: known.length ? `Σ ${totalRounded}/30` : "Σ —/30",
+          ratingCount: allRatings.length,
+          average: averageRounded,
+          label: allRatings.length ? `${averageRounded}/10` : "—/10",
           stateClass,
         };
       };
 
       const renderRatingBadge = (variant) => {
         const summary = ratingSummaryFor(variant);
-        const rows = summary.values.map((item) => `${escapeHtml(item.label)}: ${item.rating === null ? "—" : `${escapeHtml(item.rating)}/10`}`).join("<br>");
-        const aria = `Рейтинг ${variant.title}: ${summary.knownCount ? `${summary.label}; ` : "нет оценок; "}Соня ${summary.values[0].rating ?? "нет"}, Саша ${summary.values[1].rating ?? "нет"}, Анка ${summary.values[2].rating ?? "нет"}`;
+        const rows = [
+          `Средняя: ${summary.average === null ? "—" : `${escapeHtml(summary.average)}/10`} (${summary.ratingCount})`,
+          ...summary.values.map((item) => `${escapeHtml(item.label)}: ${item.rating === null ? "—" : `${escapeHtml(item.rating)}/10`}`),
+          ...summary.externalValues.map((item) => `${escapeHtml(item.label)}: ${escapeHtml(item.rating)}/10`),
+        ].join("<br>");
+        const aria = `Рейтинг ${variant.title}: ${summary.ratingCount ? `средняя ${summary.label}; ` : "нет оценок; "}Соня ${summary.values[0].rating ?? "нет"}, Саша ${summary.values[1].rating ?? "нет"}, Анка ${summary.values[2].rating ?? "нет"}`;
         return `
           <span class="rating-badge ${summary.stateClass}" tabindex="0" role="button" aria-label="${escapeHtml(aria)}">
             ${escapeHtml(summary.label)}
@@ -1120,6 +1353,7 @@
           id: `${isElement ? "element" : "homepage"}-${variant.id}`,
           originalId: variant.id,
           category: isElement ? "elements" : "homepage",
+          artifactPath: `V3 Site Repo - aimwebsite0.5/homepage-design-lab/${variant.path}`,
           previewImage: `assets/previews/${isElement ? "element" : "homepage"}-${safeId(variant.id)}.png`,
           metricLabel: isElement
             ? `${Array.isArray(variant.coversBlocks) ? variant.coversBlocks.length : 0} source blocks`
@@ -1137,6 +1371,16 @@
         return `${paymentLabBase}index.html?variant=${encodeURIComponent(variant.id)}`;
       };
 
+      const paymentArtifactPathFor = (variant) => {
+        if (variant.artifact && variant.artifact.includes("/")) {
+          return `V3 Site Repo - aimwebsite0.5/payment-page-design-lab/${variant.artifact}`;
+        }
+        if (variant.artifact && variant.artifact.includes("?")) {
+          return `V3 Site Repo - aimwebsite0.5/payment-page-design-lab/${variant.artifact}`;
+        }
+        return `V3 Site Repo - aimwebsite0.5/payment-page-design-lab/index.html?variant=${variant.id}`;
+      };
+
       const normalizePaymentVariants = (manifest) => (Array.isArray(manifest.variants) ? manifest.variants : []).map((variant) => ({
         id: `payment-${variant.id}`,
         originalId: variant.id,
@@ -1145,7 +1389,11 @@
         area: "payment",
         title: variant.title,
         date: manifest.updatedAt || "",
+        status: variant.status || variant.reviewStatus || "",
+        showInGallery: variant.showInGallery,
+        reviewDisposition: variant.reviewDisposition || "",
         path: paymentPathFor(variant),
+        artifactPath: paymentArtifactPathFor(variant),
         readme: variant.readme ? `${paymentLabBase}${variant.readme}` : `${paymentLabBase}README.md`,
         summary: variant.compositionRule || variant.reference || "Payment page visual direction with current payment copy and UX preserved.",
         previewImage: `assets/previews/payment-${safeId(variant.id)}.png`,
@@ -1169,8 +1417,16 @@
           : filterMap[state.filter]
             ? orderedVariants.filter((variant) => filterMap[state.filter].has(variant.category))
             : orderedVariants.filter((variant) => variant.lane === state.filter || variant.area === state.filter || variant.category === state.filter);
-        if (!state.visibleVariants.length) {
-          state.visibleVariants = orderedVariants;
+        if (state.sort === "rating") {
+          state.visibleVariants.sort((a, b) => {
+            const ratingA = ratingSummaryFor(a);
+            const ratingB = ratingSummaryFor(b);
+            const aValue = ratingA.average === null ? -1 : ratingA.average;
+            const bValue = ratingB.average === null ? -1 : ratingB.average;
+            if (bValue !== aValue) return bValue - aValue;
+            if (ratingB.ratingCount !== ratingA.ratingCount) return ratingB.ratingCount - ratingA.ratingCount;
+            return String(b.date || "").localeCompare(String(a.date || ""));
+          });
         }
       };
 
@@ -1179,6 +1435,8 @@
         nextParams.set("view", viewMode);
         if (state.filter !== "all") nextParams.set("lane", state.filter);
         else nextParams.delete("lane");
+        if (state.sort !== "default") nextParams.set("sort", state.sort);
+        else nextParams.delete("sort");
         if (state.visibleVariants[state.left]) nextParams.set("left", state.visibleVariants[state.left].id);
         if (state.visibleVariants[state.right]) nextParams.set("right", state.visibleVariants[state.right].id);
         nextParams.set("split", String(Math.round(state.split)));
@@ -1208,6 +1466,10 @@
           ...Array.from(new Set(filterSource.map((variant) => variant.area).filter(Boolean))).map((area) => [area, area]),
         ];
         filters.textContent = "";
+        const laneGroup = document.createElement("div");
+        laneGroup.className = "filter-group";
+        const sortGroup = document.createElement("div");
+        sortGroup.className = "filter-group";
         lanes.forEach(([value, label]) => {
           const button = document.createElement("button");
           button.className = "filter-button";
@@ -1221,7 +1483,154 @@
             renderGallery();
             updateUrl();
           });
-          filters.append(button);
+          laneGroup.append(button);
+        });
+        [
+          ["default", "sort: newest"],
+          ["rating", "sort: rating"],
+        ].forEach(([value, label]) => {
+          const button = document.createElement("button");
+          button.className = "filter-button is-sort";
+          button.type = "button";
+          button.textContent = label;
+          button.setAttribute("aria-pressed", state.sort === value ? "true" : "false");
+          button.addEventListener("click", () => {
+            state.sort = value;
+            updateVisibleVariants();
+            renderFilters();
+            renderGallery();
+            updateUrl();
+          });
+          sortGroup.append(button);
+        });
+        filters.append(laneGroup, sortGroup);
+      };
+
+      const emptyMessageForFilter = () => {
+        if (state.filter === "elements" && !includeHiddenVariants) {
+          const hiddenUrl = `index.html?view=gallery&lane=elements&include=hidden`;
+          return `
+            <div class="empty">
+              <strong>Elements: active candidates are empty</strong>
+              Старые element-прототипы есть в manifest, но скрыты после readability rejection. Новые focused blocks должен пополнять AIM Homepage Element Design Generator; payment page designs больше не подставляются сюда как fallback.
+              <br><a href="${hiddenUrl}">show archived elements</a>
+            </div>
+          `;
+        }
+        return '<div class="empty"><strong>No active variants</strong>Для этой вкладки сейчас нет видимых review candidates. Hidden/archive items можно открыть через include=hidden.</div>';
+      };
+
+      const renderSiteRatingEditor = (variant) => {
+        const reviewerOptions = siteRatingReviewers
+          .map((reviewer) => `<option value="${escapeHtml(reviewer.id)}">${escapeHtml(reviewer.label)}</option>`)
+          .join("");
+        const scoreButtons = Array.from({ length: 11 }, (_, score) => (
+          `<button type="button" data-rating-value="${score}" aria-label="Rate ${escapeHtml(variant.title)} ${score} out of 10">${score}</button>`
+        )).join("");
+        return `
+          <details class="rating-editor" data-variant-id="${escapeHtml(variant.id)}">
+            <summary>оценить</summary>
+            <div class="rating-controls">
+              <div class="rating-input-row">
+                <select class="rating-rater" aria-label="Кто оценивает">
+                  ${reviewerOptions}
+                </select>
+                <input class="rating-custom" type="text" maxlength="40" placeholder="имя" aria-label="Имя" hidden />
+              </div>
+              <div class="rating-score-grid" aria-label="Оценка 0-10">${scoreButtons}</div>
+              <div class="site-rating-status" role="status"></div>
+            </div>
+          </details>
+        `;
+      };
+
+      const artifactDirectionFor = (variant) => (
+        variant.category === "payment" ? "payment" : variant.category === "elements" ? "elements" : "homepage"
+      );
+
+      const upsertLocalSiteRating = (variant, rater, rating) => {
+        state.ratings[variant.id] ||= { sonya: null, sasha: null, anka: null, sources: {}, externalRatings: [] };
+        if (knownRatingReviewerIds.has(rater.id)) {
+          state.ratings[variant.id][rater.id] = rating;
+          state.ratings[variant.id].sources[rater.id] = "site rating";
+          return;
+        }
+        upsertExternalRating(state.ratings[variant.id], {
+          id: rater.id,
+          label: rater.label,
+          rating,
+        }, "site rating");
+      };
+
+      const setRatingEditorStatus = (editor, message, isError = false) => {
+        const status = editor?.querySelector(".site-rating-status");
+        if (!status) return;
+        status.textContent = message;
+        status.style.color = isError ? "var(--red)" : "var(--muted)";
+      };
+
+      const submitSiteRating = async (button) => {
+        const editor = button.closest(".rating-editor");
+        const variant = state.variants.find((item) => item.id === editor?.dataset.variantId);
+        if (!editor || !variant) return;
+        const select = editor.querySelector(".rating-rater");
+        const customInput = editor.querySelector(".rating-custom");
+        const rating = Number(button.dataset.ratingValue);
+        const selected = siteRatingReviewers.find((reviewer) => reviewer.id === select.value) || siteRatingReviewers[0];
+        const customName = selected.id === "guest" ? customInput.value.trim() : "";
+        const rater = {
+          id: selected.id === "guest" ? `external-${safeId(customName || selected.label) || "guest"}` : selected.id,
+          label: selected.id === "guest" ? (customName || selected.label) : selected.label,
+          customName,
+        };
+        const scoreButtons = [...editor.querySelectorAll("[data-rating-value]")];
+        scoreButtons.forEach((item) => { item.disabled = true; });
+        setRatingEditorStatus(editor, "saving...");
+
+        try {
+          const response = await fetch("/__aim_design_rating", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              artifactId: variant.id,
+              variantId: variant.originalId,
+              direction: artifactDirectionFor(variant),
+              category: variant.category,
+              title: variant.title,
+              artifact: variant.artifactPath,
+              path: variant.path,
+              previewImage: variant.previewImage,
+              rater,
+              rating,
+            }),
+          });
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok || body.ok === false) {
+            throw new Error(body.error || `rating API ${response.status}`);
+          }
+          upsertLocalSiteRating(variant, rater, rating);
+          renderGallery();
+        } catch (error) {
+          setRatingEditorStatus(editor, `not saved: ${error.message || error}`, true);
+        } finally {
+          scoreButtons.forEach((item) => { item.disabled = false; });
+        }
+      };
+
+      const setupSiteRatingHandlers = () => {
+        document.addEventListener("change", (event) => {
+          if (!event.target.matches(".rating-rater")) return;
+          const editor = event.target.closest(".rating-editor");
+          const customInput = editor?.querySelector(".rating-custom");
+          if (!customInput) return;
+          customInput.hidden = event.target.value !== "guest";
+          if (!customInput.hidden) customInput.focus();
+        });
+
+        document.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-rating-value]");
+          if (!button) return;
+          submitSiteRating(button);
         });
       };
 
@@ -1230,7 +1639,7 @@
         if (!grid) return;
         grid.textContent = "";
         if (!state.visibleVariants.length) {
-          grid.innerHTML = '<div class="empty">No variants in manifest yet.</div>';
+          grid.innerHTML = emptyMessageForFilter();
           return;
         }
 
@@ -1256,6 +1665,7 @@
             <p class="card-summary">${escapeHtml(variant.summary || "")}</p>
             <div class="coverage-count">${escapeHtml(variant.metricLabel || "review artifact")}</div>
             <div class="card-path">${escapeHtml(variant.path)}</div>
+            ${renderSiteRatingEditor(variant)}
             <div class="card-actions">
               <a href="${escapeHtml(variant.path)}">open page</a>
               ${variant.readme ? `<a href="${escapeHtml(variant.readme)}">readme</a>` : ""}
@@ -1264,6 +1674,7 @@
           `;
           grid.append(card);
         });
+        restoreGalleryScroll();
       };
 
       const setSplit = (value, shouldUpdateUrl = true) => {
@@ -1389,6 +1800,8 @@
         if (event.key === "ArrowLeft") movePane("right", -1);
         if (event.key === "ArrowRight") movePane("right", 1);
       });
+
+      setupSiteRatingHandlers();
 
       Promise.all([
         fetch(manifestUrl, { cache: "no-store" }).then((response) => {

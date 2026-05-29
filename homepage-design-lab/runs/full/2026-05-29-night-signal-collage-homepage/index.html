@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIM Homepage — Cinema Reading Flow</title>
+  <meta name="description" content="Review-only full homepage concept for AI Mindset with calm reading surfaces and a cinematic hero." />
+  <style>
+    :root{
+      color-scheme: light;
+      --paper:#f6f5f2;
+      --sheet:#ffffff;
+      --ink:#0b0e12;
+      --muted:#505a66;
+      --line:rgba(11,14,18,.14);
+      --accent:#2e8f52;
+      --accent2:#6aa7ff;
+      --shadow:0 30px 90px rgba(9,11,14,.10);
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;overflow-x:hidden;background:var(--paper);color:var(--ink);font-family:var(--sans);text-rendering:optimizeLegibility}
+    a{color:inherit;text-decoration:none}
+    img,video{max-width:100%;display:block}
+    button,input{font:inherit}
+    :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 72%, white);outline-offset:2px}
+
+    .shell{width:min(1180px,calc(100% - 40px));margin:0 auto}
+    .topbar{
+      position:sticky;top:0;z-index:20;
+      background:color-mix(in srgb,var(--paper) 84%,transparent);
+      backdrop-filter: blur(18px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar-inner{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .mark{width:34px;height:34px;border-radius:10px;background:var(--ink);display:grid;place-items:center}
+    .mark img{width:22px;height:22px;object-fit:contain;filter:invert(1)}
+    .brand b{display:block;font-weight:950;letter-spacing:-.02em;line-height:1}
+    .brand span{display:block;color:var(--muted);font:800 12px/1.1 var(--mono);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+    .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{
+      min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.7);display:inline-flex;align-items:center;gap:10px;
+      font:900 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase
+    }
+    .pill strong{font:900 12px/1 var(--mono)}
+    .pill.primary{background:var(--ink);color:var(--paper);border-color:transparent}
+    .pill.primary:hover{background:color-mix(in srgb,var(--ink) 82%, var(--accent))}
+    .pill:active{transform:translateY(1px)}
+    .pill[data-focus="1"]{background:color-mix(in srgb,var(--accent) 16%, white);border-color:color-mix(in srgb,var(--accent) 36%, var(--line))}
+
+    .hero{
+      position:relative;
+      padding:74px 0 52px;
+      overflow:hidden;
+      border-bottom:1px solid var(--line);
+      background:
+        radial-gradient(1200px 520px at 25% 30%, rgba(46,143,82,.14), transparent 70%),
+        radial-gradient(900px 520px at 80% 35%, rgba(106,167,255,.16), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.25));
+    }
+    .hero-media{
+      position:absolute;inset:-40px 0 -110px;pointer-events:none;opacity:.24;filter:saturate(.92) contrast(1.05);
+      mix-blend-mode:multiply;
+    }
+    .hero-media video{
+      width:100%;height:100%;object-fit:cover;object-position:center;
+      transform:scale(1.02);
+    }
+    .hero::after{
+      content:"";position:absolute;inset:0;
+      background:
+        radial-gradient(900px 440px at 30% 35%, rgba(246,245,242,.92), rgba(246,245,242,.64) 55%, rgba(246,245,242,.22) 78%, transparent 100%),
+        linear-gradient(180deg, rgba(246,245,242,.85), rgba(246,245,242,.72) 50%, rgba(246,245,242,.92));
+      pointer-events:none;
+    }
+    .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:30px;align-items:end}
+    .kicker{color:color-mix(in srgb,var(--muted) 86%, var(--ink));font:900 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    h1{margin:12px 0 0;font:900 clamp(46px,7vw,92px)/.92 var(--sans);letter-spacing:-.06em}
+    .hero p{margin:18px 0 0;max-width:66ch;color:var(--muted);font: 18px/1.48 var(--sans)}
+    .stats{margin:18px 0 0;display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:1px solid var(--line);background:rgba(255,255,255,.65);padding:10px 12px;border-radius:999px;font:950 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+    .hero-aside{
+      border:1px solid var(--line);background:rgba(255,255,255,.68);
+      border-radius:18px;padding:18px 18px 16px;box-shadow:var(--shadow)
+    }
+    .hero-aside h2{margin:0 0 12px;font:950 16px/1.1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+    .hero-aside ol{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+    .hero-aside a{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border:1px solid var(--line);background:rgba(255,255,255,.62);
+      border-radius:14px;padding:10px 12px;
+      font:900 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase
+    }
+    .hero-aside a span{color:var(--muted);font-weight:900}
+    .hero-aside a[data-active="1"]{border-color:color-mix(in srgb,var(--accent) 40%, var(--line));background:color-mix(in srgb,var(--accent) 12%, white)}
+
+    main{padding:34px 0 74px}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:30px;align-items:start}
+    .aside{position:sticky;top:92px;display:grid;gap:12px}
+    .aside .panel{
+      border:1px solid var(--line);background:rgba(255,255,255,.72);
+      border-radius:18px;padding:16px 16px 14px;box-shadow:var(--shadow)
+    }
+    .aside .panel h3{margin:0 0 10px;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .aside p{margin:0;color:var(--muted);font: 15px/1.5 var(--sans)}
+    .aside p em{font-family:var(--serif)}
+
+    .section{
+      margin:0 0 24px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.78);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .section-head{padding:22px 22px 0}
+    .section .tag{display:inline-flex;align-items:center;gap:10px;color:var(--muted);font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .tag i{width:10px;height:10px;border-radius:999px;background:var(--accent);display:inline-block}
+    .section h2{margin:12px 0 0;font:900 clamp(28px,4.8vw,56px)/1 var(--sans);letter-spacing:-.045em}
+    .lead{margin:12px 0 0;max-width:68ch;color:var(--muted);font-size:18px;line-height:1.52}
+    .section-body{padding:18px 22px 22px}
+
+    .bullets{display:grid;gap:12px;margin:0;padding:0;list-style:none;max-width:76ch}
+    .bullets li{
+      display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start;
+      padding:12px 12px;border:1px solid rgba(11,14,18,.09);border-radius:16px;background:rgba(246,245,242,.62)
+    }
+    .bullets li b{display:block;font:950 14px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+    .bullets li p{margin:6px 0 0;color:var(--muted);line-height:1.45}
+    .dot{width:10px;height:10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 72%, var(--accent2))}
+
+    .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .product{
+      border:1px solid rgba(11,14,18,.11);border-radius:18px;background:rgba(255,255,255,.76);
+      padding:16px;display:grid;gap:10px;min-height:178px
+    }
+    .product .meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .badge{font:950 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--muted) 85%, var(--ink))}
+    .when{font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--accent) 55%, var(--ink))}
+    .product h3{margin:0;font:900 22px/1.08 var(--sans);letter-spacing:-.03em}
+    .product p{margin:0;color:var(--muted);line-height:1.44}
+    .product a{margin-top:auto;display:inline-flex;align-items:center;gap:10px;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .product a::after{content:"→";color:var(--accent)}
+
+    .media-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    figure{margin:0;border:1px solid rgba(11,14,18,.12);border-radius:18px;overflow:hidden;background:white}
+    figure img{width:100%;height:200px;object-fit:cover}
+    figcaption{padding:12px 12px 14px}
+    figcaption b{display:block;font:900 16px/1.2 var(--sans);letter-spacing:-.02em}
+    figcaption span{display:block;margin-top:6px;color:var(--muted);line-height:1.38}
+
+    .people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .person{
+      display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center;
+      border:1px solid rgba(11,14,18,.11);border-radius:18px;background:rgba(255,255,255,.74);padding:12px
+    }
+    .person img{width:84px;height:84px;object-fit:cover;border-radius:14px}
+    .person b{display:block;font:900 16px/1.15 var(--sans);letter-spacing:-.02em}
+    .person span{display:block;margin-top:4px;color:var(--muted)}
+
+    .split{display:grid;grid-template-columns: minmax(0,1fr) minmax(0,1fr);gap:14px}
+    .card{
+      border:1px solid rgba(11,14,18,.11);border-radius:18px;background:rgba(255,255,255,.74);
+      padding:16px;display:grid;gap:10px
+    }
+    .card h4{margin:0;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .card p{margin:0;color:var(--muted);line-height:1.5}
+    .card a{display:inline-flex;align-items:center;gap:10px;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .card a::after{content:"→";color:var(--accent)}
+
+    footer{padding:52px 0 70px;border-top:1px solid var(--line)}
+    .footer-inner{display:grid;gap:14px}
+    .footer-links{display:flex;flex-wrap:wrap;gap:10px}
+    .footer-links a{border:1px solid var(--line);background:rgba(255,255,255,.68);border-radius:999px;padding:10px 12px;font:900 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+
+    .is-focus .hero-media{opacity:0}
+    .is-focus .hero::after{background:linear-gradient(180deg, rgba(246,245,242,.96), rgba(246,245,242,.96))}
+    .is-focus .section{background:rgba(255,255,255,.92)}
+    .is-focus .bullets li{background:rgba(255,255,255,.72)}
+
+    @media (max-width: 980px){
+      .shell{width:min(100% - 28px, 860px)}
+      .hero-inner,.layout{grid-template-columns:1fr}
+      .aside{position:static}
+      .hero-aside{display:none}
+      figure img{height:190px}
+      .media-grid,.people{grid-template-columns:1fr}
+      .product-grid{grid-template-columns:1fr}
+      .split{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      .hero-media video{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" role="banner">
+    <div class="shell topbar-inner">
+      <a class="brand" href="https://aimindset.org/" aria-label="AI Mindset (внешний сайт)">
+        <span class="mark" aria-hidden="true"><img src="../../../../public/assets/ai-mindset-logo-transparent.png" alt="" /></span>
+        <span>
+          <b>AI Mindset</b>
+          <span>review-only homepage / 2026-05-29</span>
+        </span>
+      </a>
+      <div class="actions" aria-label="Действия">
+        <a class="pill" href="https://join.aimindset.org/waitlist"><strong>join</strong></a>
+        <button class="pill" id="focusToggle" type="button" data-focus="0" aria-pressed="false">focus</button>
+        <a class="pill primary" href="#programs"><strong>начать</strong></a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" id="hero" data-block="hero" aria-label="Hero / intro">
+    <div class="hero-media" aria-hidden="true">
+      <video autoplay muted loop playsinline poster="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-poster.png">
+        <source src="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-12s.mp4" type="video/mp4" />
+      </video>
+    </div>
+    <div class="shell hero-inner">
+      <div>
+        <div class="kicker">AI Mindset. экосистема AI практиков</div>
+        <h1>экосистема, где AI становится экзоскелетом мышления</h1>
+        <p>мы не “учим пользоваться AI”. мы создаем среду, где люди выходят за рамки промптов, строят осмысленные и глубоко личные системы. превращаем AI в экзоскелет мышления вместе с вами</p>
+        <div class="stats" aria-label="Факты (из снимка 2026-05-28)">
+          <span class="chip">15+ лабораторий</span>
+          <span class="chip">700+ участников</span>
+          <span class="chip">23+ страны</span>
+        </div>
+      </div>
+
+      <aside class="hero-aside" aria-label="Оглавление">
+        <h2>главы</h2>
+        <ol id="tocHero">
+          <li><a href="#approach"><span>01</span>подход</a></li>
+          <li><a href="#programs"><span>02</span>экосистема</a></li>
+          <li><a href="#formats"><span>03</span>форматы</a></li>
+          <li><a href="#proof"><span>04</span>доказательства</a></li>
+          <li><a href="#people"><span>05</span>люди</a></li>
+          <li><a href="#teams"><span>06</span>для команд</a></li>
+          <li><a href="#faq"><span>07</span>FAQ</a></li>
+        </ol>
+      </aside>
+    </div>
+  </section>
+
+  <main class="shell" aria-label="Homepage content">
+    <div class="layout">
+      <div>
+        <section class="section" id="approach" data-block="philosophy" aria-label="Философия / подход">
+          <div class="section-head">
+            <div class="tag"><i></i> философия / подход</div>
+            <h2>пять принципов, которые держат практику</h2>
+            <p class="lead">Это не учебник по инструментам. Это способ думать, строить контекст и превращать реальную задачу в рабочую систему.</p>
+          </div>
+          <div class="section-body">
+            <ul class="bullets">
+              <li><span class="dot" aria-hidden="true"></span><div><b>контекст-инжиниринг</b><p>новая валюта — не данные, а умение их структурировать. контекст = это данные + структура + осмысление.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>AI как экзоскелет</b><p>когда AI знает вас — он перестаёт быть инструментом и становится напарником по мышлению.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>создавать, а не потреблять</b><p>у нас нет предзаписанного контента. всё рождается в моменте. мы верим в обучение через создание.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>mindset важнее инструментов</b><p>мы не гоняемся за инструментами. не верим в идеальные промпты. технологии меняются, а способ мышления остаётся</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>среда важна</b><p>у нас есть предприниматели, топ-менеджеры, продакты, программисты, дизайнеры, футурологи, авторы популярных медиа из 23-х стран.</p></div></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" id="programs" data-block="ecosystem" aria-label="Экосистема / продукты">
+          <div class="section-head">
+            <div class="tag"><i></i> экосистема / продукты</div>
+            <h2>лаборатории, спринты и среда</h2>
+            <p class="lead">сезонные лаборатории раз в квартал, двухнедельные спринты и мастер-классы — три формата для практики AI. от личного контекста до командной операционной системы.</p>
+          </div>
+          <div class="section-body">
+            <div class="product-grid" role="list">
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">AI Mindset {main lab}</span><span class="when">in progress</span></div>
+                <h3>главная лаборатория</h3>
+                <p>1 квартал = 1 лаборатория на стыке человеческого и машинного. здесь вы не изучаете, а создаёте: персональных ассистентов, AI-first процессы, новую версию себя.</p>
+                <a href="https://aimindset.org/ai-mindset-lab">к лаборатории</a>
+              </article>
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">Personal Operational System {sprint}</span><span class="when">2-14 марта. open</span></div>
+                <h3>personal OS</h3>
+                <p>за 2 недели ты создашь Personal Operational System: систему агентов для управления вниманием, задачами и знаниями. от хаоса инструментов к рабочей AI-системе, заточенной под тебя.</p>
+                <a href="https://aimindset.org/pos">к спринту</a>
+              </article>
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">AI-Native orgs</span><span class="when">23 марта - 11 апреля</span></div>
+                <h3>AI-native orgs</h3>
+                <p>агентоцентричные организации. от персонального AI-стека до инфраструктуры всей компании за 3 недели со Степаном Гершуни</p>
+                <a href="https://ai-native.aimindset.org/">к спринту</a>
+              </article>
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">{space}</span><span class="when">free, application-based</span></div>
+                <h3>space</h3>
+                <p>практическое AI-сообщество для фаундеров и специалистов. live-demo четверг 18:00 CET, разбор кейсов, нетворкинг, гайды и практики</p>
+                <a href="https://aimindset.org/space">в space</a>
+              </article>
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">{classes}</span><span class="when">later</span></div>
+                <h3>classes</h3>
+                <p>короткие воркшопы по навыкам: вайб-кодинг, презентации. от идеи до результата за 2 часа.</p>
+                <a href="https://luma.com/">расписание</a>
+              </article>
+              <article class="product" role="listitem">
+                <div class="meta"><span class="badge">{team track}</span><span class="when">always</span></div>
+                <h3>team track</h3>
+                <p>каждый наш продукт может пройти 3+ человека из команды с решением задач вашей компании.</p>
+                <a href="https://aimindset.org/team-track">для команд</a>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="active" data-block="active-programs" aria-label="Активные программы">
+          <div class="section-head">
+            <div class="tag"><i></i> активные программы</div>
+            <h2>что прямо сейчас “в движении”</h2>
+            <p class="lead">Этот блок — не витрина и не “портал”. Это короткий список активных входов из источника (со статусами/датами), чтобы человеку было понятно: что существует сейчас.</p>
+          </div>
+          <div class="section-body">
+            <div class="split">
+              <div class="card">
+                <h4>in progress</h4>
+                <p><b>AI Mindset {main lab}</b> — сезонная лаборатория раз в квартал.</p>
+                <a href="https://aimindset.org/ai-mindset-lab">открыть</a>
+              </div>
+              <div class="card">
+                <h4>open / sprint</h4>
+                <p><b>Personal Operational System</b> — 2 недели на систему агентов для внимания, задач и знаний.</p>
+                <a href="https://aimindset.org/pos">открыть</a>
+              </div>
+              <div class="card">
+                <h4>sprint</h4>
+                <p><b>AI-Native orgs</b> — 23 марта - 11 апреля.</p>
+                <a href="https://ai-native.aimindset.org/">открыть</a>
+              </div>
+              <div class="card">
+                <h4>free / application</h4>
+                <p><b>{space}</b> — live-demo четверг 18:00 CET, разбор кейсов и практика.</p>
+                <a href="https://aimindset.org/space">в space</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="about" data-block="short-about" aria-label="Short About / кто мы">
+          <div class="section-head">
+            <div class="tag"><i></i> кто мы</div>
+            <h2>коротко: что это за проект</h2>
+            <p class="lead">AI Mindset — экосистема практики. На главной важны ясность и чтение, а не “карта систем”.</p>
+          </div>
+          <div class="section-body">
+            <div class="split">
+              <div class="card">
+                <h4>одним абзацем</h4>
+                <p>мы не “учим пользоваться AI”. мы создаем среду, где люди выходят за рамки промптов, строят осмысленные и глубоко личные системы. превращаем AI в экзоскелет мышления вместе с вами</p>
+              </div>
+              <div class="card">
+                <h4>почему среда важна</h4>
+                <p>у нас есть предприниматели, топ-менеджеры, продакты, программисты, дизайнеры, футурологи, авторы популярных медиа из 23-х стран.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="formats" data-block="formats" aria-label="Форматы: lab / sprint / workshop">
+          <div class="section-head">
+            <div class="tag"><i></i> форматы</div>
+            <h2>три скорости практики</h2>
+            <p class="lead">Один и тот же дух: выбор реальной задачи → создание рабочей системы. Отличается длина, темп и тип среды вокруг.</p>
+          </div>
+          <div class="section-body">
+            <div class="split">
+              <div class="card">
+                <h4>lab</h4>
+                <p>сезонная лаборатория раз в квартал: глубже, шире и с большим контекстом вокруг.</p>
+                <a href="https://aimindset.org/ai-mindset-lab">пример: {main lab}</a>
+              </div>
+              <div class="card">
+                <h4>sprint</h4>
+                <p>двухнедельный фокус: собрать систему вокруг одной зоны (например, personal OS или здоровье).</p>
+                <a href="https://aimindset.org/pos">пример: Personal OS</a>
+              </div>
+              <div class="card">
+                <h4>workshop / classes</h4>
+                <p>короткие мастер-классы “от идеи до результата за 2 часа”.</p>
+                <a href="https://luma.com/">расписание</a>
+              </div>
+              <div class="card">
+                <h4>space</h4>
+                <p>регулярная среда: live-demo, разборы кейсов, нетворкинг и практика.</p>
+                <a href="https://aimindset.org/space">в space</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="proof" data-block="cases-reviews-works" aria-label="Cases / proof">
+          <div class="section-head">
+            <div class="tag"><i></i> cases / proof</div>
+            <h2>что создают участники</h2>
+            <p class="lead">Выбираешь свою реальную задачу → создаёшь рабочий проект полностью под себя. А мы рядом, чтобы помочь.</p>
+          </div>
+          <div class="section-body">
+            <div class="media-grid" role="list">
+              <figure role="listitem">
+                <img src="../../../../public/assets/cases/community-night/team-os-darya-product.png" alt="Team Operation System" loading="lazy" />
+                <figcaption><b>Team Operation System</b><span>командная операционная система и агентный контур для реальных процессов.</span></figcaption>
+              </figure>
+              <figure role="listitem">
+                <img src="../../../../public/assets/cases/community-night/meeting-pipeline-natasha-product.png" alt="Meeting Pipeline" loading="lazy" />
+                <figcaption><b>Meeting Pipeline</b><span>разбор встреч, задачи и follow-up в одном рабочем пайплайне.</span></figcaption>
+              </figure>
+              <figure role="listitem">
+                <img src="../../../../public/assets/cases/community-night/agent-meditation-daniil-product.png" alt="Agent Meditation" loading="lazy" />
+                <figcaption><b>Agent Meditation</b><span>личный AI-контур для практики, внимания и повторяемых сценариев.</span></figcaption>
+              </figure>
+            </div>
+            <div style="height:14px"></div>
+            <ul class="bullets" aria-label="Короткие формулировки (из снимка 2026-05-28)">
+              <li><span class="dot" aria-hidden="true"></span><div><b>без магии</b><p>не будет никакой магии, кроме той, которую вы создадите сами.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>доменные задачи</b><p>люди из домена всегда знают лучше, чем люди из технологий. выбираешь свою реальную задачу → создаёшь рабочий проект полностью под себя. а мы всегда рядом, чтобы помочь.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>невозможное</b><p>самое интересное происходит, когда человек делает то, что считал невозможным.</p></div></li>
+              <li><span class="dot" aria-hidden="true"></span><div><b>разблокировать</b><p>не десять задач в минуту вместо одной. делать то, что было заблокировано.</p></div></li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="section" id="people" data-block="team-preview" aria-label="Team / people preview">
+          <div class="section-head">
+            <div class="tag"><i></i> люди</div>
+            <h2>среда, команда и эксперты рядом с проектом</h2>
+            <p class="lead">среда важна: люди дают друг другу новые кейсы, вопросы и рабочие способы мышления.</p>
+          </div>
+          <div class="section-body">
+            <div class="people" role="list">
+              <article class="person" role="listitem">
+                <img src="../../../../public/assets/speakers/alexander-povalyaev.jpg" alt="Александр Поваляев" loading="lazy" />
+                <div><b>Александр Поваляев</b><span>основатель AI Mindset</span></div>
+              </article>
+              <article class="person" role="listitem">
+                <img src="../../../../public/assets/speakers/anka-stavenski.jpg" alt="Анка Ставенски" loading="lazy" />
+                <div><b>Анка Ставенски</b><span>design / AI products</span></div>
+              </article>
+              <article class="person" role="listitem">
+                <img src="../../../../public/assets/speakers/stepan-gershuni.jpg" alt="Степан Гершуни" loading="lazy" />
+                <div><b>Степан Гершуни</b><span>AI-native orgs</span></div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="teams" data-block="teams-consulting" aria-label="Teams / consulting">
+          <div class="section-head">
+            <div class="tag"><i></i> для команд</div>
+            <h2>team track и консультации — без лишней “витрины”</h2>
+            <p class="lead">Если нужно пройти продукт 3+ людьми из команды — есть Team Track. Если нужен разговор про стратегию/внедрения — есть консультации.</p>
+          </div>
+          <div class="section-body">
+            <div class="split">
+              <div class="card">
+                <h4>{team track}</h4>
+                <p>каждый наш продукт может пройти 3+ человека из команды с решением задач вашей компании.</p>
+                <a href="https://aimindset.org/team-track">открыть team track</a>
+              </div>
+              <div class="card">
+                <h4>{personal consulting}</h4>
+                <p>индивидуальные консультации по AI-стратегии, внедрениям, инструментам и автоматизациям.</p>
+                <a href="https://t.me/prod_ai_mind_set">написать в telegram</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="space" data-block="space-preview" aria-label="Space preview">
+          <div class="section-head">
+            <div class="tag"><i></i> space</div>
+            <h2>регулярная среда, где практика не остывает</h2>
+            <p class="lead">практическое AI-сообщество для фаундеров и специалистов. live-demo четверг 18:00 CET, разбор кейсов, нетворкинг, гайды и практики</p>
+          </div>
+          <div class="section-body">
+            <div class="card">
+              <h4>community {space}</h4>
+              <p>Free, application-based. Этот блок — только превью: подробности на отдельной странице.</p>
+              <a href="https://aimindset.org/space">открыть space</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="nonprofit" data-block="non-profit-preview" aria-label="For Non-Profit preview">
+          <div class="section-head">
+            <div class="tag"><i></i> for non-profit</div>
+            <h2>отдельный вход для некоммерческих</h2>
+            <p class="lead">Короткое превью на главной и прямой переход на отдельную страницу.</p>
+          </div>
+          <div class="section-body">
+            <div class="card">
+              <h4>{For Non-Profit}</h4>
+              <p>Если вы из некоммерческой или творческой организации — есть отдельная страница и форма.</p>
+              <a href="https://aimindset.org/non-profit">for non-profit</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="faq" data-block="faq-conditions" aria-label="FAQ / условия">
+          <div class="section-head">
+            <div class="tag"><i></i> FAQ / условия</div>
+            <h2>минимум вопросов, максимум ясности</h2>
+            <p class="lead">Тут намеренно нет “маркетинговых” панелей. Только практичные ссылки и входы, которые уже есть в источнике.</p>
+          </div>
+          <div class="section-body">
+            <div class="split">
+              <div class="card">
+                <h4>как попасть внутрь</h4>
+                <p>Если вы не уверены, с чего начать — используйте общий вход (waitlist) и/или напишите в Telegram.</p>
+                <a href="https://join.aimindset.org/waitlist">join / waitlist</a>
+              </div>
+              <div class="card">
+                <h4>условия и политика</h4>
+                <p>Юридические ссылки оставлены внизу страницы (как на текущем сайте).</p>
+                <a href="https://docs.google.com/document/d/e/2PACX-1vRfnWZMiHbq8fvnnI0gACZuHtvJkZHJM0_kRWPZBwzBuzVQRLz2aqrwOO4qZfJUW2EkYc8rGt0f5QrJ/pub">договор-оферта</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="footer" data-block="footer-legal-archive" aria-label="Footer / legal / archive">
+          <div class="section-head">
+            <div class="tag"><i></i> footer</div>
+            <h2>ссылки</h2>
+            <p class="lead">Только реальные направления и юридические ссылки (из снимка источника 2026-05-28).</p>
+          </div>
+          <div class="section-body">
+            <div class="footer-links" role="list">
+              <a role="listitem" href="https://aimindset.org/ai-mindset-lab">x26 {lab}</a>
+              <a role="listitem" href="https://health.aimindset.org/">health {sprint}</a>
+              <a role="listitem" href="https://selfdev.aimindset.org/">selfdev {sprint}</a>
+              <a role="listitem" href="https://ai-native.aimindset.org/">ai-native {sprint}</a>
+              <a role="listitem" href="https://aimindset.org/space">community {space}</a>
+              <a role="listitem" href="https://join.aimindset.org/waitlist">join</a>
+              <a role="listitem" href="https://docs.google.com/document/d/e/2PACX-1vRfnWZMiHbq8fvnnI0gACZuHtvJkZHJM0_kRWPZBwzBuzVQRLz2aqrwOO4qZfJUW2EkYc8rGt0f5QrJ/pub">публичный договор-оферта</a>
+              <a role="listitem" href="https://aimindset.org/confpolicy">политика конфиденциальности</a>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="aside" aria-label="QA + заметки">
+        <div class="panel">
+          <h3>Механики</h3>
+          <p><em>Кинематографический</em> hero (видео логотипа) + <em>focus</em> режим, который убирает визуальный шум и усиливает чтение.</p>
+        </div>
+        <div class="panel">
+          <h3>Читаемость</h3>
+          <p>Текст всегда на спокойной поверхности. Нет сеток/диаграмм за абзацами. Моноширинный шрифт — только для меток.</p>
+        </div>
+        <div class="panel">
+          <h3>Источник</h3>
+          <p>Копирайт и ссылки взяты из локального снимка `aimindset.org` (2026-05-28) и `public/assets` в V3 репозитории.</p>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer data-block="footer-legal-archive" aria-label="Footer (дубликат ссылок)">
+    <div class="shell footer-inner">
+      <div class="kicker">AI Mindset / review-only prototype</div>
+      <div class="footer-links">
+        <a href="https://aimindset.org/ai-mindset-lab">x26 {lab}</a>
+        <a href="https://aimindset.org/space">community {space}</a>
+        <a href="https://join.aimindset.org/waitlist">join</a>
+        <a href="https://aimindset.org/confpolicy">privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const focusToggle = document.getElementById('focusToggle');
+      const focusKey = 'aim-homepage-cinema-focus';
+
+      const applyFocus = (next) => {
+        document.body.classList.toggle('is-focus', next);
+        focusToggle.dataset.focus = next ? '1' : '0';
+        focusToggle.setAttribute('aria-pressed', next ? 'true' : 'false');
+        try { localStorage.setItem(focusKey, next ? '1' : '0'); } catch {}
+      };
+
+      const stored = (() => {
+        try { return localStorage.getItem(focusKey); } catch { return null; }
+      })();
+      applyFocus(stored === '1');
+
+      focusToggle.addEventListener('click', () => applyFocus(!document.body.classList.contains('is-focus')));
+
+      const sections = Array.from(document.querySelectorAll('main [id]'))
+        .filter((el) => el instanceof HTMLElement && el.classList.contains('section'));
+      const tocLinks = Array.from(document.querySelectorAll('#tocHero a'));
+
+      const byHash = new Map();
+      for (const link of tocLinks) byHash.set(new URL(link.href).hash, link);
+
+      const setActive = (id) => {
+        for (const link of tocLinks) link.dataset.active = '0';
+        const link = byHash.get(`#${id}`);
+        if (link) link.dataset.active = '1';
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio - a.intersectionRatio));
+
+        const top = visible[0]?.target;
+        if (!top) return;
+        setActive(top.id);
+      }, { rootMargin: '-28% 0px -66% 0px', threshold: [0.06, 0.12, 0.22, 0.34] });
+
+      for (const s of sections) observer.observe(s);
+
+      // Safety: do not allow accidental horizontal overflow from long URLs.
+      const styles = document.createElement('style');
+      styles.textContent = 'a{overflow-wrap:anywhere}';
+      root.appendChild(styles);
+    })();
+  </script>
+</body>
+</html>

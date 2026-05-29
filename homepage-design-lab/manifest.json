@@ -1,11 +1,60 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-05-28",
+  "updatedAt": "2026-05-29",
   "sourceOfTruth": "homepage-design-lab/manifest.json",
   "contentSource": "https://aimindset.org/",
   "structureSource": "/Users/viola/All/Yandex.Disk.localized/3 Process/5 Work/AI Mindset/Website content/aim-homepage-about-structure-from-transcript.md",
   "reviewPolicy": "Review-only artifacts. Do not port into React, commit, push, or publish without explicit human review.",
   "variants": [
+    {
+      "id": "2026-05-29-variable-type-axis-lab",
+      "lane": "elements",
+      "area": "typography-variable-brand-system",
+      "title": "Variable Type Axis Lab",
+      "date": "2026-05-29",
+      "path": "runs/elements/2026-05-29-variable-type-axis-lab/index.html",
+      "readme": "runs/elements/2026-05-29-variable-type-axis-lab/README.md",
+      "summary": "Focused typography exploration: variable mono/display axes, cursor-reactive width/weight/opsz, real AIM copy and Russian primary CTA.",
+      "sources": [
+        "https://aimindset.org/",
+        "https://fonts.google.com/specimen/Martian+Mono",
+        "https://fonts.google.com/specimen/Roboto+Flex",
+        "https://fonts.google.com/specimen/JetBrains+Mono",
+        "V3 Site Repo - aimwebsite0.5/src/** font-mono usage"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "cta"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewFocus": [
+        "Does variable type feel like AIM brand material rather than generic sans?",
+        "Are Cyrillic readability and expressive distortion balanced?",
+        "Should this become a reusable homepage typography system?"
+      ],
+      "designDelta": {
+        "keep": [
+          "mouse-reactive dynamics",
+          "source-backed AIM phrases",
+          "real AIM logo asset"
+        ],
+        "change": [
+          "typography is now the main experimental surface"
+        ],
+        "avoid": [
+          "standard boring sans/self-serif default",
+          "monospace body copy used without craft",
+          "generic CTA card hierarchy"
+        ],
+        "promote": [
+          "variable font axes as brand mechanic",
+          "Martian Mono width/weight experiments",
+          "interactive display type"
+        ]
+      }
+    },
     {
       "id": "2026-05-27-seed-light-system-index",
       "lane": "full",
@@ -378,7 +427,7 @@
       "date": "2026-05-28",
       "path": "runs/full/2026-05-28-current-site-readable-baseline/index.html",
       "readme": "runs/full/2026-05-28-current-site-readable-baseline/README.md",
-      "summary": "Control prototype: close to current aimindset.org structure and content, with only readability and review-lab cleanup.",
+      "summary": "Control prototype rebuilt into a real homepage surface: current aimindset.org structure/content, neutral light theme, local AIM imagery, and site-facing product/format/work/join sections.",
       "sources": [
         "https://aimindset.org/",
         "https://health.aimindset.org/",
@@ -400,9 +449,17 @@
         "faq-conditions",
         "footer-legal-archive"
       ],
-      "status": "active-review",
-      "showInGallery": true,
-      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+      "status": "rejected-owner-rating-3",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected by owner rating 3/10 (2026-05-28). Do not reuse as a style anchor; extract the concrete failure patterns (surface/typography/density/composition) before generating the next homepage candidate.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка",
+        "sentiment": "rejected",
+        "score": 3,
+        "scale": "0-10",
+        "summary": "Rejected 3/10 via Page Design Lab. Do not repeat the same style pattern; replace the direction and extract avoid rules before the next run."
+      }
     },
     {
       "id": "2026-05-28-editorial-field-notes-homepage",
@@ -433,9 +490,17 @@
         "faq-conditions",
         "footer-legal-archive"
       ],
-      "status": "active-review",
-      "showInGallery": true,
-      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+      "status": "rejected-owner-rating-3",
+      "showInGallery": false,
+      "reviewDisposition": "Rejected by owner rating 3/10 (2026-05-28). Do not repeat this direction as-is; extract avoid rules and generate materially different homepage mechanics/composition next.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка",
+        "sentiment": "rejected",
+        "score": 3,
+        "scale": "0-10",
+        "summary": "Rejected 3/10 via Page Design Lab. Do not repeat the same style pattern; start from a different visual/interaction argument."
+      }
     },
     {
       "id": "2026-05-28-signal-field-homepage",
@@ -466,9 +531,17 @@
         "faq-conditions",
         "footer-legal-archive"
       ],
-      "status": "active-review",
+      "status": "needs-rework-owner-rating-4",
       "showInGallery": true,
-      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+      "reviewDisposition": "Weak / needs rework: owner rating 4/10 (2026-05-28). Keep only the explicitly successful mechanics; diagnose readability/source fidelity/interaction/craft/fit gaps before reuse.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка",
+        "sentiment": "weak",
+        "score": 4,
+        "scale": "0-10",
+        "summary": "Weak 4/10 via Page Design Lab; needs rework before reuse."
+      }
     },
     {
       "id": "2026-05-28-product-portal-homepage",
@@ -499,9 +572,128 @@
         "faq-conditions",
         "footer-legal-archive"
       ],
+      "status": "hard-reject-owner-rating-0",
+      "showInGallery": false,
+      "reviewDisposition": "Hard reject: owner rating 0/10 (2026-05-28). Hide from default galleries and block similar portal/route-card mechanics until a later approved direction resets this.",
+      "userFeedback": {
+        "date": "2026-05-28",
+        "rater": "Анка",
+        "sentiment": "hard-reject",
+        "score": 0,
+        "scale": "0-10",
+        "summary": "Hard reject 0/10 via Page Design Lab. In particular the 'следующий шаг' join/team/consulting row reads as empty route placeholders, not as meaningful homepage design."
+      }
+    },
+    {
+      "id": "2026-05-28-logo-distortion-field",
+      "lane": "elements",
+      "area": "logo-motion-system",
+      "title": "Logo Distortion Field",
+      "date": "2026-05-28",
+      "path": "runs/elements/2026-05-28-logo-distortion-field/index.html",
+      "readme": "runs/elements/2026-05-28-logo-distortion-field/README.md",
+      "summary": "Focused AIM logo motion tool: asymmetric pointer-reactive distortion field with white/black/transparent logo modes, split controls, intensity controls, and PNG export.",
+      "sources": [
+        "/Users/viola/Downloads/Asymmetric Motion Recording (1).mp4",
+        "AIM logo / AI Mindset brand system",
+        "User feedback: logo may be black/white/transparent, not only white-on-black"
+      ],
+      "coversBlocks": [
+        "hero",
+        "visual-system",
+        "logo-motion",
+        "homepage-imagery",
+        "payment-atmosphere"
+      ],
       "status": "active-review",
       "showInGallery": true,
-      "reviewDisposition": "Baseline-first recovery batch after 2026-05-28 readability rejection. Self-rating is provisional and should not be treated as user approval."
+      "reviewDisposition": "New focused element for review. Use as a reusable motion mechanic candidate, not as a finished page."
+    },
+    {
+      "id": "2026-05-29-night-cinema-reading-flow-homepage",
+      "lane": "full",
+      "title": "Cinema Reading Flow Homepage",
+      "date": "2026-05-29",
+      "path": "runs/full/2026-05-29-night-cinema-reading-flow-homepage/index.html",
+      "readme": "runs/full/2026-05-29-night-cinema-reading-flow-homepage/README.md",
+      "summary": "Readable light homepage with a cinematic owned-logo hero + focus mode that removes visual noise; 13-block structure preserved with calm text surfaces.",
+      "sources": [
+        "https://aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/homepage-design-lab/source-snapshots/aimindset-org-2026-05-28.json",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "New full-page candidate. Explicitly avoids the rejected beige/yellow grid + monospaced-body direction; focus mode is included to keep text first."
+    },
+    {
+      "id": "2026-05-29-night-sticky-visual-notebook-homepage",
+      "lane": "full",
+      "title": "Sticky Visual Notebook Homepage",
+      "date": "2026-05-29",
+      "path": "runs/full/2026-05-29-night-sticky-visual-notebook-homepage/index.html",
+      "readme": "runs/full/2026-05-29-night-sticky-visual-notebook-homepage/README.md",
+      "summary": "Two-column scrollytelling: a calm notebook reading column + a sticky visual stage that updates by chapter, without placing grid/diagram noise behind paragraphs.",
+      "sources": [
+        "https://aimindset.org/",
+        "V3 Site Repo - aimwebsite0.5/homepage-design-lab/source-snapshots/aimindset-org-2026-05-28.json",
+        "V3 Site Repo - aimwebsite0.5/public/assets/"
+      ],
+      "coversBlocks": [
+        "hero",
+        "philosophy",
+        "ecosystem",
+        "active-programs",
+        "formats",
+        "cases-reviews-works",
+        "short-about",
+        "team-preview",
+        "teams-consulting",
+        "space-preview",
+        "non-profit-preview",
+        "faq-conditions",
+        "footer-legal-archive"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "New full-page candidate. Stage updates per chapter to support the reading path while keeping Russian body copy on calm surfaces."
+    },
+    {
+      "id": "2026-05-29-night-people-cases-ribbon",
+      "lane": "elements",
+      "area": "cases-people-ribbon",
+      "title": "People + Cases Ribbon",
+      "date": "2026-05-29",
+      "path": "runs/elements/2026-05-29-night-people-cases-ribbon/index.html",
+      "readme": "runs/elements/2026-05-29-night-people-cases-ribbon/README.md",
+      "summary": "Element prototype: horizontally scrollable ribbons for cases and people with explicit prev/next controls + position indicator; avoids the system-card grid feel.",
+      "sources": [
+        "V3 Site Repo - aimwebsite0.5/homepage-design-lab/source-snapshots/aimindset-org-2026-05-28.json",
+        "V3 Site Repo - aimwebsite0.5/public/assets/cases/community-night/*",
+        "V3 Site Repo - aimwebsite0.5/public/assets/speakers/*"
+      ],
+      "coversBlocks": [
+        "cases-reviews-works",
+        "team-preview"
+      ],
+      "status": "active-review",
+      "showInGallery": true,
+      "reviewDisposition": "New focused element for review; intended as a reusable block, not a finished page."
     }
   ]
 }

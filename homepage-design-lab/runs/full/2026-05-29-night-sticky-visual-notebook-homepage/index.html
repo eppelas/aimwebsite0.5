@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIM Homepage — Sticky Visual Notebook</title>
+  <meta name="description" content="Review-only full homepage concept: a calm notebook reading column with a sticky visual stage that updates by chapter." />
+  <style>
+    :root{
+      color-scheme: light;
+      --paper:#fbfbfa;
+      --ink:#0c1118;
+      --muted:#566171;
+      --line:rgba(12,17,24,.14);
+      --accent:#2e8f52;
+      --accent2:#4b6dff;
+      --sheet:#ffffff;
+      --shadow:0 24px 80px rgba(10,14,18,.08);
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial;
+      --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;overflow-x:hidden;background:var(--paper);color:var(--ink);font-family:var(--sans);text-rendering:optimizeLegibility}
+    img,video{max-width:100%;display:block}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 72%, white);outline-offset:2px}
+
+    header{
+      position:sticky;top:0;z-index:20;
+      border-bottom:1px solid var(--line);
+      background:color-mix(in srgb,var(--paper) 84%, transparent);
+      backdrop-filter: blur(18px);
+    }
+    .shell{width:min(1240px,calc(100% - 40px));margin:0 auto}
+    .bar{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .mark{width:34px;height:34px;border-radius:10px;background:var(--ink);display:grid;place-items:center}
+    .mark img{width:22px;height:22px;filter:invert(1)}
+    .brand b{display:block;font-weight:950;letter-spacing:-.02em;line-height:1}
+    .brand small{display:block;color:var(--muted);font:900 12px/1 var(--mono);letter-spacing:.10em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+    .links{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{min-height:40px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.78);padding:0 14px;display:inline-flex;align-items:center;gap:10px;font:900 12px/1 var(--mono);letter-spacing:.10em;text-transform:uppercase}
+    .pill.primary{background:var(--ink);color:var(--paper);border-color:transparent}
+    .pill.primary:hover{background:color-mix(in srgb,var(--ink) 80%, var(--accent))}
+
+    main{padding:26px 0 70px}
+    .grid{display:grid;grid-template-columns: 460px minmax(0,1fr);gap:26px;align-items:start}
+    .stage{
+      position:sticky;top:92px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      overflow:hidden;
+      background:
+        radial-gradient(900px 340px at 20% 22%, rgba(46,143,82,.13), transparent 70%),
+        radial-gradient(900px 340px at 86% 32%, rgba(75,109,255,.12), transparent 70%),
+        linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.72));
+      box-shadow:var(--shadow);
+      min-height: min(680px, calc(100vh - 120px));
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+    }
+    .stage-top{padding:16px 16px 0}
+    .stage-top .k{color:var(--muted);font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;display:flex;gap:10px;flex-wrap:wrap}
+    .stage-top .k span{border:1px solid rgba(12,17,24,.12);border-radius:999px;padding:8px 10px;background:rgba(255,255,255,.68)}
+    .stage-media{position:relative;min-height:420px;margin:14px 16px;border-radius:18px;overflow:hidden;border:1px solid rgba(12,17,24,.12);background:rgba(255,255,255,.9)}
+    .stage-media img,.stage-media video{width:100%;height:100%;object-fit:cover}
+    .stage-media .veil{position:absolute;inset:0;background:linear-gradient(180deg, transparent 0%, rgba(255,255,255,.0) 55%, rgba(255,255,255,.92) 100%);pointer-events:none}
+    .stage-caption{padding:0 16px 16px;color:var(--muted);font: 16px/1.45 var(--serif)}
+    .stage-caption b{color:color-mix(in srgb,var(--ink) 70%, var(--muted))}
+
+    .chapter{
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(255,255,255,.88);
+      box-shadow:var(--shadow);
+      padding:18px 18px 16px;
+      margin:0 0 16px;
+    }
+    .chapter .meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .chapter .tag{font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    .chapter .tag i{display:inline-block;width:9px;height:9px;border-radius:999px;margin-right:10px;background:var(--accent)}
+    .chapter .when{font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--accent) 55%, var(--ink))}
+    .chapter h2{margin:10px 0 0;font:900 clamp(30px,5.2vw,54px)/1.02 var(--serif);letter-spacing:-.03em}
+    .chapter p{margin:10px 0 0;max-width:70ch;color:var(--muted);font-size:18px;line-height:1.56}
+    .chapter ul{margin:12px 0 0;padding-left:18px;color:var(--muted);line-height:1.6}
+    .chapter a.link{display:inline-flex;align-items:center;gap:10px;margin-top:12px;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .chapter a.link::after{content:"→";color:var(--accent)}
+
+    .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    .card{border:1px solid rgba(12,17,24,.12);border-radius:18px;background:rgba(255,255,255,.78);padding:14px;display:grid;gap:8px}
+    .card b{font:900 18px/1.1 var(--sans);letter-spacing:-.02em}
+    .card small{color:color-mix(in srgb,var(--accent) 55%, var(--ink));font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .card p{margin:0;color:var(--muted);line-height:1.45}
+    .card a{display:inline-flex;align-items:center;gap:10px;font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .card a::after{content:"→";color:var(--accent)}
+
+    .gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+    .tile{border:1px solid rgba(12,17,24,.12);border-radius:18px;background:white;overflow:hidden}
+    .tile img{width:100%;height:176px;object-fit:cover}
+    .tile div{padding:12px 12px 14px}
+    .tile div b{display:block;font:900 16px/1.2 var(--sans);letter-spacing:-.02em}
+    .tile div span{display:block;margin-top:6px;color:var(--muted);line-height:1.36}
+
+    footer{padding:52px 0 70px;border-top:1px solid var(--line)}
+    .footer-links{display:flex;flex-wrap:wrap;gap:10px}
+    .footer-links a{border:1px solid var(--line);background:rgba(255,255,255,.78);border-radius:999px;padding:10px 12px;font:900 12px/1 var(--mono);letter-spacing:.10em;text-transform:uppercase}
+
+    @media (max-width: 1060px){
+      .shell{width:min(100% - 28px, 920px)}
+      .grid{grid-template-columns:1fr}
+      .stage{position:relative;top:auto;min-height:unset}
+      .stage-media{min-height:320px}
+      .cards{grid-template-columns:1fr}
+      .gallery{grid-template-columns:1fr}
+    }
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      .stage-media video{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell bar">
+      <a class="brand" href="https://aimindset.org/" aria-label="AI Mindset (внешний сайт)">
+        <span class="mark" aria-hidden="true"><img src="../../../../public/assets/ai-mindset-logo-transparent.png" alt="" /></span>
+        <span>
+          <b>AI Mindset</b>
+          <small>sticky visual notebook / review-only / 2026-05-29</small>
+        </span>
+      </a>
+      <nav class="links" aria-label="Ссылки">
+        <a class="pill" href="#ecosystem">экосистема</a>
+        <a class="pill" href="#cases">cases</a>
+        <a class="pill primary" href="https://join.aimindset.org/waitlist">join</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="grid">
+      <aside class="stage" aria-label="Sticky visual stage (updates by chapter)">
+        <div class="stage-top">
+          <div class="k" id="stageMeta">
+            <span id="stageTag">hero</span>
+            <span id="stageHint">скролл → визуал меняется</span>
+          </div>
+        </div>
+        <div class="stage-media" aria-hidden="true">
+          <video id="stageVideo" autoplay muted loop playsinline poster="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-poster.png">
+            <source src="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-12s.mp4" type="video/mp4" />
+          </video>
+          <img id="stageImg" src="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-poster.png" alt="" hidden />
+          <div class="veil"></div>
+        </div>
+        <div class="stage-caption" id="stageCaption">
+          <b>AI Mindset.</b> экосистема, где практика и контекст важнее “идеальных промптов”.
+        </div>
+      </aside>
+
+      <div>
+        <section class="chapter" id="hero" data-block="hero"
+          data-stage-tag="hero"
+          data-stage-kind="video"
+          data-stage-src="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-12s.mp4"
+          data-stage-poster="../../../../public/assets/logo-assembly/ai-mindset-logo-assembly-poster.png"
+          data-stage-caption="<b>Hero.</b> Спокойный визуальный слой рядом с текстом — не под текстом.">
+          <div class="meta">
+            <div class="tag"><i></i>AI Mindset. экосистема AI практиков</div>
+            <div class="when">15+ лабораторий · 700+ участников · 23+ страны</div>
+          </div>
+          <h2>экосистема, где AI становится экзоскелетом мышления</h2>
+          <p>мы не “учим пользоваться AI”. мы создаем среду, где люди выходят за рамки промптов, строят осмысленные и глубоко личные системы. превращаем AI в экзоскелет мышления вместе с вами</p>
+        </section>
+
+        <section class="chapter" id="philosophy" data-block="philosophy"
+          data-stage-tag="подход"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/philosophy-practice-morph-7-2.svg"
+          data-stage-caption="<b>Подход.</b> Визуал как шепот, не как сетка под абзацами.">
+          <div class="meta">
+            <div class="tag"><i></i>философия / подход</div>
+            <div class="when">5 принципов (из снимка 2026-05-28)</div>
+          </div>
+          <h2>делать, а не потреблять</h2>
+          <ul>
+            <li><b>контекст-инжиниринг</b> — контекст = данные + структура + осмысление.</li>
+            <li><b>AI как экзоскелет</b> — когда AI знает вас, он становится напарником.</li>
+            <li><b>mindset важнее инструментов</b> — технологии меняются, способ мышления остаётся.</li>
+            <li><b>среда важна</b> — предприниматели, продакты, дизайнеры, авторы медиа из 23-х стран.</li>
+          </ul>
+        </section>
+
+        <section class="chapter" id="about" data-block="short-about"
+          data-stage-tag="кто мы"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/philosophy-community-morph-0-3.svg"
+          data-stage-caption="<b>Кто мы.</b> Короткий “about” как спокойный абзац, а не как плакат или схема.">
+          <div class="meta">
+            <div class="tag"><i></i>short about</div>
+            <div class="when">только источник (2026-05-28)</div>
+          </div>
+          <h2>экосистема практики</h2>
+          <p>мы не “учим пользоваться AI”. мы создаем среду, где люди выходят за рамки промптов, строят осмысленные и глубоко личные системы. превращаем AI в экзоскелет мышления вместе с вами</p>
+          <p>среда важна: у нас есть предприниматели, топ-менеджеры, продакты, программисты, дизайнеры, футурологи, авторы популярных медиа из 23-х стран.</p>
+        </section>
+
+        <section class="chapter" id="ecosystem" data-block="ecosystem"
+          data-stage-tag="экосистема"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-automation-dark.svg"
+          data-stage-caption="<b>Экосистема.</b> Не портал-карточки, а ясный список входов со статусами.">
+          <div class="meta">
+            <div class="tag"><i></i>экосистема / продукты</div>
+            <div class="when">lab · sprint · space · classes</div>
+          </div>
+          <h2>три формата, одна практика</h2>
+          <p>сезонные лаборатории раз в квартал, двухнедельные спринты и мастер-классы — три формата для практики AI. от личного контекста до командной операционной системы.</p>
+          <div class="cards" aria-label="Продукты (из снимка 2026-05-28)">
+            <div class="card">
+              <small>in progress</small>
+              <b>AI Mindset {main lab}</b>
+              <p>1 квартал = 1 лаборатория на стыке человеческого и машинного.</p>
+              <a href="https://aimindset.org/ai-mindset-lab">к лаборатории</a>
+            </div>
+            <div class="card">
+              <small>2-14 марта. open</small>
+              <b>Personal Operational System</b>
+              <p>система агентов для управления вниманием, задачами и знаниями.</p>
+              <a href="https://aimindset.org/pos">к спринту</a>
+            </div>
+            <div class="card">
+              <small>23 марта - 11 апреля</small>
+              <b>AI-Native orgs</b>
+              <p>агентоцентричные организации: от личного AI-стека до инфраструктуры компании.</p>
+              <a href="https://ai-native.aimindset.org/">к спринту</a>
+            </div>
+            <div class="card">
+              <small>free, application-based</small>
+              <b>{space}</b>
+              <p>live-demo четверг 18:00 CET, разбор кейсов, нетворкинг, гайды и практики.</p>
+              <a href="https://aimindset.org/space">в space</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter" id="active" data-block="active-programs"
+          data-stage-tag="активно"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-1.svg"
+          data-stage-caption="<b>Активное.</b> Короткий блок “что сейчас”, без портального “следующий шаг”.">
+          <div class="meta">
+            <div class="tag"><i></i>активные программы</div>
+            <div class="when">in progress / open / даты</div>
+          </div>
+          <h2>что прямо сейчас в движении</h2>
+          <p>Из источника: главная лаборатория (in progress), POS (open), AI-native (даты), Space (free).</p>
+          <div class="cards" aria-label="Активные входы (из снимка)">
+            <div class="card">
+              <small>in progress</small>
+              <b>AI Mindset {main lab}</b>
+              <p>1 квартал = 1 лаборатория на стыке человеческого и машинного.</p>
+              <a href="https://aimindset.org/ai-mindset-lab">открыть</a>
+            </div>
+            <div class="card">
+              <small>2-14 марта. open</small>
+              <b>Personal Operational System</b>
+              <p>система агентов для внимания, задач и знаний.</p>
+              <a href="https://aimindset.org/pos">открыть</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter" id="formats" data-block="formats"
+          data-stage-tag="форматы"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-vision-dark.svg"
+          data-stage-caption="<b>Форматы.</b> Сцены страницы — как главы: темп меняется, смысл не теряется.">
+          <div class="meta">
+            <div class="tag"><i></i>форматы</div>
+            <div class="when">lab / sprint / workshop</div>
+          </div>
+          <h2>три скорости</h2>
+          <p>Один и тот же принцип: выбрать реальную задачу и собрать систему. Различается скорость, глубина и среда.</p>
+          <a class="link" href="https://luma.com/">classes (расписание)</a>
+        </section>
+
+        <section class="chapter" id="cases" data-block="cases-reviews-works"
+          data-stage-tag="cases"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/community-night/meeting-pipeline-natasha-product-clean.png"
+          data-stage-caption="<b>Cases.</b> Один визуальный “якорь” на сцене, рядом — читаемый текст.">
+          <div class="meta">
+            <div class="tag"><i></i>cases / proof</div>
+            <div class="when">3 примера (local assets)</div>
+          </div>
+          <h2>что создают участники</h2>
+          <div class="gallery" aria-label="Примеры работ">
+            <div class="tile">
+              <img src="../../../../public/assets/cases/community-night/team-os-darya-product.png" alt="Team Operation System" loading="lazy" />
+              <div><b>Team Operation System</b><span>командная операционная система и агентный контур.</span></div>
+            </div>
+            <div class="tile">
+              <img src="../../../../public/assets/cases/community-night/meeting-pipeline-natasha-product.png" alt="Meeting Pipeline" loading="lazy" />
+              <div><b>Meeting Pipeline</b><span>разбор встреч, задачи и follow-up в одном пайплайне.</span></div>
+            </div>
+            <div class="tile">
+              <img src="../../../../public/assets/cases/community-night/agent-meditation-daniil-product.png" alt="Agent Meditation" loading="lazy" />
+              <div><b>Agent Meditation</b><span>личный AI-контур для практики и внимания.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter" id="people" data-block="team-preview"
+          data-stage-tag="люди"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/speakers/anka-stavenski.jpg"
+          data-stage-caption="<b>Люди.</b> Портреты — как маркеры контекста, не как “пруф ради пруфа”.">
+          <div class="meta">
+            <div class="tag"><i></i>люди</div>
+            <div class="when">3 превью (из снимка)</div>
+          </div>
+          <h2>команда рядом</h2>
+          <p>у нас есть предприниматели, топ-менеджеры, продакты, программисты, дизайнеры, футурологи, авторы популярных медиа из 23-х стран.</p>
+        </section>
+
+        <section class="chapter" id="teams" data-block="teams-consulting"
+          data-stage-tag="для команд"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-coaching-dark.svg"
+          data-stage-caption="<b>Для команд.</b> Два входа: Team Track и консультации. Без “портала”.">
+          <div class="meta">
+            <div class="tag"><i></i>teams / consulting</div>
+            <div class="when">2 входа</div>
+          </div>
+          <h2>два ясных маршрута</h2>
+          <div class="cards" aria-label="Маршруты">
+            <div class="card">
+              <small>always</small>
+              <b>{team track}</b>
+              <p>каждый наш продукт может пройти 3+ человека из команды с решением задач вашей компании.</p>
+              <a href="https://aimindset.org/team-track">team track</a>
+            </div>
+            <div class="card">
+              <small>individual</small>
+              <b>{personal consulting}</b>
+              <p>индивидуальные консультации по AI-стратегии, внедрениям, инструментам и автоматизациям.</p>
+              <a href="https://t.me/prod_ai_mind_set">telegram</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter" id="space" data-block="space-preview"
+          data-stage-tag="space"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-6.svg"
+          data-stage-caption="<b>Space.</b> Регулярная среда: превью на главной, детали — на отдельной странице.">
+          <div class="meta">
+            <div class="tag"><i></i>space preview</div>
+            <div class="when">free, application-based</div>
+          </div>
+          <h2>space как регулярная практика</h2>
+          <p>практическое AI-сообщество для фаундеров и специалистов. live-demo четверг 18:00 CET, разбор кейсов, нетворкинг, гайды и практики</p>
+          <a class="link" href="https://aimindset.org/space">открыть space</a>
+        </section>
+
+        <section class="chapter" id="nonprofit" data-block="non-profit-preview"
+          data-stage-tag="non-profit"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-8.svg"
+          data-stage-caption="<b>For Non-Profit.</b> Отдельный вход на отдельной странице.">
+          <div class="meta">
+            <div class="tag"><i></i>for non-profit</div>
+            <div class="when">separate page</div>
+          </div>
+          <h2>отдельный вход</h2>
+          <p>На главной — короткое превью и прямой переход на отдельную страницу.</p>
+          <a class="link" href="https://aimindset.org/non-profit">for non-profit</a>
+        </section>
+
+        <section class="chapter" id="faq" data-block="faq-conditions"
+          data-stage-tag="FAQ"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-research-dark.svg"
+          data-stage-caption="<b>FAQ.</b> Внизу — только практичные ссылки: join и юридические документы.">
+          <div class="meta">
+            <div class="tag"><i></i>FAQ / условия</div>
+            <div class="when">без выдуманных обещаний</div>
+          </div>
+          <h2>практичные ссылки</h2>
+          <p>Если вы не уверены, с чего начать — используйте общий вход (waitlist). Юридические ссылки оставлены как на текущем сайте.</p>
+          <div class="cards">
+            <div class="card">
+              <small>вход</small>
+              <b>join / waitlist</b>
+              <p>общий вход в экосистему и waitlist.</p>
+              <a href="https://join.aimindset.org/waitlist">join</a>
+            </div>
+            <div class="card">
+              <small>условия</small>
+              <b>договор-оферта</b>
+              <p>публичный договор-оферта (как в источнике).</p>
+              <a href="https://docs.google.com/document/d/e/2PACX-1vRfnWZMiHbq8fvnnI0gACZuHtvJkZHJM0_kRWPZBwzBuzVQRLz2aqrwOO4qZfJUW2EkYc8rGt0f5QrJ/pub">открыть</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="chapter" id="footer" data-block="footer-legal-archive"
+          data-stage-tag="footer"
+          data-stage-kind="img"
+          data-stage-src="../../../../public/assets/cases/case-0.svg"
+          data-stage-caption="<b>Footer.</b> Прототип: ссылки как спокойные токены, не как плотная сетка.">
+          <div class="meta">
+            <div class="tag"><i></i>footer</div>
+            <div class="when">реальные ссылки</div>
+          </div>
+          <h2>ссылки</h2>
+          <div class="footer-links" aria-label="Footer links">
+            <a href="https://aimindset.org/ai-mindset-lab">x26 {lab}</a>
+            <a href="https://health.aimindset.org/">health {sprint}</a>
+            <a href="https://selfdev.aimindset.org/">selfdev {sprint}</a>
+            <a href="https://ai-native.aimindset.org/">ai-native {sprint}</a>
+            <a href="https://aimindset.org/space">community {space}</a>
+            <a href="https://join.aimindset.org/waitlist">join</a>
+            <a href="https://aimindset.org/confpolicy">политика конфиденциальности</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="shell">
+      <div class="brand" aria-label="AI Mindset">
+        <span class="mark" aria-hidden="true"><img src="../../../../public/assets/ai-mindset-logo-transparent.png" alt="" /></span>
+        <span>
+          <b>AI Mindset</b>
+          <small>review-only prototype</small>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const stageVideo = document.getElementById('stageVideo');
+      const stageImg = document.getElementById('stageImg');
+      const stageTag = document.getElementById('stageTag');
+      const stageCaption = document.getElementById('stageCaption');
+      const chapters = Array.from(document.querySelectorAll('.chapter'));
+
+      const setStage = (el) => {
+        const tag = el.dataset.stageTag || 'chapter';
+        const kind = el.dataset.stageKind || 'img';
+        const src = el.dataset.stageSrc || '';
+        const poster = el.dataset.stagePoster || '';
+        const caption = el.dataset.stageCaption || '';
+
+        stageTag.textContent = tag;
+        stageCaption.innerHTML = caption;
+
+        if (kind === 'video') {
+          stageVideo.hidden = false;
+          stageImg.hidden = true;
+          if (poster) stageVideo.setAttribute('poster', poster);
+          const source = stageVideo.querySelector('source');
+          if (source && src && source.getAttribute('src') !== src) {
+            source.setAttribute('src', src);
+            stageVideo.load();
+          }
+          return;
+        }
+
+        stageVideo.hidden = true;
+        stageImg.hidden = false;
+        if (src && stageImg.getAttribute('src') !== src) stageImg.setAttribute('src', src);
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        const top = visible[0]?.target;
+        if (!(top instanceof HTMLElement)) return;
+        setStage(top);
+      }, { rootMargin: '-18% 0px -66% 0px', threshold: [0.08, 0.16, 0.28, 0.40] });
+
+      for (const ch of chapters) observer.observe(ch);
+      setStage(chapters[0]);
+    })();
+  </script>
+</body>
+</html>

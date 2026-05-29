@@ -25,7 +25,33 @@ This lab does not replace the live site and does not change the React checkout f
 
 - `runs/2026-05-27-payment-canvas-10x/`
 - Main review UI: `index.html`
-- Variants: 19
+- Variants: 21
+
+## Near-Duplicate Failure Rule
+
+Anca rejected the initial `Payment 02-05` / `Topographic Price` cluster as not
+meaningfully different designs. The titles promised different ideas, but the
+implementation reused the same centered payment card, form hierarchy, payment
+states, and canvas shell while changing mostly background color, accent color,
+ambient pseudo-elements, or tiny decorative details.
+
+That is not a valid set of review variants.
+
+Active rule:
+
+- a new payment-page variant must have a material delta: composition,
+  hierarchy, interaction, motion mechanic, content model, state behavior, or
+  source-mechanic fidelity;
+- background/accent/ambient-only changes are a skin, not a separate design;
+- if two variants intentionally share the same structural shell, keep at most
+  two of them and explain the exact difference in `reviewFocus` /
+  `designDelta`;
+- Sonya must not send near-duplicate skins as separate review cards.
+
+The following initial variants are hidden from the default gallery and Sonya
+review until rebuilt with a real design argument: `garden-ledger`,
+`noise-receipt`, `topographic-price`, `constellation-route`, `vault-access`,
+`signal-lines`, `glitch-grid`, `case-mosaic`, and `terminal-orbit`.
 
 ## References
 
@@ -42,7 +68,10 @@ This lab does not replace the live site and does not change the React checkout f
   - Slide 6 `Storm` / `StormSystem.tsx` -> `AIM Slow Storm`.
   - Slide 9 `Inkfield` / `InkFieldSlide.tsx` -> `AIM Dark Inkfield`.
   These variants adapt interaction mechanics, motion logic, and atmospheric composition only. Payment copy, states, labels, CTAs, discounts, and validation stay sourced from the current payment component.
-- `AIM Event Horizon` is a new stronger candidate after Anka's `7.5/10` feedback on the previous two X26-derived directions. It reuses the X26 `ParticleSystem` bowl/strand formula more directly, adds pointer inertia and velocity wake, keeps the successful mouse-dependent glow, and removes visible reference text. `AIM Payment Gravity` and `AIM Vortex Checkout` are archive candidates only after a clearly stronger replacement is user-approved.
+- `AIM Event Horizon` was the 2D canvas approximation after Anka's `7.5/10` feedback. It kept the mouse-dependent glow, but the user rejected it as still much weaker than the actual X26 source.
+- `AIM Direct Particle` is the correction: a native Three.js direct port of the owned X26 `ParticleSystem.tsx` mechanics into this standalone payment page. The shader, particle count, strand count, bowl/dust formulas, additive blending, camera, and mouse smoothing are kept as close to the source as possible, then raised slightly in frame after user feedback.
+- `AIM Mindset Morph` is a close sibling of `AIM Direct Particle`: it keeps the same source particle density and compact payment form, but uses a shader-side morph toward an AI/mindset/transformation field instead of a 1:1 source copy. It does not add new checkout text.
+- `AIM Payment Gravity` and `AIM Vortex Checkout` remain archive candidates only after a clearly stronger replacement is user-approved.
 - QA rule before sharing links: check active control contrast, no black text on dark backgrounds, no red CTA/active cards, no gradient-heavy active states, no invented payment copy, compact input typography, no horizontal overflow, no tariff selector in the payment form, cancel as no-op, and `Telegram: aim` + promo `ponchik` discount behavior.
 
 No external layouts, assets, typefaces, or page compositions are copied.
@@ -58,6 +87,8 @@ Copied assets:
 - `public/assets/payment-popups/teamos-geo-animation.svg` -> `payment-page-design-lab/assets/teamos-geo-animation.svg`
 - `public/assets/speakers/anna-lozitskaya.jpg` -> `payment-page-design-lab/assets/anna-lozitskaya.jpg`
 - `public/assets/speakers/alexey-ivanov.jpg` -> `payment-page-design-lab/assets/alexey-ivanov.jpg`
+- `../X26 workshop presentation/node_modules/three/build/three.module.min.js` -> `payment-page-design-lab/assets/vendor/three.module.min.js`
+- `../X26 workshop presentation/node_modules/three/build/three.core.min.js` -> `payment-page-design-lab/assets/vendor/three.core.min.js`
 
 Added files:
 

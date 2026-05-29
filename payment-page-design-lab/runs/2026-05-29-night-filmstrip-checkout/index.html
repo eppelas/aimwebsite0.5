@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIM Payment — Filmstrip Checkout</title>
+    <meta name="description" content="Review-only payment page concept with a filmstrip route + compact checkout. Covers 4 states." />
+    <style>
+      :root{
+        color-scheme: dark;
+        --bg:#050607;
+        --ink:#f6f3ea;
+        --ink-dim:rgba(246,243,234,.74);
+        --ink-faint:rgba(246,243,234,.46);
+        --line:rgba(246,243,234,.14);
+        --accent:#9add42;
+        --accent-2:#3db7ef;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial;
+      }
+      *{box-sizing:border-box}
+      html{scroll-behavior:smooth}
+      body{
+        margin:0;min-width:320px;overflow-x:hidden;
+        background:
+          radial-gradient(1100px 520px at 20% 20%, rgba(61,183,239,.18), transparent 70%),
+          radial-gradient(900px 540px at 86% 38%, rgba(154,221,66,.16), transparent 70%),
+          linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)),
+          var(--bg);
+        color:var(--ink);
+        font-family:var(--sans);
+        text-rendering:optimizeLegibility;
+      }
+      a{color:inherit;text-decoration:none}
+      button,input{font:inherit}
+      :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 70%, white);outline-offset:2px}
+
+      .page{
+        min-height:100vh;
+        padding: clamp(18px, 4vw, 46px);
+        display:grid;
+        place-items:center;
+      }
+      .shell{
+        width:min(1200px, 100%);
+        display:grid;
+        grid-template-columns: 440px minmax(0,1fr);
+        gap: clamp(16px, 2.8vw, 28px);
+        align-items:stretch;
+      }
+
+      .strip{
+        border:1px solid var(--line);
+        border-radius:22px;
+        background: rgba(0,0,0,.26);
+        overflow:hidden;
+        display:grid;
+        grid-template-rows: auto 1fr auto;
+      }
+      .strip-head{
+        padding:14px 16px 12px;
+        border-bottom:1px solid var(--line);
+        display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      }
+      .k{font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+      .state-name{font:950 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+      .strip-body{padding:14px 16px 16px}
+      .frames{
+        display:grid;
+        gap:12px;
+      }
+      .frame{
+        border:1px solid rgba(246,243,234,.12);
+        background: rgba(4,5,4,.42);
+        border-radius:18px;
+        padding:14px;
+        display:grid;
+        grid-template-columns: 1fr auto;
+        gap:12px;
+        align-items:start;
+      }
+      .frame b{
+        display:block;
+        font:900 13px/1.2 var(--mono);
+        letter-spacing:.10em;
+        text-transform:uppercase;
+        color:rgba(246,243,234,.86);
+      }
+      .frame p{
+        margin:8px 0 0;
+        color:rgba(246,243,234,.56);
+        line-height:1.35;
+      }
+      .dot{
+        width:12px;height:12px;border-radius:999px;
+        border:1px solid rgba(246,243,234,.18);
+        background: rgba(246,243,234,.05);
+        margin-top:2px;
+      }
+      .frame[data-active="1"]{
+        border-color: color-mix(in srgb,var(--accent) 40%, var(--line));
+        background: rgba(10,12,10,.54);
+      }
+      .frame[data-active="1"] .dot{
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        border-color: transparent;
+      }
+      .mini-route{
+        margin-top:10px;
+        height:1px;
+        background:linear-gradient(90deg, rgba(246,243,234,.22), rgba(246,243,234,.10), rgba(246,243,234,.22));
+        position:relative;
+        overflow:hidden;
+      }
+      .mini-route::after{
+        content:"";
+        position:absolute;left:-20%;top:0;bottom:0;width:28%;
+        background:linear-gradient(90deg, transparent, rgba(154,221,66,.7), transparent);
+        animation: scan 1.4s linear infinite;
+        opacity:.9;
+      }
+      @keyframes scan{from{transform:translateX(0)}to{transform:translateX(500%)}}
+
+      .strip-foot{
+        padding:12px 16px 14px;
+        border-top:1px solid var(--line);
+        display:grid;
+        gap:10px;
+      }
+      .scrub{
+        display:grid;gap:8px;
+      }
+      .scrub label{
+        display:flex;align-items:center;justify-content:space-between;gap:12px;
+        font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);
+      }
+      input[type="range"]{width:100%;accent-color:var(--accent)}
+      .hint{color:rgba(246,243,234,.42);font:900 10px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+
+      .checkout{
+        border:1px solid var(--line);
+        border-radius:22px;
+        background: rgba(0,0,0,.32);
+        overflow:hidden;
+        display:grid;
+        grid-template-rows: auto 1fr;
+      }
+      .checkout-head{
+        padding:14px 16px 12px;
+        border-bottom:1px solid var(--line);
+        display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+      }
+
+      .view{
+        padding: 18px 18px 16px;
+        min-height: 520px;
+        display:none;
+      }
+      .view[data-active="1"]{display:grid}
+      .view form{display:grid;gap:18px}
+      .kicker{color:rgba(246,243,234,.52);font:900 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+      h1,h2{margin:0;font-weight:950;letter-spacing:-.03em;line-height:.96}
+      h1{font-size:42px}
+      h2{font-size:40px}
+
+      .order-summary{
+        display:grid;
+        grid-template-columns: 1fr auto;
+        gap:14px;
+        align-items:center;
+        padding:14px 14px;
+        border:1px solid var(--line);
+        background: rgba(0,0,0,.22);
+      }
+      .label{color:rgba(246,243,234,.52);font:900 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+      .price-box{text-align:right}
+      .old-price{display:block;color:rgba(246,243,234,.34);text-decoration:line-through;font:900 12px/1 var(--mono);letter-spacing:.10em}
+      .price{font:950 28px/1 var(--mono);letter-spacing:-.01em}
+
+      .methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+      .method{
+        min-height:44px;border:1px solid var(--line);background: rgba(0,0,0,.22);
+        color:rgba(246,243,234,.74);
+        font:900 11px/1 var(--mono);
+        letter-spacing:.12em;text-transform:uppercase;
+        cursor:pointer;
+      }
+      .method[aria-pressed="true"]{
+        background:color-mix(in srgb, var(--accent) 18%, rgba(0,0,0,.22));
+        border-color:color-mix(in srgb, var(--accent) 36%, var(--line));
+        color:rgba(246,243,234,.92);
+      }
+
+      .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+      label{display:grid;gap:8px}
+      .req{color:var(--accent);font-weight:950}
+      input{
+        min-height:44px;border:1px solid var(--line);
+        background: rgba(0,0,0,.18);
+        color:rgba(246,243,234,.92);
+        padding:0 12px;
+      }
+      input::placeholder{color:rgba(246,243,234,.36)}
+      .field-status{font:900 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:rgba(246,243,234,.52);min-height:12px}
+
+      .promo{max-width:380px}
+      .actions{display:flex;justify-content:flex-end;gap:10px;align-items:center}
+      .ghost,.primary{
+        min-height:44px;border-radius:14px;border:1px solid var(--line);
+        background: rgba(0,0,0,.18);
+        color:rgba(246,243,234,.74);
+        font:900 12px/1 var(--mono);letter-spacing:.12em;text-transform:lowercase;
+        padding:0 18px;
+        cursor:pointer;
+      }
+      .primary{
+        background: rgba(246,243,234,.92);
+        color:#08100b;
+        border-color: transparent;
+      }
+      .primary:hover,.primary:focus-visible{background:var(--accent);border-color:var(--accent);color:#091006}
+
+      .status-copy{display:grid;gap:16px;align-content:start}
+      .status-label{color:var(--accent);font:900 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase}
+      .status-body{margin:0;max-width:340px;color:var(--ink-dim);font-size:18px;line-height:1.28}
+      .state-tag{
+        min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+        border:1px solid var(--line);color:var(--ink-dim);padding:0 14px;
+        font:900 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase
+      }
+      .status-actions{display:flex;justify-content:flex-end;gap:10px;align-items:center;margin-top:auto}
+
+      .review-layer{
+        position:fixed;z-index:10;left:18px;right:18px;bottom:14px;
+        display:flex;gap:8px;align-items:center;justify-content:center;
+        color:rgba(246,243,234,.52);font:900 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+        pointer-events:auto;
+      }
+      .review-layer button{
+        width:36px;height:30px;border:1px solid rgba(246,243,234,.12);
+        background: rgba(4,5,4,.44);
+        color:rgba(246,243,234,.72);
+      }
+      .review-label{min-width:132px;text-align:center}
+      .review-note{
+        position:fixed;z-index:9;left:18px;right:18px;bottom:54px;
+        max-width: min(720px, calc(100vw - 36px));
+        margin:0 auto;
+        color:rgba(246,243,234,.40);
+        font-size:12px;font-style:italic;line-height:1.35;
+        pointer-events:none;
+        text-align:center;
+      }
+      @media (max-width: 980px){
+        .shell{grid-template-columns:1fr}
+        .strip{order:2}
+        .view{min-height:auto}
+        .fields{grid-template-columns:1fr}
+        h1{font-size:40px}
+        h2{font-size:36px}
+      }
+      @media (max-width: 620px){
+        .page{padding: 16px 12px 96px}
+        .strip-head,.checkout-head{padding:12px 14px}
+        .strip-body{padding:12px 14px 14px}
+        .strip-foot{padding:12px 14px 14px}
+        .view{padding:16px 14px 14px}
+        .methods{grid-template-columns:1fr}
+        .actions,.status-actions{justify-content:stretch;flex-direction:column-reverse;align-items:stretch}
+        .primary,.ghost{width:100%}
+        .review-layer{bottom:10px}
+        .review-note{bottom:86px;font-size:11px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        html{scroll-behavior:auto}
+        .mini-route::after{animation:none}
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="shell" aria-label="AIM payment filmstrip prototype">
+        <aside class="strip" aria-label="Filmstrip route">
+          <div class="strip-head">
+            <div>
+              <div class="k">route / states</div>
+              <div class="state-name" id="stateName">оплата заказа</div>
+            </div>
+            <div class="k">filmstrip</div>
+          </div>
+          <div class="strip-body">
+            <div class="frames" id="frames">
+              <div class="frame" data-state="form" data-active="1">
+                <div>
+                  <b>оплата заказа</b>
+                  <p>выбор метода, telegram, промокод.</p>
+                  <div class="mini-route" aria-hidden="true"></div>
+                </div>
+                <div class="dot" aria-hidden="true"></div>
+              </div>
+              <div class="frame" data-state="redirecting" data-active="0">
+                <div>
+                  <b>переход к оплате</b>
+                  <p>банк открывается.</p>
+                  <div class="mini-route" aria-hidden="true"></div>
+                </div>
+                <div class="dot" aria-hidden="true"></div>
+              </div>
+              <div class="frame" data-state="paid" data-active="0">
+                <div>
+                  <b>оплата получена</b>
+                  <p>дальше — telegram-бот.</p>
+                  <div class="mini-route" aria-hidden="true"></div>
+                </div>
+                <div class="dot" aria-hidden="true"></div>
+              </div>
+              <div class="frame" data-state="failed" data-active="0">
+                <div>
+                  <b>оплата не прошла</b>
+                  <p>можно попробовать снова.</p>
+                  <div class="mini-route" aria-hidden="true"></div>
+                </div>
+                <div class="dot" aria-hidden="true"></div>
+              </div>
+            </div>
+          </div>
+          <div class="strip-foot">
+            <div class="scrub">
+              <label for="stateScrub"><span>scrub state</span><span class="k">0—3</span></label>
+              <input id="stateScrub" type="range" min="0" max="3" step="1" value="0" aria-label="Переключение состояния оплаты" />
+              <div class="hint">подсказка: можно открыть по URL `?status=paid` и т.д.</div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="checkout" aria-label="Checkout surface">
+          <div class="checkout-head">
+            <div class="k">checkout</div>
+            <a class="k" href="https://join.aimindset.org/waitlist" target="_blank" rel="noopener noreferrer">source / join</a>
+          </div>
+
+          <div class="view" data-view="form" data-active="1" aria-label="Оплата заказа">
+            <form autocomplete="on">
+              <div>
+                <div class="kicker">итого к оплате</div>
+                <h1>ОПЛАТА ЗАКАЗА</h1>
+                <div class="order-summary" aria-label="Итого к оплате">
+                  <div><div class="label">итого к оплате:</div></div>
+                  <div class="price-box">
+                    <span class="old-price" id="oldPrice" hidden></span>
+                    <span class="price" id="price">€890</span>
+                  </div>
+                </div>
+
+                <div class="methods" role="group" aria-label="Способ оплаты">
+                  <button class="method" type="button" data-method="usdt" aria-pressed="false">USDT</button>
+                  <button class="method" type="button" data-method="card_ru" aria-pressed="false">РУ-КАРТЫ</button>
+                  <button class="method" type="button" data-method="card_intl" aria-pressed="true">EU-КАРТЫ</button>
+                </div>
+
+                <div class="fields">
+                  <label>
+                    <span class="label"><span class="req">*</span><span>telegram</span></span>
+                    <input id="telegram" name="telegram" type="text" inputmode="text" placeholder="@user или телефон" autocomplete="off" />
+                    <span class="field-status" id="telegramStatus">&nbsp;</span>
+                  </label>
+                  <label>
+                    <span class="label"><span>e-mail</span></span>
+                    <input id="email" name="email" type="email" inputmode="email" placeholder="mail@mail.com" autocomplete="email" />
+                  </label>
+                </div>
+
+                <div class="promo" aria-label="Промокод">
+                  <div class="label">промокод</div>
+                  <input id="promo" name="promo" type="text" inputmode="text" placeholder="..." autocomplete="off" />
+                  <span class="field-status" id="promoStatus">&nbsp;</span>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="ghost" type="button" data-action="noop">отмена</button>
+                <button class="primary" type="button" data-action="pay">оплатить</button>
+              </div>
+            </form>
+          </div>
+
+          <section class="view" data-view="redirecting" data-active="0" aria-label="Переход к оплате">
+            <div class="status-copy">
+              <div class="status-label">переход к оплате</div>
+              <h2>ПЕРЕХОД К ОПЛАТЕ</h2>
+              <p class="status-body">банк открывается</p>
+              <div style="margin-top:10px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:16px;border-radius:16px">
+                <img src="../../assets/teamos-geo-animation.svg" alt="" aria-hidden="true" style="width:min(260px,100%);opacity:.84" />
+              </div>
+            </div>
+            <div class="status-actions">
+              <button class="ghost" type="button" data-action="noop">отмена</button>
+            </div>
+          </section>
+
+          <section class="view" data-view="paid" data-active="0" aria-label="Оплата получена">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА ПОЛУЧЕНА</h2>
+              <p class="status-body">Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.</p>
+              <div class="state-tag">откройте бота</div>
+            </div>
+            <div class="status-actions">
+              <a class="primary" href="https://t.me/prod_ai_mind_set_bot?start=payment_success" target="_blank" rel="noopener noreferrer">/присоединиться</a>
+            </div>
+          </section>
+
+          <section class="view" data-view="failed" data-active="0" aria-label="Оплата не прошла">
+            <div class="status-copy">
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА НЕ ПРОШЛА</h2>
+              <p class="status-body">Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно попробовать снова.</p>
+            </div>
+            <div class="status-actions">
+              <button class="primary" type="button" data-action="retry">попробовать снова</button>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <div class="review-layer" aria-label="Переключение состояния">
+      <button type="button" data-state-shift="-1" aria-label="Предыдущее состояние">‹</button>
+      <span class="review-label" id="stateLabel">оплата заказа</span>
+      <button type="button" data-state-shift="1" aria-label="Следующее состояние">›</button>
+    </div>
+    <p class="review-note">Для проверки скидок: в Telegram введите aim, в промокод — ponchik.</p>
+
+    <script>
+      (() => {
+        const states = ['form', 'redirecting', 'paid', 'failed'];
+        const stateLabels = {
+          form: 'оплата заказа',
+          redirecting: 'переход к оплате',
+          paid: 'оплата получена',
+          failed: 'оплата не прошла',
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        let activeState = states.includes(params.get('status')) ? params.get('status') : 'form';
+
+        const stateLabel = document.getElementById('stateLabel');
+        const stateName = document.getElementById('stateName');
+        const views = Array.from(document.querySelectorAll('[data-view]'));
+        const frames = Array.from(document.querySelectorAll('.frame'));
+        const scrub = document.getElementById('stateScrub');
+
+        const priceEl = document.getElementById('price');
+        const oldPriceEl = document.getElementById('oldPrice');
+        const telegramEl = document.getElementById('telegram');
+        const promoEl = document.getElementById('promo');
+        const telegramStatus = document.getElementById('telegramStatus');
+        const promoStatus = document.getElementById('promoStatus');
+        const methods = Array.from(document.querySelectorAll('[data-method]'));
+
+        const basePrice = 890;
+        let selectedMethod = params.get('paymentMethod') || 'card_intl';
+
+        const normalize = (value) => String(value || '').trim().toLowerCase();
+        const setActiveMethod = (next) => {
+          selectedMethod = next;
+          for (const btn of methods) {
+            const isActive = btn.dataset.method === next;
+            btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+          }
+        };
+
+        const compute = () => {
+          const telegram = normalize(telegramEl?.value);
+          const promo = normalize(promoEl?.value);
+          const hasTelegramDiscount = telegram === 'aim' || telegram === '@aim';
+          const hasPromoDiscount = promo === 'ponchik';
+          const hasDiscount = hasTelegramDiscount || hasPromoDiscount;
+          const finalPrice = hasDiscount ? Math.round(basePrice * 0.8) : basePrice;
+
+          if (hasDiscount) {
+            oldPriceEl.hidden = false;
+            oldPriceEl.textContent = `€${basePrice}`;
+            priceEl.textContent = `€${finalPrice}`;
+          } else {
+            oldPriceEl.hidden = true;
+            oldPriceEl.textContent = '';
+            priceEl.textContent = `€${basePrice}`;
+          }
+
+          telegramStatus.textContent = hasTelegramDiscount ? 'discount: aim' : '\u00A0';
+          promoStatus.textContent = hasPromoDiscount ? 'discount: ponchik' : '\u00A0';
+        };
+
+        const setState = (next) => {
+          if (!states.includes(next)) return;
+          activeState = next;
+          stateLabel.textContent = stateLabels[next] || next;
+          stateName.textContent = stateLabels[next] || next;
+          for (const view of views) view.dataset.active = view.dataset.view === next ? '1' : '0';
+          for (const frame of frames) frame.dataset.active = frame.dataset.state === next ? '1' : '0';
+          scrub.value = String(states.indexOf(next));
+        };
+
+        document.addEventListener('click', (event) => {
+          const shift = event.target.closest('button[data-state-shift]')?.getAttribute('data-state-shift');
+          if (shift) {
+            const dir = Number(shift);
+            const idx = states.indexOf(activeState);
+            setState(states[Math.max(0, Math.min(states.length - 1, idx + dir))]);
+            return;
+          }
+
+          const frame = event.target.closest('.frame');
+          if (frame?.dataset.state) setState(frame.dataset.state);
+
+          const method = event.target.closest('button[data-method]')?.dataset.method;
+          if (method) setActiveMethod(method);
+
+          const action = event.target.closest('[data-action]')?.dataset.action;
+          if (action === 'pay') setState('redirecting');
+          if (action === 'retry') setState('form');
+        });
+
+        scrub.addEventListener('input', () => {
+          const idx = Number(scrub.value || '0');
+          setState(states[Math.max(0, Math.min(states.length - 1, idx))]);
+        });
+
+        telegramEl.addEventListener('input', compute);
+        promoEl.addEventListener('input', compute);
+
+        setActiveMethod(selectedMethod);
+        compute();
+        setState(activeState);
+      })();
+    </script>
+  </body>
+</html>
+

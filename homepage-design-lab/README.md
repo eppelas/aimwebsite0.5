@@ -30,9 +30,20 @@ Payment page concepts remain sourced from `../payment-page-design-lab/`; this in
 Do not add payment popup compare variants here. `payment-popup-compare.html` is a separate technical compare surface, not a payment page design direction.
 
 Cards also read `../../design-feedback-dashboard/data/design-feedback-registry.json`
-through the local preview route and show the summed `Соня + Саша + Анка` rating
-out of `30`. Hover or keyboard focus on the score badge reveals the individual
-`0-10` ratings. Missing scores stay blank as `—`; the lab must not invent them.
+through the local preview route and show the average rating out of `10` across
+all explicit ratings available for the artifact. Hover or keyboard focus on the
+score badge reveals the individual `0-10` ratings for Соня, Саша, Анка, plus
+any external raters. Missing scores stay blank as `—`; the lab must not invent them.
+When served through the AIM local preview server, each card also has a compact
+site-side rating control. Anka and Sasha ratings update the canonical
+`artifactRatings` score used in the visible average; a custom/other rater is
+stored as external evidence and included in the hover/focus details. Every saved site rating also appends a generator
+handoff event to `website-ops/design-generator-feedback-handoff.jsonl`.
+
+The `elements` lane must show only focused block/element prototypes. If no
+active element candidate passes the gallery visibility gates, the lane should
+show an explicit empty state, not payment page cards as a fallback. Existing
+archived elements remain inspectable with `?include=hidden`.
 
 Structure-only maps and wireframes must not appear in the default gallery as
 design candidates. If a run is useful only as internal information architecture,

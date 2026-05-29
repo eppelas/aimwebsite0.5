@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIM Elements — People + Cases Ribbon</title>
+  <meta name="description" content="Review-only element: horizontally scrollable ribbons for cases and people with accessible controls." />
+  <style>
+    :root{
+      color-scheme: light;
+      --paper:#f7f7f6;
+      --sheet:#ffffff;
+      --ink:#0c1118;
+      --muted:#596676;
+      --line:rgba(12,17,24,.14);
+      --accent:#2e8f52;
+      --shadow:0 26px 80px rgba(10,14,18,.08);
+      --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;min-width:320px;overflow-x:hidden;background:var(--paper);color:var(--ink);font-family:var(--sans);text-rendering:optimizeLegibility}
+    img{max-width:100%;display:block}
+    button{font:inherit}
+    a{color:inherit;text-decoration:none}
+    :focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 72%, white);outline-offset:2px}
+
+    header{
+      position:sticky;top:0;z-index:20;
+      border-bottom:1px solid var(--line);
+      background:color-mix(in srgb,var(--paper) 84%, transparent);
+      backdrop-filter: blur(18px);
+    }
+    .shell{width:min(1180px,calc(100% - 40px));margin:0 auto}
+    .bar{min-height:74px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .mark{width:34px;height:34px;border-radius:10px;background:var(--ink);display:grid;place-items:center}
+    .mark img{width:22px;height:22px;filter:invert(1)}
+    .brand b{display:block;font-weight:950;letter-spacing:-.02em;line-height:1}
+    .brand small{display:block;color:var(--muted);font:900 12px/1 var(--mono);letter-spacing:.10em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+    .pill{min-height:40px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.78);padding:0 14px;display:inline-flex;align-items:center;font:900 12px/1 var(--mono);letter-spacing:.10em;text-transform:uppercase}
+
+    main{padding:26px 0 70px}
+    .lead{max-width:74ch;color:var(--muted);font-size:18px;line-height:1.55;margin:0}
+    h1{margin:12px 0 0;font:900 clamp(36px,6vw,64px)/1 var(--sans);letter-spacing:-.05em}
+
+    .block{margin-top:22px;border:1px solid var(--line);background:rgba(255,255,255,.88);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+    .block-head{padding:18px 18px 12px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .k{color:var(--muted);font:950 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+    .controls{display:flex;gap:8px;align-items:center}
+    .btn{
+      width:42px;height:40px;border-radius:12px;border:1px solid rgba(12,17,24,.14);
+      background:rgba(255,255,255,.78);cursor:pointer;font:900 16px/1 var(--mono)
+    }
+    .btn:hover{border-color:rgba(12,17,24,.28)}
+    .status{min-width:220px;text-align:right;color:var(--muted);font:900 12px/1.2 var(--mono);letter-spacing:.10em;text-transform:uppercase}
+    .track{
+      padding:0 18px 18px;
+    }
+    .rail{
+      display:flex;gap:12px;overflow:auto;padding:12px 4px 12px 4px;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .rail:focus{outline:none}
+    .rail::-webkit-scrollbar{height:10px}
+    .rail::-webkit-scrollbar-thumb{background:rgba(12,17,24,.18);border-radius:999px}
+    .item{
+      flex:0 0 340px;
+      scroll-snap-align:start;
+      border:1px solid rgba(12,17,24,.12);
+      border-radius:18px;
+      background:var(--sheet);
+      overflow:hidden;
+      box-shadow:0 16px 50px rgba(10,14,18,.06);
+    }
+    .item img{width:100%;height:196px;object-fit:cover}
+    .item .body{padding:12px 12px 14px;display:grid;gap:8px}
+    .item b{font:900 16px/1.2 var(--sans);letter-spacing:-.02em}
+    .item p{margin:0;color:var(--muted);line-height:1.4}
+    .meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .tag{border:1px solid rgba(12,17,24,.12);border-radius:999px;padding:8px 10px;background:rgba(247,247,246,.76);font:900 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--accent) 55%, var(--ink))}
+
+    @media (max-width: 760px){
+      .shell{width:min(100% - 28px, 860px)}
+      .item{flex-basis: 86vw}
+      .status{min-width:unset;text-align:left}
+      .block-head{align-items:flex-start}
+    }
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell bar">
+      <a class="brand" href="https://aimindset.org/" aria-label="AI Mindset (внешний сайт)">
+        <span class="mark" aria-hidden="true"><img src="../../../../public/assets/ai-mindset-logo-transparent.png" alt="" /></span>
+        <span>
+          <b>AI Mindset</b>
+          <small>elements / people + cases ribbon / 2026-05-29</small>
+        </span>
+      </a>
+      <a class="pill" href="#people">к людям</a>
+    </div>
+  </header>
+
+  <main class="shell" aria-label="Element prototype">
+    <div class="k">element prototype</div>
+    <h1>ленты “кейсы” и “люди” без карточной сетки</h1>
+    <p class="lead">Задача: сделать блоки “cases / proof” и “team preview” живыми и удобными на мобильном, но без повторения системных сеток и “портальных” карточных рядов. Лента — это чтение слева направо с ясным управлением.</p>
+
+    <section class="block" id="cases" aria-label="Cases ribbon">
+      <div class="block-head">
+        <div>
+          <div class="k">cases / proof</div>
+          <div class="lead" style="margin-top:8px">Примеры работ (локальные ассеты из `public/assets`).</div>
+        </div>
+        <div class="controls" aria-label="Управление лентой кейсов">
+          <button class="btn" type="button" data-rail-prev="#casesRail" aria-label="Предыдущий кейс">‹</button>
+          <button class="btn" type="button" data-rail-next="#casesRail" aria-label="Следующий кейс">›</button>
+        </div>
+        <div class="status" id="casesStatus">1 / 3</div>
+      </div>
+      <div class="track">
+        <div class="rail" id="casesRail" tabindex="0" role="list" aria-label="Лента кейсов">
+          <article class="item" role="listitem" data-title="Team Operation System">
+            <img src="../../../../public/assets/cases/community-night/team-os-darya-product.png" alt="Team Operation System" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">case</span><span class="tag">system</span></div>
+              <b>Team Operation System</b>
+              <p>командная операционная система и агентный контур для реальных процессов.</p>
+            </div>
+          </article>
+          <article class="item" role="listitem" data-title="Meeting Pipeline">
+            <img src="../../../../public/assets/cases/community-night/meeting-pipeline-natasha-product.png" alt="Meeting Pipeline" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">case</span><span class="tag">workflow</span></div>
+              <b>Meeting Pipeline</b>
+              <p>разбор встреч, задачи и follow-up в одном рабочем пайплайне.</p>
+            </div>
+          </article>
+          <article class="item" role="listitem" data-title="Agent Meditation">
+            <img src="../../../../public/assets/cases/community-night/agent-meditation-daniil-product.png" alt="Agent Meditation" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">case</span><span class="tag">practice</span></div>
+              <b>Agent Meditation</b>
+              <p>личный AI-контур для практики, внимания и повторяемых сценариев.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="people" aria-label="People ribbon">
+      <div class="block-head">
+        <div>
+          <div class="k">team / people preview</div>
+          <div class="lead" style="margin-top:8px">Три портрета (из снимка 2026-05-28) как быстрый контекст, не “пруф”.</div>
+        </div>
+        <div class="controls" aria-label="Управление лентой людей">
+          <button class="btn" type="button" data-rail-prev="#peopleRail" aria-label="Предыдущий человек">‹</button>
+          <button class="btn" type="button" data-rail-next="#peopleRail" aria-label="Следующий человек">›</button>
+        </div>
+        <div class="status" id="peopleStatus">1 / 3</div>
+      </div>
+      <div class="track">
+        <div class="rail" id="peopleRail" tabindex="0" role="list" aria-label="Лента людей">
+          <article class="item" role="listitem" data-title="Александр Поваляев">
+            <img src="../../../../public/assets/speakers/alexander-povalyaev.jpg" alt="Александр Поваляев" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">основатель</span></div>
+              <b>Александр Поваляев</b>
+              <p>основатель AI Mindset</p>
+            </div>
+          </article>
+          <article class="item" role="listitem" data-title="Анка Ставенски">
+            <img src="../../../../public/assets/speakers/anka-stavenski.jpg" alt="Анка Ставенски" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">design</span><span class="tag">AI products</span></div>
+              <b>Анка Ставенски</b>
+              <p>design / AI products</p>
+            </div>
+          </article>
+          <article class="item" role="listitem" data-title="Степан Гершуни">
+            <img src="../../../../public/assets/speakers/stepan-gershuni.jpg" alt="Степан Гершуни" loading="lazy" />
+            <div class="body">
+              <div class="meta"><span class="tag">AI-native orgs</span></div>
+              <b>Степан Гершуни</b>
+              <p>AI-native orgs</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const rails = [
+        { rail: document.getElementById('casesRail'), status: document.getElementById('casesStatus') },
+        { rail: document.getElementById('peopleRail'), status: document.getElementById('peopleStatus') },
+      ];
+
+      const getItems = (rail) => Array.from(rail.querySelectorAll('.item'));
+      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+      const updateStatus = (rail, statusEl) => {
+        const items = getItems(rail);
+        const rect = rail.getBoundingClientRect();
+        const centerX = rect.left + rect.width * 0.5;
+        let bestIndex = 0;
+        let bestDist = Infinity;
+        items.forEach((el, index) => {
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width * 0.5;
+          const d = Math.abs(cx - centerX);
+          if (d < bestDist) { bestDist = d; bestIndex = index; }
+        });
+        statusEl.textContent = `${bestIndex + 1} / ${items.length}`;
+      };
+
+      for (const { rail, status } of rails) {
+        updateStatus(rail, status);
+        rail.addEventListener('scroll', () => updateStatus(rail, status), { passive: true });
+        window.addEventListener('resize', () => updateStatus(rail, status));
+      }
+
+      const shiftRail = (selector, dir) => {
+        const rail = document.querySelector(selector);
+        if (!rail) return;
+        const items = getItems(rail);
+        const rect = rail.getBoundingClientRect();
+        const centerX = rect.left + rect.width * 0.5;
+        let bestIndex = 0;
+        let bestDist = Infinity;
+        items.forEach((el, index) => {
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width * 0.5;
+          const d = Math.abs(cx - centerX);
+          if (d < bestDist) { bestDist = d; bestIndex = index; }
+        });
+        const nextIndex = clamp(bestIndex + dir, 0, items.length - 1);
+        items[nextIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+      };
+
+      document.addEventListener('click', (event) => {
+        const btn = event.target.closest('button[data-rail-prev], button[data-rail-next]');
+        if (!btn) return;
+        const prevSel = btn.getAttribute('data-rail-prev');
+        const nextSel = btn.getAttribute('data-rail-next');
+        if (prevSel) shiftRail(prevSel, -1);
+        if (nextSel) shiftRail(nextSel, +1);
+      });
+    })();
+  </script>
+</body>
+</html>
+

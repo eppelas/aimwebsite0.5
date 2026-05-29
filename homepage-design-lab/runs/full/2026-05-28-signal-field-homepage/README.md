@@ -24,6 +24,13 @@ Interactive signal-field direction: motion is atmospheric and peripheral, while 
 - Uses proportional body typography and keeps visual effects outside the main reading surface.
 - Keeps current aimindset.org content density as the baseline.
 
+## 2026-05-29 CTA / Logo Rework
+
+- Replaced the fake `AI` square mark with the real local AIM asymmetric face logo asset.
+- Changed the hero route row from three equal cards into two secondary route cards plus one primary Russian CTA: `Подать заявку`.
+- Changed nav/footer `join` labels to Russian `заявка` / `подать заявку`.
+- Reworked the signal-field canvas so the constellation periodically morphs between AIM-face, robot, and lynx-like silhouettes while still reacting to pointer movement.
+
 ## Validation Notes
 
 - Review-only static HTML.
@@ -39,4 +46,5 @@ Interactive signal-field direction: motion is atmospheric and peripheral, while 
 - `public/assets/speakers/alexander-povalyaev.jpg` -> `runs/full/2026-05-28-signal-field-homepage/assets/speakers/alexander-povalyaev.jpg`
 - `public/assets/speakers/anka-stavenski.jpg` -> `runs/full/2026-05-28-signal-field-homepage/assets/speakers/anka-stavenski.jpg`
 - `public/assets/speakers/stepan-gershuni.jpg` -> `runs/full/2026-05-28-signal-field-homepage/assets/speakers/stepan-gershuni.jpg`
+- `public/assets/ai-mindset-logo-transparent.png` -> `runs/full/2026-05-28-signal-field-homepage/assets/ai-mindset-logo-transparent.png`
 - `public/assets/logo-assembly/ai-mindset-logo-assembly-poster.png` -> `runs/full/2026-05-28-signal-field-homepage/assets/logo-assembly/ai-mindset-logo-assembly-poster.png`

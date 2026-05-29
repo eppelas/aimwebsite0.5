@@ -43,6 +43,16 @@
         height: 100%;
         opacity: 0.78;
       }
+      #x26DirectField {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease;
+      }
       .ambient { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
       .ambient::before,
       .ambient::after {
@@ -75,6 +85,50 @@
         border-radius: 50%;
       }
       .orbit-mark::after { inset: 31%; border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+      .heartbeat-dot {
+        position: fixed;
+        z-index: 2;
+        left: var(--beat-x, 24vw);
+        top: var(--beat-y, 19vh);
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        opacity: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 42% 38%, #b8f35d 0 18%, #75a828 46%, #31470f 100%);
+        box-shadow:
+          0 0 0 1px rgba(184, 243, 93, 0.16),
+          0 0 10px rgba(154, 221, 66, 0.5),
+          0 0 28px rgba(154, 221, 66, 0.24);
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+      .heartbeat-dot::before,
+      .heartbeat-dot::after {
+        content: "";
+        position: absolute;
+        inset: -12px;
+        border-radius: 50%;
+        border: 1px solid rgba(154, 221, 66, 0.18);
+        opacity: 0;
+        transform: scale(0.42);
+      }
+      .heartbeat-dot::after {
+        inset: -22px;
+        border-color: rgba(184, 243, 93, 0.1);
+      }
+      @keyframes heartbeat-core {
+        0%, 100% { transform: translate3d(0, 0, 0) scale(0.92); filter: saturate(0.9) brightness(0.9); }
+        8% { transform: translate3d(0, 0, 0) scale(1.18); filter: saturate(1.35) brightness(1.18); }
+        15% { transform: translate3d(0, 0, 0) scale(0.98); }
+        26% { transform: translate3d(0, 0, 0) scale(1.08); filter: saturate(1.15) brightness(1.05); }
+        38% { transform: translate3d(0, 0, 0) scale(0.94); }
+      }
+      @keyframes heartbeat-ring {
+        0% { opacity: 0; transform: scale(0.42); }
+        9% { opacity: 0.55; transform: scale(0.68); }
+        44% { opacity: 0; transform: scale(1.38); }
+        100% { opacity: 0; transform: scale(1.38); }
+      }
       .x26-layer {
         position: fixed;
         inset: 0;
@@ -308,6 +362,12 @@
       .status-copy { display: grid; gap: 18px; align-content: start; }
       .status-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; }
       .status-body { margin: 0; max-width: 320px; color: var(--ink-dim); font-size: 18px; line-height: 1.28; }
+      .status-view[data-view="redirecting"] .status-copy { gap: 14px; }
+      .status-view[data-view="redirecting"] h2 {
+        max-width: 13.5ch;
+        font-size: clamp(32px, 4.2vw, 48px);
+        line-height: 0.96;
+      }
       .route-stage {
         position: relative;
         min-height: 154px;
@@ -315,6 +375,33 @@
         background: rgba(0, 0, 0, 0.22);
         overflow: hidden;
         margin-top: 22px;
+      }
+      .status-view[data-view="redirecting"] .route-stage {
+        min-height: 184px;
+        margin-top: 18px;
+      }
+      .status-view[data-view="redirecting"] .route-stage::before {
+        content: "";
+        position: absolute;
+        left: 34px;
+        right: 34px;
+        bottom: 41px;
+        height: 3px;
+        background:
+          linear-gradient(
+            90deg,
+            transparent 0%,
+            color-mix(in srgb, var(--accent) 10%, transparent) 24%,
+            color-mix(in srgb, var(--accent-2) 72%, var(--accent)) 50%,
+            rgba(246, 243, 234, 0.88) 63%,
+            transparent 100%
+          );
+        background-repeat: no-repeat;
+        background-size: 42% 100%;
+        filter: blur(0.35px);
+        opacity: 0.95;
+        animation: route-loader-scan 2.25s cubic-bezier(0.72, 0, 0.24, 1) infinite;
+        z-index: 2;
       }
       .route-stage img {
         position: absolute;
@@ -324,6 +411,12 @@
         transform: translate(-50%, -50%);
         opacity: 0.74;
       }
+      .status-view[data-view="redirecting"] .route-stage img {
+        width: 106px;
+        top: 38%;
+        transform: translate(-50%, -58%);
+        z-index: 2;
+      }
       .route-stage::after {
         content: "";
         position: absolute;
@@ -331,7 +424,13 @@
         right: 34px;
         bottom: 28px;
         height: 1px;
-        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        background: linear-gradient(90deg, var(--accent), var(--accent-2), rgba(246, 243, 234, 0.95), var(--accent));
+        background-size: 260% 100%;
+      }
+      .status-view[data-view="redirecting"] .route-stage::after {
+        bottom: 42px;
+        animation: route-gradient-shift 4.2s linear infinite;
+        z-index: 1;
       }
       .route-labels {
         position: absolute;
@@ -346,6 +445,10 @@
         font-weight: 900;
         text-transform: uppercase;
       }
+      .status-view[data-view="redirecting"] .route-labels {
+        bottom: 21px;
+        z-index: 2;
+      }
       .state-tag {
         min-height: 44px;
         display: inline-flex;
@@ -359,6 +462,18 @@
         text-transform: uppercase;
       }
       .status-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
+      .status-view[data-view="redirecting"] .status-actions { justify-content: center; }
+      .status-view[data-view="redirecting"] .ghost { min-width: 120px; }
+      @keyframes route-gradient-shift {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 260% 50%; }
+      }
+      @keyframes route-loader-scan {
+        0% { background-position: -48% 50%; opacity: 0; }
+        12% { opacity: 0.95; }
+        72% { opacity: 0.95; }
+        100% { background-position: 148% 50%; opacity: 0; }
+      }
       .review-layer {
         position: fixed;
         z-index: 5;
@@ -410,6 +525,8 @@
       .body-night-lunar-checkout { --bg: #020603; --accent: #9add42; --accent-2: #3db7ef; }
       .body-night-quiet-orbit { --bg: #050605; --accent: #d9d6c8; --accent-2: #8ad036; }
       .body-aim-event-horizon { --bg: #000000; --panel: rgba(0, 0, 0, 0.27); --accent: #f6f3ea; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.12); --card-w: 398px; }
+      .body-aim-x26-practice-direct { --bg: #000000; --panel: rgba(0, 0, 0, 0.25); --accent: #f6f3ea; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.12); --card-w: 398px; --beat-x: 24vw; --beat-y: 17vh; }
+      .body-aim-ai-mindset-morph { --bg: #000000; --panel: rgba(0, 0, 0, 0.25); --accent: #b8f35d; --accent-2: #f6f3ea; --line: rgba(246, 243, 234, 0.12); --card-w: 398px; --beat-x: 24vw; --beat-y: 17vh; }
       .body-x26-practice-blackhole { --bg: #000000; --panel: rgba(0, 0, 0, 0.3); --accent: #f6f3ea; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.13); --card-w: 410px; }
       .body-x26-stay-vortex-card { --bg: #000000; --panel: rgba(0, 0, 0, 0.58); --accent: #e9f7d8; --accent-2: #9add42; --line: rgba(246, 243, 234, 0.13); --card-w: 488px; }
       .body-x26-slow-storm { --bg: #01040a; --panel: rgba(2, 8, 14, 0.52); --accent: #a9d8ff; --accent-2: #9add42; --line: rgba(177, 216, 255, 0.15); --card-w: 456px; }
@@ -424,6 +541,10 @@
       .body-case-mosaic .ambient::before { background: url('./assets/team-os-darya-product.png') center / cover; opacity: 0.08; border-radius: 0; }
       .body-aim-event-horizon .ambient,
       .body-aim-event-horizon .orbit-mark,
+      .body-aim-x26-practice-direct .ambient,
+      .body-aim-x26-practice-direct .orbit-mark,
+      .body-aim-ai-mindset-morph .ambient,
+      .body-aim-ai-mindset-morph .orbit-mark,
       .body-x26-practice-blackhole .ambient,
       .body-x26-practice-blackhole .orbit-mark,
       .body-x26-stay-vortex-card .ambient,
@@ -433,11 +554,91 @@
       .body-x26-inkfield-dark .ambient,
       .body-x26-inkfield-dark .orbit-mark { opacity: 0; }
       .body-aim-event-horizon .x26-practice-layer,
+      .body-aim-x26-practice-direct .x26-practice-layer,
+      .body-aim-ai-mindset-morph .x26-practice-layer,
       .body-x26-practice-blackhole .x26-practice-layer,
       .body-x26-stay-vortex-card .x26-stay-word,
       .body-x26-slow-storm .x26-storm-word,
       .body-x26-inkfield-dark .x26-ink-layer { opacity: 1; }
+      .body-aim-event-horizon .heartbeat-dot,
+      .body-aim-x26-practice-direct .heartbeat-dot,
+      .body-aim-ai-mindset-morph .heartbeat-dot,
+      .body-x26-practice-blackhole .heartbeat-dot,
+      .body-x26-stay-vortex-card .heartbeat-dot,
+      .body-x26-slow-storm .heartbeat-dot,
+      .body-x26-inkfield-dark .heartbeat-dot,
+      .body-night-lunar-checkout .heartbeat-dot,
+      .body-night-quiet-orbit .heartbeat-dot,
+      .body-anca-galaxy-form .heartbeat-dot {
+        opacity: 1;
+        animation: heartbeat-core 1.64s cubic-bezier(0.62, 0, 0.28, 1) infinite;
+      }
+      .body-aim-event-horizon .heartbeat-dot::before,
+      .body-aim-x26-practice-direct .heartbeat-dot::before,
+      .body-aim-ai-mindset-morph .heartbeat-dot::before,
+      .body-x26-practice-blackhole .heartbeat-dot::before,
+      .body-x26-stay-vortex-card .heartbeat-dot::before,
+      .body-x26-slow-storm .heartbeat-dot::before,
+      .body-x26-inkfield-dark .heartbeat-dot::before,
+      .body-night-lunar-checkout .heartbeat-dot::before,
+      .body-night-quiet-orbit .heartbeat-dot::before,
+      .body-anca-galaxy-form .heartbeat-dot::before {
+        animation: heartbeat-ring 1.64s cubic-bezier(0.42, 0, 0.22, 1) infinite;
+      }
+      .body-aim-event-horizon .heartbeat-dot::after,
+      .body-aim-x26-practice-direct .heartbeat-dot::after,
+      .body-aim-ai-mindset-morph .heartbeat-dot::after,
+      .body-x26-practice-blackhole .heartbeat-dot::after,
+      .body-x26-stay-vortex-card .heartbeat-dot::after,
+      .body-x26-slow-storm .heartbeat-dot::after,
+      .body-x26-inkfield-dark .heartbeat-dot::after,
+      .body-night-lunar-checkout .heartbeat-dot::after,
+      .body-night-quiet-orbit .heartbeat-dot::after,
+      .body-anca-galaxy-form .heartbeat-dot::after {
+        animation: heartbeat-ring 1.64s cubic-bezier(0.42, 0, 0.22, 1) 0.18s infinite;
+      }
       .body-aim-event-horizon .page-shell { place-items: center; padding-top: 46px; }
+      .body-aim-x26-practice-direct #field { opacity: 0; }
+      .body-aim-x26-practice-direct #x26DirectField { opacity: 0.96; }
+      .body-aim-x26-practice-direct .page-shell { place-items: center; padding-top: 46px; }
+      .body-aim-ai-mindset-morph #field { opacity: 0; }
+      .body-aim-ai-mindset-morph #x26DirectField { opacity: 0.96; }
+      .body-aim-ai-mindset-morph .page-shell { place-items: center; padding-top: 46px; }
+      .body-aim-ai-mindset-morph .payment-card,
+      .body-aim-x26-practice-direct .payment-card {
+        background: rgba(0, 0, 0, 0.24);
+        border-color: rgba(246, 243, 234, 0.045);
+        box-shadow:
+          0 0 0 1px rgba(246, 243, 234, 0.012),
+          0 38px 120px rgba(0, 0, 0, 0.52);
+        backdrop-filter: blur(9px);
+      }
+      .body-aim-ai-mindset-morph .card-grid,
+      .body-aim-x26-practice-direct .card-grid { background-image: none; }
+      .body-aim-ai-mindset-morph .method,
+      .body-aim-ai-mindset-morph input,
+      .body-aim-ai-mindset-morph .route-stage,
+      .body-aim-x26-practice-direct .method,
+      .body-aim-x26-practice-direct input,
+      .body-aim-x26-practice-direct .route-stage { background: rgba(246, 243, 234, 0.024); }
+      .body-aim-ai-mindset-morph .x26-practice-axis span,
+      .body-aim-x26-practice-direct .x26-practice-axis span { color: rgba(246, 243, 234, 0.5); }
+      .body-aim-ai-mindset-morph label span.l,
+      .body-aim-x26-practice-direct label span.l { margin-bottom: 4px; }
+      .body-aim-ai-mindset-morph input,
+      .body-aim-x26-practice-direct input {
+        height: 40px;
+        padding: 0 9px;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .body-aim-ai-mindset-morph input::placeholder,
+      .body-aim-x26-practice-direct input::placeholder {
+        color: rgba(246, 243, 234, 0.28);
+        font-weight: 500;
+      }
+      .body-aim-ai-mindset-morph .field-status,
+      .body-aim-x26-practice-direct .field-status { padding-top: 3px; }
       .body-aim-event-horizon .payment-card {
         background: rgba(0, 0, 0, 0.26);
         border-color: rgba(246, 243, 234, 0.045);
@@ -507,6 +708,12 @@
         .view { padding: 22px 18px 20px; }
         h1 { max-width: none; font-size: 40px; }
         h2 { max-width: none; font-size: 36px; }
+        .status-view[data-view="redirecting"] h2 { max-width: 12.5ch; font-size: 34px; }
+        .status-view[data-view="redirecting"] .route-stage { min-height: 168px; }
+        .status-view[data-view="redirecting"] .route-stage img { width: 92px; top: 36%; }
+        .status-view[data-view="redirecting"] .route-stage::before { bottom: 39px; }
+        .status-view[data-view="redirecting"] .route-stage::after { bottom: 40px; }
+        .status-view[data-view="redirecting"] .route-labels { bottom: 20px; }
         .order-summary { grid-template-columns: 1fr; align-items: start; gap: 10px; }
         .price-box { text-align: left; }
         .methods { grid-template-columns: 1fr; }
@@ -514,6 +721,8 @@
         .promo { max-width: none; }
         .actions, .status-actions { justify-content: stretch; flex-direction: column-reverse; align-items: stretch; }
         .primary, .ghost { width: 100%; }
+        .status-view[data-view="redirecting"] .status-actions { align-items: center; }
+        .status-view[data-view="redirecting"] .ghost { width: auto; }
         .review-layer { left: 12px; right: 12px; bottom: 10px; justify-content: center; }
         .variant-nav { bottom: 48px; }
         .review-note { left: 12px; right: 12px; bottom: 86px; max-width: none; font-size: 11px; }
@@ -526,6 +735,12 @@
         .body-aim-event-horizon .payment-card {
           min-height: auto;
         }
+        .body-aim-x26-practice-direct .payment-card {
+          min-height: auto;
+        }
+        .body-aim-ai-mindset-morph .payment-card {
+          min-height: auto;
+        }
         .body-x26-stay-vortex-card .payment-card {
           min-height: 590px;
           aspect-ratio: auto;
@@ -536,6 +751,12 @@
         .body-x26-stay-vortex-card h2 { font-size: 32px; }
         .body-x26-slow-storm .payment-card,
         .body-x26-inkfield-dark .payment-card { border-radius: 28px 8px 28px 8px; }
+        .heartbeat-dot {
+          left: 28px;
+          top: 18px;
+          width: 12px;
+          height: 12px;
+        }
       }
 
     </style>
@@ -543,8 +764,10 @@
   <body>
 
     <canvas id="field" aria-hidden="true"></canvas>
+    <canvas id="x26DirectField" aria-hidden="true"></canvas>
     <div class="ambient" aria-hidden="true"></div>
     <div class="orbit-mark" aria-hidden="true"></div>
+    <div class="heartbeat-dot" aria-hidden="true"></div>
     <div class="x26-layer x26-practice-layer" aria-hidden="true">
       <div class="x26-practice-numbers"></div>
       <div class="x26-practice-axis"><span>AI MINDSET</span><span>ОПЛАТА</span><span>ДОСТУП</span></div>
@@ -606,7 +829,6 @@
 
           <section class="view status-view" data-view="redirecting" aria-label="Переход к оплате">
             <div class="status-copy">
-              <div class="status-label">переход к оплате</div>
               <h2>ПЕРЕХОД К ОПЛАТЕ</h2>
               <p class="status-body">банк открывается</p>
               <div class="route-stage" aria-label="Маршрут оплаты">
@@ -660,7 +882,7 @@
     <script>
 
       (() => {
-        const variants = [{"id":"kinetic-type","title":"Kinetic Type Gate"},{"id":"garden-ledger","title":"Dark Garden Ledger"},{"id":"noise-receipt","title":"Noise Receipt Theater"},{"id":"topographic-price","title":"Topographic Price Field"},{"id":"constellation-route","title":"Constellation Route"},{"id":"vault-access","title":"Access Vault"},{"id":"signal-lines","title":"Signal Lines"},{"id":"glitch-grid","title":"Glitch Grid"},{"id":"case-mosaic","title":"Case Mosaic Checkout"},{"id":"terminal-orbit","title":"Terminal Orbit"},{"id":"anca-galaxy-form","title":"Anca Galaxy Form"},{"id":"anca-galaxy-clean-page","title":"Clean Galaxy Page"},{"id":"night-lunar-checkout","title":"Night Lunar Checkout"},{"id":"night-quiet-orbit","title":"Quiet Orbit Checkout"},{"id":"x26-practice-blackhole","title":"AIM Payment Gravity"},{"id":"x26-stay-vortex-card","title":"AIM Vortex Checkout"},{"id":"x26-slow-storm","title":"AIM Slow Storm"},{"id":"x26-inkfield-dark","title":"AIM Dark Inkfield"},{"id":"aim-event-horizon","title":"AIM Event Horizon"}];
+        const variants = [{"id":"kinetic-type","title":"Kinetic Type Gate"},{"id":"garden-ledger","title":"Dark Garden Ledger"},{"id":"noise-receipt","title":"Noise Receipt Theater"},{"id":"topographic-price","title":"Topographic Price Field"},{"id":"constellation-route","title":"Constellation Route"},{"id":"vault-access","title":"Access Vault"},{"id":"signal-lines","title":"Signal Lines"},{"id":"glitch-grid","title":"Glitch Grid"},{"id":"case-mosaic","title":"Case Mosaic Checkout"},{"id":"terminal-orbit","title":"Terminal Orbit"},{"id":"anca-galaxy-form","title":"Anca Galaxy Form"},{"id":"anca-galaxy-clean-page","title":"Clean Galaxy Page"},{"id":"night-lunar-checkout","title":"Night Lunar Checkout"},{"id":"night-quiet-orbit","title":"Quiet Orbit Checkout"},{"id":"x26-practice-blackhole","title":"AIM Payment Gravity"},{"id":"x26-stay-vortex-card","title":"AIM Vortex Checkout"},{"id":"x26-slow-storm","title":"AIM Slow Storm"},{"id":"x26-inkfield-dark","title":"AIM Dark Inkfield"},{"id":"aim-event-horizon","title":"AIM Event Horizon"},{"id":"aim-x26-practice-direct","title":"AIM Direct Particle"},{"id":"aim-ai-mindset-morph","title":"AIM Mindset Morph"}];
         const fixedVariant = null;
         const params = new URLSearchParams(window.location.search);
         const requestedVariant = params.get('variant');
@@ -911,6 +1133,7 @@
         window.addEventListener('pointerup', () => { pointer.down = false; });
         resize();
         const activeVariantId = () => variants[variantIndex]?.id || '';
+        const usesThreeParticleField = (variant) => variant === 'aim-x26-practice-direct' || variant === 'aim-ai-mindset-morph';
         const accentColor = () => getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#9add42';
         const syncPointer = () => {
           const dx = pointer.tx - pointer.x;
@@ -1340,8 +1563,13 @@
         const draw = (now = performance.now()) => {
           const w = window.innerWidth;
           const h = window.innerHeight;
-          syncPointer();
           const variant = activeVariantId();
+          if (usesThreeParticleField(variant)) {
+            modeChanged(variant, w, h);
+            requestAnimationFrame(draw);
+            return;
+          }
+          syncPointer();
           const accent = accentColor();
           modeChanged(variant, w, h);
           if (variant === 'aim-event-horizon') {
@@ -1362,6 +1590,288 @@
         draw();
       })();
 
+    </script>
+    <script type="module">
+      import * as THREE from './assets/vendor/three.module.min.js';
+
+      (() => {
+        const canvas = document.getElementById('x26DirectField');
+        if (!canvas) return;
+
+        const vertexShader = `
+  uniform float uTime;
+  uniform vec2 uMouse;
+  uniform vec2 uCursor;
+  uniform float uMode;
+  uniform float uLift;
+  uniform float uFieldScale;
+  uniform float uScatter;
+
+  attribute vec4 aConfig; // x: strandAngle, y: progress, z: radialOffset, w: type
+  attribute float aSize;
+  attribute float aSpeed;
+
+  varying vec3 vColor;
+  varying float vOpacity;
+
+  void main() {
+    float strandAngle = aConfig.x;
+    float progress = aConfig.y;
+    float radialOffset = aConfig.z;
+    float type = aConfig.w;
+
+    float life = fract(progress + uTime * aSpeed);
+
+    vec3 pos;
+
+    if (type < 0.5) {
+        // Main Bowl Structure
+        float theta = life * 1.6; // curve deeply into the center
+
+        // Thick outer rim, thinning towards the central vortex
+        float layerOffset = radialOffset * pow(1.0 - life, 2.0) * 0.8;
+        float baseRadius = 3.5 + layerOffset;
+
+        float r = baseRadius * cos(theta);
+        float y = -pow(sin(theta), 1.5) * 3.0; // Bowl depth
+
+        // Spiraling inward tightly
+        float angle = strandAngle + life * 6.0 + (radialOffset * 2.0);
+
+        pos = vec3(r * cos(angle), y, r * sin(angle));
+
+        // Fade in rapidly at the rim, bright in middle, slow fade at bottom
+        vOpacity = mix(0.0, 1.0, smoothstep(0.0, 0.1, life)) * mix(1.0, 0.0, smoothstep(0.8, 1.0, life));
+
+        // Emphasize some specific strands
+        vOpacity *= 0.5 + smoothstep(0.8, 1.0, abs(radialOffset)) * 0.6;
+
+    } else {
+        // Outer faint Dust
+        float r = 4.0 + abs(radialOffset) * 2.0;
+        float angle = strandAngle + uTime * aSpeed * 0.3;
+        float y = (radialOffset) * 1.5 + sin(uTime * 0.5 + progress * 6.28) * 0.5;
+
+        pos = vec3(r * cos(angle), y, r * sin(angle));
+        vOpacity = mix(0.1, 0.3, sin(progress * 3.1415));
+    }
+
+    if (uMode > 0.5) {
+        float neuronPulse = sin(uTime * 0.85 + progress * 12.566 + radialOffset * 3.0) * 0.5 + 0.5;
+        float shell = 2.2 + radialOffset * 1.1 + sin(progress * 6.283 + uTime * 0.25) * 0.25;
+        float aiAngle = strandAngle + progress * 12.0 + uMouse.x * 0.6;
+        vec3 morphPos = vec3(
+          cos(aiAngle) * shell * (0.72 + progress * 0.45),
+          (progress - 0.5) * 4.8 + sin(aiAngle * 2.0 + uTime * 0.6) * 0.22,
+          sin(aiAngle) * shell * (0.42 + neuronPulse * 0.28)
+        );
+        float mind = smoothstep(0.15, 0.92, sin(uTime * 0.18 + progress * 3.1415) * 0.5 + 0.5);
+        pos = mix(pos, morphPos, 0.42 + 0.22 * mind);
+        vOpacity *= 0.72 + neuronPulse * 0.6;
+    }
+
+    // Apply interactive mouse rotation (parallax tilt/twist)
+    float rotX = -uMouse.y * 0.4 + 0.3; // Give a baseline tilt (looking down)
+    float rotZ = uMouse.x * 0.4;
+
+    mat3 rot = mat3(
+      cos(rotZ), 0.0, sin(rotZ),
+      0.0, 1.0, 0.0,
+      -sin(rotZ), 0.0, cos(rotZ)
+    ) * mat3(
+      1.0, 0.0, 0.0,
+      0.0, cos(rotX), -sin(rotX),
+      0.0, sin(rotX), cos(rotX)
+    );
+
+    pos = rot * pos;
+    pos *= uFieldScale;
+    // Shift vertically to center in frame
+    pos.y += 0.5 + uLift;
+
+    vec2 cursor = vec2(uCursor.x * 5.2, uCursor.y * 3.0 + uLift * 0.38);
+    vec2 away = pos.xy - cursor;
+    float cursorDistance = max(length(away), 0.001);
+    float cursorFalloff = smoothstep(2.15, 0.0, cursorDistance);
+    float scatter = cursorFalloff * (0.16 + uScatter * 1.28);
+    vec2 direction = away / cursorDistance;
+    pos.xy += direction * scatter * (0.55 + life * 0.72);
+    pos.z += scatter * sin(strandAngle * 2.0 + progress * 9.0 + uTime * 0.7) * 0.78;
+    vOpacity *= 1.0 + scatter * 0.65;
+
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+
+    // Shrink points as they fall deeper or go further away
+    float lifeAttenuation = (type < 0.5) ? mix(1.0, 0.1, pow(life, 2.0)) : 1.0;
+    gl_PointSize = aSize * (15.0 / -mvPosition.z) * lifeAttenuation;
+
+    vColor = mix(vec3(1.0), vec3(0.75, 1.0, 0.62), uMode * (0.18 + 0.28 * smoothstep(0.0, 1.0, abs(radialOffset))));
+  }
+`;
+
+        const fragmentShader = `
+  varying vec3 vColor;
+  varying float vOpacity;
+
+  void main() {
+    vec2 p = gl_PointCoord - 0.5;
+    float dist = length(p);
+    if (dist > 0.5) discard;
+
+    // Soft glowing edge, sharp core
+    float alpha = smoothstep(0.5, 0.1, dist) * vOpacity;
+
+    gl_FragColor = vec4(vColor, alpha);
+  }
+`;
+
+        const count = 250000;
+        const numStrands = 2500;
+        const pointsPerStrand = count / numStrands;
+        const positions = new Float32Array(count * 3);
+        const config = new Float32Array(count * 4);
+        const sizes = new Float32Array(count);
+        const speeds = new Float32Array(count);
+
+        let idx = 0;
+        for (let s = 0; s < numStrands; s++) {
+          const type = Math.random() > 0.85 ? 1.0 : 0.0;
+          const strandAngle = Math.random() * Math.PI * 2;
+          const radialOffset = (Math.random() - 0.5) * 2.0;
+          const speed = 0.02 + Math.random() * 0.03;
+
+          const isThick = Math.random() > 0.95;
+
+          for (let p = 0; p < pointsPerStrand; p++) {
+            const progress = p / pointsPerStrand;
+
+            config[idx * 4 + 0] = strandAngle;
+            config[idx * 4 + 1] = progress;
+            config[idx * 4 + 2] = radialOffset;
+            config[idx * 4 + 3] = type;
+
+            sizes[idx] = isThick ? (Math.random() * 2.0 + 1.5) : (Math.random() * 0.8 + 0.3);
+            speeds[idx] = speed;
+            idx++;
+          }
+        }
+
+        let renderer;
+        try {
+          renderer = new THREE.WebGLRenderer({
+            canvas,
+            alpha: true,
+            antialias: false,
+            powerPreference: 'high-performance',
+          });
+        } catch (error) {
+          console.warn('AIM direct particle renderer unavailable', error);
+          return;
+        }
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 10);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('aConfig', new THREE.BufferAttribute(config, 4));
+        geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
+        geometry.setAttribute('aSpeed', new THREE.BufferAttribute(speeds, 1));
+
+        const isDirectVariant = () => document.body.classList.contains('body-aim-x26-practice-direct');
+        const isMorphVariant = () => document.body.classList.contains('body-aim-ai-mindset-morph');
+        const isParticleVariant = () => isDirectVariant() || isMorphVariant();
+        const particleFrame = (morph) => {
+          const compact = window.innerWidth <= 620;
+          return {
+            lift: compact ? (morph ? 1.78 : 1.88) : (morph ? 2.42 : 2.56),
+            scale: compact ? (morph ? 1.04 : 1.1) : (morph ? 1.14 : 1.2),
+          };
+        };
+        const initialMorph = isMorphVariant() ? 1 : 0;
+        const initialFrame = particleFrame(initialMorph);
+
+        const material = new THREE.ShaderMaterial({
+          vertexShader,
+          fragmentShader,
+          uniforms: {
+            uTime: { value: 0 },
+            uMouse: { value: new THREE.Vector2(0, 0) },
+            uCursor: { value: new THREE.Vector2(0, 0) },
+            uMode: { value: initialMorph },
+            uLift: { value: initialFrame.lift },
+            uFieldScale: { value: initialFrame.scale },
+            uScatter: { value: 0 },
+          },
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+        });
+
+        const points = new THREE.Points(geometry, material);
+        points.frustumCulled = false;
+        scene.add(points);
+
+        const targetMouse = new THREE.Vector2(0, 0);
+        const targetCursor = new THREE.Vector2(0, 0);
+        let targetScatter = 0;
+        let lastPointerX = 0;
+        let lastPointerY = 0;
+        let lastPointerTime = 0;
+        const resize = () => {
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          camera.aspect = w / Math.max(1, h);
+          camera.updateProjectionMatrix();
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.setSize(w, h, false);
+          renderer.setClearColor(0x000000, 0);
+        };
+        window.addEventListener('resize', resize);
+        window.addEventListener('pointermove', (event) => {
+          const x = (event.clientX / Math.max(1, window.innerWidth)) * 2 - 1;
+          const y = -(event.clientY / Math.max(1, window.innerHeight)) * 2 + 1;
+          targetMouse.x = x;
+          targetMouse.y = y;
+          targetCursor.x = x;
+          targetCursor.y = y;
+          if (lastPointerTime) {
+            const dt = Math.max(16, event.timeStamp - lastPointerTime);
+            const velocity = Math.hypot(x - lastPointerX, y - lastPointerY) / (dt / 16);
+            targetScatter = Math.min(1.55, Math.max(targetScatter, velocity * 2.8));
+          }
+          lastPointerX = x;
+          lastPointerY = y;
+          lastPointerTime = event.timeStamp;
+        });
+        resize();
+
+        const start = performance.now();
+        const animate = (now) => {
+          if (isParticleVariant()) {
+            const morph = isMorphVariant() ? 1 : 0;
+            const frame = particleFrame(morph);
+            material.uniforms.uTime.value = (now - start) / 1000;
+            material.uniforms.uMouse.value.x += (targetMouse.x - material.uniforms.uMouse.value.x) * 0.05;
+            material.uniforms.uMouse.value.y += (targetMouse.y - material.uniforms.uMouse.value.y) * 0.05;
+            material.uniforms.uCursor.value.x += (targetCursor.x - material.uniforms.uCursor.value.x) * 0.22;
+            material.uniforms.uCursor.value.y += (targetCursor.y - material.uniforms.uCursor.value.y) * 0.22;
+            targetScatter *= 0.9;
+            material.uniforms.uMode.value += (morph - material.uniforms.uMode.value) * 0.08;
+            material.uniforms.uLift.value += (frame.lift - material.uniforms.uLift.value) * 0.08;
+            material.uniforms.uFieldScale.value += (frame.scale - material.uniforms.uFieldScale.value) * 0.08;
+            material.uniforms.uScatter.value += (targetScatter - material.uniforms.uScatter.value) * 0.24;
+            renderer.render(scene, camera);
+          } else if (canvas.style.opacity !== '0') {
+            renderer.clear();
+          }
+          requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
+      })();
     </script>
   </body>
 </html>
