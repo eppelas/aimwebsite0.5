@@ -1,981 +1,176 @@
 # Task Verification Canvas
 
+Last cleaned: 2026-05-29
+Active scope: current AIM Website design labs, payment-page review candidates, and generation automations only.
+Archive: `TASK_VERIFICATION_CANVAS_ARCHIVE_2026-05-29.md` preserves the previous full canvas and is the rollback path.
+Cleanup policy: superseded payment popup/payment-page micro-iterations, stale March/April implemented/requested items, and old local preview/port/repo-discovery tasks are not active work unless explicitly reopened by the user. Ephemeral tasks about ports, localhost/LAN preview links, old clones, `3023`, or GitHub-backed repo routing should be removed from the active canvas after the current review cycle and preserved only in archive when historical trace is needed.
+
 ## User Requests
 
-- Task: Исправить case media UX: увеличенный скриншот закрывается кликом по картинке, YouTube-видео не показывает долгий чёрный экран и имеет рабочую кастомную паузу.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В работе: zoom overlay теперь закрывается кликом по самой увеличенной картинке. Видео переведено на явное состояние `loading/playing/paused`: до ответа YouTube iframe остаётся прозрачным, поверх сохраняется постер; клики по видеоповерхности отправляют `pauseVideo/playVideo` через IFrame API, а во время долгой загрузки клик отменяет загрузку и возвращает постер. Ожидает локальной проверки.
-
-- Task: Переделать payment flow popups: redirect/loading перед оплатой и return/join bot варианты без старой check-иконки.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` redirect state больше не показывает CTA `открыть эквайринг`: остаётся loading/route popup с кнопкой `назад`, крестиком и номером заказа без contact line. Для join/paid/usdt заменена check-иконка на три варианта visual mark в Morph/System духе: `signal`, `terminal`, `mesh`. `payment-popup-compare.html` получил варианты `bot signal/terminal/mesh` и `redirect signal/terminal/mesh`. `npm run lint` прошёл.
-
-- Task: Исправить desktop-регрессию Telegram error line: `телефон` переносится отдельной строкой.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` status строки Telegram и promo сделаны нормальным UI-правилом: `whitespace-nowrap` + `overflow-visible`, без auto-scale и без сжатия букв. Длинная подпись остаётся читаемой одной строкой и может продолжаться вправо.
-
-- Task: Исправить mobile GitHub Pages баг, где tap по Telegram/e-mail input на секунду открывает клавиатуру и сразу закрывает её.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: Найден вероятный iOS-trigger: для `v7` payment popup в `LabW26PageV3.tsx` использовался inline React component type, который мог размонтировать форму при viewport re-render после открытия клавиатуры. Компонент сделан стабильным: `PricingPaymentPopupDatalineHeader` теперь рендерится напрямую, а `presentation`/`mobileLayout` передаются обычными props. Дополнительно на mobile/coarse pointer отключён body `position: fixed`, а `Enter/Done` в полях снимает focus. Проверено на локальном mobile viewport `390x844`: Telegram/e-mail/promo inputs сохраняют focus/value, popup не закрывается, body position `static`, `Enter` на promo возвращает focus на body. `npm run lint` прошёл.
-
-- Task: Финальная микроправка основной mobile v7 оплаты: шире payment buttons, меньше Telegram/email gap, promo label ближе к input line.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` для mobile fitted layout уменьшен gap между payment method buttons до `gap-1.5`, чтобы USDT/RU/EU стали шире. Telegram status reserve уменьшен с `30px` до `22px`, а contact stack gap с `gap-2` до `gap-1`, чтобы Telegram -> e-mail стал примерно на треть меньше. Promo block на mobile получил `gap-0.5`, чтобы label был ближе к линии input. `npm run lint` прошёл. Playwright визуальная проверка в текущем runtime заблокирована отсутствующим bundled Chromium (`chromium_headless_shell-1223` missing), поэтому требуется browser review по локальной ссылке.
-
-- Task: Сделать `v7 mob wide` основной мобильной версией оплаты и выровнять крестик с заголовком/контентом.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: Default `paymentMobile` для v7 изменён с `current` на `wide`, а compare-таб `v7 mob current` теперь явно открывает `paymentMobile=current`. В основном mobile wide уменьшен внутренний padding (`max-w calc(100vw - 8px)`, `p-4`), крестик зафиксирован в `34px` и выровнен по правому краю контента (`closeContentRightDelta=-1`) и по вертикальному центру заголовка (`titleCloseCenterDelta=0`). Контактные spacing-и сохранены просторнее: Telegram -> email около `62px`, email -> promo около `50px`; поля остаются `16px`, premium USDT `1490 -> 1416` влезает, horizontal overflow=false, visualViewport scale=1. Проверено `npm run lint`, Playwright mobile default v7 и phone compare `v7 mob wide`; screenshot `/tmp/aim-payment-v7-mobile-wide-main-final.png`.
-
-- Task: Ограничить YouTube-видео в case popup до конкретных фрагментов без подписи `youtube fragment` и без кликов наружу.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `LabW26PageV3.tsx` добавлены `productVideoEndSeconds` и `getYoutubeEmbedUrl(videoId,start,end)` с `start/end`, `controls=0`, `disablekb=1`, `iv_load_policy=3`, `showinfo=0`, `enablejsapi=1`, fullscreen оставлен через `fs=1`. Наша видимая подпись `youtube fragment` убрана. YouTube iframe сделан `pointer-events-none`, поверх него стоит blocking overlay, поэтому клики по YouTube UI не уводят наружу; добавлена собственная fullscreen-кнопка на shell. Добавлен IFrame API watchdog: если currentTime выходит за фрагмент, видео возвращается к началу или закрывается на конце. Фрагменты: Наташа `521-816`, Алексей `816-1531`, Даниил `3299-3692`, Дарья `4184-4822`. Проверено: `npm run lint`, `npm run build`, Playwright desktop по 4 кейсам проверил params, no `youtube fragment`, iframe pointer-events none, fullscreen button, no overflow; Playwright mobile 390px для кейса Алексея.
-
-- Task: Сделать mobile-only режим payment compare для просмотра вариантов на телефоне свайпом.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: `payment-popup-compare.html` получил phone mode для viewport <=640px или `phoneMode=1`: desktop split hidden, используется один fullscreen iframe `.phone-frame`, варианты `v7 mob current/wide/dense/v7/github dark` переключаются горизонтальным свайпом, снизу показан компактный label+dots indicator. Чтобы свайп работал поверх самого попапа, добавлен same-origin swipe bridge внутрь iframe; при этом iframe остаётся один, без фоновых desktop panes. Проверено Playwright mobile 390px: `phoneMode=true`, compare hidden, iframe count=1, `v7 mob wide` открывает premium USDT popup, synthetic iframe swipe переключает на `v7 mob dense`, popup остаётся открытым, horizontal overflow=false. `npm run lint` прошёл.
-
-- Task: Довести multi-screenshot UI в case popup: убрать arrows, вынести dots наружу, зафиксировать высоту media-зоны и проверить контраст/UX.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `LabW26PageV3.tsx` multi-screenshot media теперь использует фиксированную `aspect-[2/1]` рамку, чтобы popup не менял высоту при разных пропорциях изображений. Стрелки переключения убраны; dots вынесены в отдельную строку под скриншотом, увеличены до 14px, получили 2px border, активный чёрный state и счётчик `1 / N`. Strip/Rail варианты оставлены для сравнения, но тоже без стрелок и с более контрастными controls. В `case-popup-compare.html` tabs переименованы в `fixed dots`, `fixed strip`, `fixed rail`. Усилен контраст label/task блока. Проверено: `npm run lint`, `npm run build`, Playwright desktop/mobile `v7-multi-dots` с dots=3, arrows=0, stable media height, no horizontal overflow; Playwright all variants `v7-multi-dots|strip|rail` arrows=0 and no overflow.
-
-- Task: Добавить четвёртый Community Night кейс из markdown-файла в тот же media/popup формат, что первые три.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: По источнику `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md` четвёртый кейс — Алексей, `КНОПКА NEXT`. Текстовая карточка уже была в `LabW26PageV3.tsx`, но без media-полей. Добавлен clean YouTube video still `public/assets/cases/community-night/burnout-next-alexey-video-still.png`, `productImageSrc/productImageAlt`, `productVideoId` и `productVideoStartSeconds: 816`; tools уточнены до `Obsidian · ActivityWatch · OpenWorks · физический таймер`. В sampled YouTube segment не найден кадр с Obsidian/product UI, поэтому использован чистый speaker video still без browser/player/OS UI. Проверено: `npm run lint`, Playwright desktop `case=3` с image/video fragment `start=816`, Playwright mobile 390px без horizontal overflow.
-
-- Task: Сделать несколько мобильных v7-вариантов payment popup, убрать iOS field zoom и уплотнить форму под один экран.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: Добавлены `paymentMobile=current|wide|dense` для `PricingPaymentPopupDatalineHeader`. Мобильные поля получили 16px font-size против iOS auto-zoom; payment modal теперь фиксирует body position при открытии, чтобы background не уезжал/не оставался в zoom-scroll состоянии. Варианты `wide` и `dense` расширяют карточку почти до краёв, делают payment buttons в 3 компактные колонки, уменьшают gap между Telegram и e-mail, оставляют больший gap до промокода, поднимают action buttons и в mobile price-block сокращают label до `к оплате:`. `payment-popup-compare.html` получил tabs `v7 mob current`, `v7 mob wide`, `v7 mob dense` на premium + USDT для проверки длинной цены. Проверено: `npm run lint`, Playwright 390px/375px для current/wide/dense, input font-size 16px, `bodyPosition=fixed`, `visualViewport.scale=1`, horizontal overflow=false, premium USDT `1490 USDT -> 1416 USDT` есть, compare left/right mobile wide/dense открывает активные iframe 390px без overflow. Screenshot: `/tmp/aim-payment-mobile-usdt-variants-compare.png`.
-
-- Task: В оплате показывать USDT 5% сразу при выборе USDT и суммировать USDT-скидку с Alumni/promocode.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` обновлён `getOriginalPrice`: при выбранном USDT старая цена теперь показывается всегда. Без дополнительных скидок показывает `590 USDT` -> `561 USDT`; с promo `ponchik` показывает `561 USDT` -> `533 USDT`; с alumni `aim` + `ponchik` показывает `561 USDT` -> `448 USDT`, при этом промокод помечается как `действует Alumni 20%`. Product rules дописаны про видимость USDT-only скидки и пересинхронизированы в hub. Проверено: `npm run lint`, Playwright desktop сценарии USDT-only / promo+USDT / alumni+promo+USDT, Playwright mobile 390px без horizontal overflow.
-
-- Task: Полировка case popup variants: убрать modal-теги и zoom-плюсик, убрать пустые поля у горизонтальных скриншотов, добавить multi-screenshot варианты.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `LabW26PageV3.tsx` для всех case popup variants убраны role filter tags под медиа. Видимая zoom-кнопка с иконкой удалена; увеличение остаётся по клику на изображение. Product screenshot теперь рендерится natural-height image, чтобы у горизонтального скриншота не появлялись пустые поля сверху/снизу. V7 close button смягчён до прозрачной кнопки с очень лёгким hover. Блок `задача` в v7 выделен через верхнюю линию и мягкий фон. В `case-popup-compare.html` добавлены варианты `multi dots`, `multi strip`, `multi rail` для проверки разных паттернов нескольких скриншотов. Проверено через `npm run lint`, `npm run build`, Playwright desktop compare current/v7-multi-strip и mobile viewport 390px.
-
-- Task: Обновить успешную оплату: текст про telegram-бот и кнопка `/присоединиться` в production bot.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В success/join states оплаты текст заменён на `Перейдите в наш telegram-бот, чтобы мы добавили вас в группу обучения.`. Bot CTA теперь подписан `/присоединиться` и ведёт на `https://t.me/prod_ai_mind_set_bot?start=payment_success`. USDT follow-up CTA также ведёт в тот же production bot. Проверено Playwright на `?payment=v7&paymentStatus=paid#pricing`: новый текст есть, старого текста нет, кнопка `/присоединиться` есть, href корректный. `npm run lint` прошёл.
-
-- Task: Вернуться к v7 оплате: убрать локальный card input, добавить acquiring/result states и Telegram contact rules.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` убран внутренний экран `БЕЗОПАСНАЯ ОПЛАТА` с вводом номера карты/expiry/CVC; card/ru/eu flow теперь ведёт в acquiring state. Добавлены review states через query `paymentStatus=redirecting|paid|failed|join`: переход к эквайрингу, оплата получена, оплата не прошла, переход в Telegram-бот для доступа к группе. Success/join copy учитывает Telegram docs: бот не может первым написать человеку, пользователь должен сам открыть бот/start. В Telegram поле добавлена валидация: принимаются `@username`, `username` и телефоны с `+`, пробелами, скобками, точками и дефисами; username проверяется как латиница/цифры/underscore 5-32 символа, а тестовый alumni handle `aim`/`@aim` оставлен валидным для demo-скидки. `payment-popup-compare.html` получил tabs `v7 paid`, `v7 failed`, `v7 bot join`, `v7 acquiring`. Проверено: `npm run lint`, `npm run build`, Playwright smoke по `aim`, `@aim`, `+351 912 345 678`, `(912) 345-67-89`; card input text `Номер карты/ММ/ГГ/CVC` отсутствует; compare `v7-paid/v7-failed` и `v7-bot/v7-acquiring mobile` открывают нужные states, horizontal overflow=false. Screenshot: `/tmp/aim-payment-v7-result-states.png`.
-
-- Task: Сделать compare-инструмент для case popups и добавить новые v7-похожие варианты кейс-модалки.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: Добавлен URL-switch `casePopup=current|v7-structured|v7-compact` и auto-open параметр `case=0`, чтобы review surface открывал один и тот же кейс без хрупких кликов. Новые варианты сохраняют текущие функции case modal: `задача`, галерея product screenshots, zoom overlay, фильтры, tools и результат. Добавлен `case-popup-compare.html` по паттерну payment compare: independent left/right variants, per-pane desktop/mobile, draggable splitter, keyboard `A/D` для левой панели и `←/→` для правой. Дизайн-ориентиры взяты из локального `_sources_global_dev/agent-design-kit`: UI UX Pro Max quality pass, platform design quality gate и repo notes по design systems. Проверено: `npm run lint`, `npm run build`, Playwright smoke на compare desktop + right mobile; оба iframe открывают case modal, mobile iframe `390px`, horizontal overflow=false. Screenshots: `/tmp/aim-case-popup-compare-v7.png`, `/tmp/aim-case-popup-v7-compact.png`.
-
-- Task: Добавить в case detail modal исходную задачу перед `решение` и упорядочить tools по правилу AI/Git/hardware → infrastructure.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: Источник: `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md`, поля `Задача / идея` и `Технологии`. В `CaseCard` добавлено поле `task`; в detail modal блок `задача` поставлен перед `решение`. Tools для кейсов отсортированы по правилу: AI-модель/AI-продукт → Git/repo/workflow platform → hardware/wearables → прикладные apps/no-code → infrastructure/DB/terminal/dev internals. Для Дарьи порядок стал `Claude Code · GitLab · WHOOP · Plaud · PostgreSQL · TMux`. Ожидает локальной проверки.
-
-- Task: В case detail modal добавить поддержку нескольких product screenshots с точками и возможность увеличивать скриншот.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: `CaseCard` расширен до массива `productImages` с fallback на старые `productImageSrc/productImageAlt`. Левый product media блок стал галереей: при нескольких скриншотах появляются стрелки и точки, активное изображение можно выбрать по dot controls. Скриншот открывается в отдельном увеличенном overlay по клику на изображение или кнопку zoom. Проверено локально: `npm run lint`, `npm run build`, in-app browser desktop case modal + zoom overlay, mobile viewport `390x844` без horizontal overflow (`390/390`) + zoom overlay. Для review добавлены локальные preview launchers: `! Open AIM V3 Current Site.command` и `! Open AIM V3 Current Site.app`; rollback path для launcher cleanup: move these two items to Trash.
-
-- Task: Добавить в V3 site agent-readable surfaces для QA: canonical, JSON-LD, Markdown mirror, `llms.txt`, `llms-full.txt` и `sitemap.xml`.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-26
-  Note: В `index.html` добавлены raw HTML head surfaces, которые видны без JS: `meta description`, `rel=canonical`, `text/markdown` alternate, ссылки на `llms.txt`, `llms-full.txt`, `sitemap.xml` и JSON-LD `WebPage`. В `public/` добавлены `index.md`, `llms.txt`, `llms-full.txt`, `sitemap.xml`, чтобы эти файлы попали в build и были доступны QA-раннеру как реальные agent-readable endpoints. Сам лендинг уже содержит `<main>` в `LabW26PageV3.tsx`, поэтому этот кусок оставлен без переписывания. Проверено: `npm run lint`, `npm run build`, а затем inspection `dist/index.html` и `dist/{index.md,llms.txt,llms-full.txt,sitemap.xml}`; локальный smoke check подтвердил `canonical=true`, `markdown=true`, `llms=true`, `sitemap=true`, `jsonLd=true`, `mainInSource=true`.
-
-- Task: Микро-полировка v7: сдвинуть popup левее и поднять action buttons без изменения высоты.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Для v7 карточка получила desktop margin-right `40px`, что визуально сдвигает сам popup примерно на `20px` левее без конфликта с motion transform. Нижний action-row (`отмена` + `оплатить`) получил `pb-3`, чтобы кнопки поднялись примерно на `12px` внутри той же высоты `640px`. Проверено локально на `127.0.0.1:3001`: popup остаётся в пределах viewport, CTA/cancel выровнены, нижний gap до рамки около `20px`. `npm run lint` прошёл. Пользователь попросил сразу push.
-
-- Task: Микро-полировка v7 перед push: скрыть Telegram discount message без найденной скидки, поднять зачёркнутую цену, сжать `* TELEGRAM`.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` статусная зона Telegram сохраняет фиксированную высоту, но показывает текст только при найденной Alumni-скидке (`aim`/`@aim`); состояния поиска и `скидка не применена` визуально скрыты. Зачёркнутая старая цена поднята на 4px. Gap между обязательной `*` и `TELEGRAM` уменьшен до 1px. Проверено Playwright на локальном dev server: при `ai` нет `ищу скидку`/`скидка не применена`, при `aim` есть `скидка Alumni 20% применена`, `€590` и `€472`. Пользователь попросил сразу запушить после этой микро-правки.
-
-- Task: Починить пропавшие case screenshots на GitHub Pages после payment deploy.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: На live case detail вместо product screenshot показывался broken image. Причина: `LabW26PageV3.tsx` уже ссылался на `public/assets/cases/community-night/*.png`, но папка `public/assets/cases/community-night/` осталась untracked и не попала в предыдущий push. Добавлены только три реально используемых PNG: `team-os-darya-product.png`, `meeting-pipeline-natasha-product.png`, `agent-meditation-daniil-product.png`; JPG-дубликаты не тронуты. Запланирован push в `main`, чтобы GitHub Pages пересобрался.
-
-- Task: Поменять местами Telegram и e-mail в v7 и сделать v7 основной версией оплаты на сайте.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: В `PricingPaymentPopupDatalineHeader.tsx` порядок contact fields изменён: Telegram теперь слева, e-mail справа. В `LabW26PageV3.tsx` default payment popup без query-параметра переключён на v7 (`PricingPaymentPopupDatalineHeader` с `presentation="v7"`). Старый dataline v3 сохранён через `?payment=v3#pricing`, а compare route обновлён так, чтобы tab `v3 dataline` больше не ссылался на default. Follow-up before push: верхний gap перед `промокод` чуть уменьшен, чтобы нижний gap до action buttons стал больше. Проверено Playwright на обычном `/#pricing`: defaultIsV7=true, left-to-right field order `@user или телефон`, `mail@mail.com`, screenshot `/tmp/aim-payment-v7-main-default-swapped.png`. `npm run lint`, `npm run build`; после микро-правки rerun `npm run lint`. GitHub push authorized by user 2026-05-25.
-
-- Task: Сделать в payment popup compare независимый desktop/mobile переключатель для левой и правой панели.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Глобальный `desktop/mobile` switch заменён на два pane-level переключателя внутри toolbar: `leftDevice` и `rightDevice` хранятся в URL отдельно. Теперь можно сравнивать `v7 desktop` слева с `v7 mobile` справа, либо `v7 mobile` слева с `github dark desktop` справа. Desktop-панель сохраняет полный список вариантов, mobile-панель ограничивает tabs до `v7 compact` и `github dark`; старый query `device=mobile` сохранён как fallback для старых ссылок. Mobile viewport остаётся нативным iframe около `390px`, без transform/zoom. Проверено Playwright: forward case `left=v7/right=v7/leftDevice=desktop/rightDevice=mobile` и reverse case `leftDevice=mobile/rightDevice=desktop`, оба popup открываются, ширины iframe корректные (`720/390`, `390/712`). `npm run lint`, `npm run build`.
-
-- Task: Добавить в payment popup compare переключатель desktop/mobile и мобильное сравнение v7 с исходной чёрной GitHub-версией.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: В `payment-popup-compare.html` добавлен global device switch `desktop/mobile`. Desktop mode сохраняет все варианты, mobile mode ограничивает табы до `v7 compact` и `github dark`, чтобы сравнивать только нужные мобильные версии. Mobile mode рендерит live iframe как настоящий узкий viewport около `390px`, без transform/zoom, поэтому responsive сайта включается нативно. Исходная чёрная версия берётся из уже восстановленного `PricingPaymentPopupDark.tsx` на базе `origin/main`; v7 mobile использует текущий responsive v7. Compare теперь auto-dismisses cookie notice внутри iframe, чтобы оно не перекрывало dark popup. Проверено Playwright: оба active iframe имеют mobile viewport, оба payment popup открываются, tabs ограничены до двух вариантов, screenshot `/tmp/payment-compare-mobile-mode-cookie-recheck.png`; `npm run lint`, `npm run build`.
-
-- Task: Добавить v7 payment popup на базе v6: без зелёной разделительной линии, шире/компактнее, без подписи `MAIN LAB X26 · ADVANCED TRACK`.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Добавлен URL-switch `?payment=v7#pricing` и compare-tab `v7 compact`. V7 использует тот же компонент, что v6, но отдельную presentation-настройку: desktop panel шире (`560px`) и высотой `640px`, верхняя зелёная program-line скрыта, зелёный divider между price-box и способами оплаты убран. Внутри сохранены скидочные demo-состояния: Telegram `aim`/`@aim` → Alumni 20%, промокод `ponchik` → 5%, вместе показывается только максимальная скидка Alumni. Статусы Telegram/промокода зарезервированы фиксированной высотой, поэтому CTA не двигается при `ищу скидку`, applied/not applied и max-discount сообщении. Follow-up: промокодный статус укорочен до `действует Alumni 20%` и выровнен по ширине promo field, обязательная `*` Telegram стала inline-required маркером рядом с label, крестик v7 выровнен по центру заголовка `ОПЛАТА ЗАКАЗА` с measured diff ~1.5px, price block зафиксирован по высоте, а `отмена` и `оплатить` имеют одинаковые `12px / 900 / 2.4px`, `46px` height и одинаковый top. Latest follow-up: gap между `*` и `TELEGRAM` уменьшен до `3px`, promo input привязан к ширине email input (`~239px` vs `241px`), вертикальный интервал между contact row и promo увеличен, `отмена` сужена и придвинута ближе к CTA (`8px` gap). Additional spacing follow-ups: дважды увеличен отступ между `ОПЛАТА ЗАКАЗА` и grey price-box, а также между payment method buttons и `e-mail/telegram`; v7 height увеличена до `640px`, чтобы нижние buttons не обрезались после добавления воздуха. Mobile check: iframe width 388px, no horizontal overflow. Проверено Playwright screenshots/metrics, `npm run lint`, `npm run build`.
-
-- Task: Добавить ещё один payment popup вариант с изменённой верхушкой по референсу `DS aligned`.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Добавлен live-компонент `PricingPaymentPopupDatalineHeader.tsx`, URL-switch `?payment=v6#pricing` и compare-tab `v6 header`. Вариант основан на v5/4light, но верхушка изменена по референсу: крупный заголовок, зелёная строка `MAIN LAB X26 · ADVANCED TRACK`, close в светлом квадрате, сумма в отдельном сером boxed-блоке с `итого к оплате:`, зелёная разделительная линия перед способами оплаты. Follow-up: скидочный бейдж USDT опущен ниже и частично перекрывает кнопку, email placeholder заменён на `mail@mail.com`, `связаться с нами` заменено на `отмена`, обязательная `*` Telegram вынесена над label, валюты нормализованы: euro `€590`, USDT `561 USDT`, ruble `59 000 ₽`. Добавлено demo-состояние проверки Telegram: test handle `aim`/`@aim` даёт Alumni 20% (`скидка Alumni 20% применена`) и пересчитывает цену `€590 -> €472`; остальные ники показывают `скидка не применена`. Добавлено demo-состояние промокода: `ponchik` даёт `промокод ponchik · -5%` и цену `€561`; неверный промокод показывает `промокод не применён`. Follow-up: `отмена` перенесена ближе к CTA `оплатить` в правый action cluster. Follow-up max-discount: Telegram/Alumni и промокод больше не суммируются; UI показывает только максимальную скидку, поэтому `aim + ponchik` оставляет цену `€472`, а под промокодом пишет `промокод найден · действует Alumni 20%`. Follow-up stability: checking copy заменён на `ищу скидку`, статусные зоны Telegram/промокода зарезервированы по высоте, чтобы CTA не прыгал; над discounted price появляется маленькая зачёркнутая исходная цена. Проверено Playwright direct popup + compare screenshot; `npm run lint`, `npm run build`; после stability fix Playwright подтвердил `buttonShiftAim: 0`, `buttonShiftBoth: 0`.
-
-- Task: Добавить в payment popup compare двигаемый разделитель между левым и правым окном.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: `payment-popup-compare.html` получил центральный draggable splitter между панелями. Split можно тянуть мышью/трекпадом, сбрасывать двойным кликом, двигать с клавиатуры при фокусе на разделителе (`←/→`, Shift для крупного шага, Home/End, Enter/Space reset). Позиция сохраняется в URL как `split=...`. Исправлен баг парсинга, при отсутствии `split` страница теперь стартует 50/50, а не 22/78. Follow-up: убран искусственный zoom/transform-scale; live iframe теперь занимает реальную ширину панели `100%`, а responsive поведение остаётся нативным. Webp reference держит натуральные `500px` и уменьшается только если панель физически уже. Проверено Playwright drag pass: `transform: none`, iframe изменился с 720px до 980px при split drag, URL обновился до `split=68`.
-
-- Task: Добавить 5-й payment popup вариант на базе `4light webp`, но жирнее, воздушнее и структурнее.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Добавлен live-компонент `PricingPaymentPopupDatalineBold.tsx` и URL-switch `?payment=v5#pricing`; compare получил вариант `v5 structured`. После пользовательского фидбэка v5 возвращён к композиции именно `4light webp`, а не усиленного v3: `MAIN LAB X26 · ADVANCED TRACK`, зелёная CTA, `СКИДКА 5%` над USDT, `промокод` вместо комментария, мягкие input-поля, чёрная active `EU-КАРТЫ` с белым текстом, Telegram с обязательной зелёной `*`, цена `590 €` с неразрывным пробелом перед евро. Проверено визуально через Playwright на паре `left=v5&right=ref-4light`: popup помещается без внутреннего overflow (`scrollHeight == clientHeight`). Проверено: `npm run lint`, `npm run build`.
-
-- Task: Сделать payment popup compare как систему для любых двух вариантов: слева/справа один и тот же фон, попапы ближе к центру, переключение кнопками и клавиатурой, добавить webp-референс из Downloads.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: `payment-popup-compare.html` переделан из статичной пары iframe в compare-инструмент с независимыми left/right tabs, кнопками назад/вперёд и клавиатурой (`A/D` для левой панели, `←/→` для правой). После пользовательского фидбэка о поломке переключения страница переведена на предзагруженные слои: все варианты монтируются один раз, переключение только меняет active layer и больше не пересоздаёт iframe/страницу. Live iframe рендерится с внутренней шириной `1024px` и масштабируется в колонку, чтобы обе половины оставались в desktop-режиме и попапы были по центру. Webp-референс скопирован из `/Users/viola/Downloads/4light-v2-aim-os-desktop-01-payment-selection-500x642.webp` в `public/assets/payment-popups/`; copy log: `public/assets/payment-popups/COPY_LOG_2026-05-25-payment-popup-reference.md`. Проверено: `npm run lint`, `npm run build`, Playwright click/keyboard pass на `1440x900`.
-
-- Task: Открыть side-by-side сравнение payment popup v3 и v2.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Добавлена локальная compare-страница `payment-popup-compare.html` с двумя iframe: слева v3 dataline, справа v2 light. Страница сама скроллит к pricing и открывает payment popup в каждой колонке. Проверено в in-app browser с wide viewport `1440x900`.
-
-- Task: В side-by-side compare заменить правый v2 light на тёмный исходный checkout-вариант.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-25
-  Note: Предыдущая ручная dark-реконструкция отклонена пользователем как неверная. `PricingPaymentPopupDark.tsx` заменён исходным тёмным neon checkout из `origin/main:src/components/PricingPaymentPopupNeon.tsx` с минимальной заменой имени компонента; `payment-popup-compare.html` теперь показывает слева v3 dataline, справа GitHub dark. V2 light сохранён и доступен через `?payment=v2#pricing`. Проверено: `npm run lint`, `npm run build`, in-app browser compare на `1440x900`; справа виден чёрный neon popup с зелёной ценой, зелёной active-рамкой, зелёным CTA и `СКИДКА 5%`.
-
-- Task: Сделать payment popup v3 для основного сайта в dataline/AIM OS стиле из текущего Pencil-документа, сохранив предыдущую payment-версию для сравнения.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-23
-  Note: Создана локальная ветка `experiment/payment-form-v3-dataline`; предыдущий код `PricingPaymentPopupNeon.tsx` сохранён без удаления/переименования. Новый компонент `PricingPaymentPopupDataline.tsx` скопирован из v2 и переведён в стиль выбранного Pencil frame `LIGHT v2 AIM OS / desktop / 01 payment selection / 500x642`: square white panel, black 1px border, mono dataline labels, large black price, black/white payment method buttons, EU-карты label. `LabW26PageV3.tsx` временно подключает dataline v3. Copy/rollback log: `pencil/payment-popup-current/MOVE_COPY_LOG_2026-05-23-payment-v3.md`. Проверено: `npm run lint`, `npm run build`, desktop preview через in-app browser (`500x642`, no internal overflow), mobile viewport `390x844` через isolated Playwright/Chromium check (`374x808.5`, no horizontal overflow, CTA visible, overlay z-index above mobile header). User approval still pending.
-
-- Task: Дать быстрый способ открыть payment v2 рядом с payment v3 для сравнения.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-23
-  Note: Добавлен URL-switch без смены ветки: обычный `#pricing` открывает v3, а `?payment=v2#pricing` подключает сохранённый `PricingPaymentPopupNeon` v2. Проверено через локальный browser: v3 содержит `[PAY] CHECKOUT_POPUP`, v2 содержит старый `ai mindset / checkout` и label `ЗАРУБЕЖНЫЕ КАРТЫ`.
-
-- Task: Почистить бессмысленные подписи и неправильную иерархию в payment v2/v3.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-23
-  Note: Убраны service labels `checkout`/`[PAY]`, фраза `формат фиксируется после подтверждения`, `(@)` и обязательная звёздочка из Telegram, дублирование `MAIN LAB · MAIN LAB X26`, а также смешанные хвосты `-5%`/`₽`/`€` внутри кнопок способов оплаты. Способы оплаты теперь одного уровня: `USDT`, `РУ-КАРТЫ`, `EU-КАРТЫ`; скидка USDT остаётся только в расчёте цены. Проверено: `npm run lint`, `npm run build`, local browser text scan for v2/v3 found none of the removed bad strings and confirmed the three method labels.
-
-- Task: Проверить, к чему подключён `AIM Payment.app`, и создать новый Pencil-файл с редактируемыми desktop/mobile состояниями payment popup из текущей ветки.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-23
-  Note: `AIM Payment.app` открывает `! AIM Payment.command`; launcher указывает на `V3 Site Repo - aimwebsite0.5`, ветку `experiment/payment-form-v2`, порт `3001`, URL `http://127.0.0.1:3001/#pricing`. First Pencil pass was rejected because it was manually reinterpreted instead of exact browser-faithful. Recovery pass completed in `pencil/payment-popup-current/ai-mindset-payment-popups-current-editable-2026-05-23.pen`: new root `cRm2N` / `EXACT BROWSER TRACE / 2026-05-23 / source screenshots + editable vectors` contains live browser screenshots next to editable vector traces for 5 desktop and 5 mobile states captured from the current site. Reference screenshots/DOM JSON: `pencil/payment-popup-current/live-reference-exact-2026-05-23/`; review export: `pencil/payment-popup-current/exports-exact-browser-2026-05-23/cRm2N.png`. Saved via Pencil backup with rollback copy; final `.pen` sha256 `52d77cdfb5d5061c9f4b3014bc2c9edf482f58824b437d1e8ecca751199c26b3`. User approval still pending.
-
-- Task: Сделать 12-секундное видео/гифку с анимированным AI Mindset split-logo человеком: сборка из мелких деталей плюс разные движения деталей от scroll.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: Follow-up implemented after user approved the initial start: top label changed to `aim.web` in large mono style, live canvas animation now adds two stronger post-assembly scroll-like burst phases with vertical up/down particle movement, partial breakdown, and re-assembly. Latest user request handled: label moved close to the visible logo start, targeting about 20px in the assembled/exported frame; MP4/GIF rerendered from `scripts/render_logo_assembly.py`; local desktop/mobile preview screenshots and extracted MP4 frame were visually checked. `npm run lint` passed; full production build intentionally not rerun for this small spacing-only follow-up after an already running local preview.
-
-- Task: Добавить первые три кейса из Community Night markdown в секцию `Cases` сайта.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: Источник: `/Users/viola/Downloads/{space}_{cases}_Community_Night_—_Личные_решения_для_продуктивности.md`. После пользовательского фидбэка о рассинхроне старые placeholder-кейсы вроде `AI SUMMARY` убраны из active cases array; видимый набор теперь состоит из 6 кейсов этого markdown: Дарья / Team Operation System, Наташа / Конвейер встреч, Даниил / Медитация агента, Алексей / Кнопка Next, Михаил / Personal OS Майо, Дмитрий / Стратегия + Тактика. Для detail-modal первых трёх кейсов добавлены аккуратно обрезанные product screenshots из релевантных demo-фрагментов YouTube: лишние black side fields, верхние browser/system bars и dock убраны, speaker video tile сохранён как inset. Desktop: слева static screenshot + inline YouTube-fragment player; mobile: screenshot остаётся выше текста, inline player уходит ниже текстовых секций. Follow-up: label `ВИЗУАЛ` убран, product screenshot больше не открывается ни через кнопку, ни по клику на картинку, карточки cases выровнены по высоте, а tools в карточках ограничены одним рядом из 3 featured-инструментов; полный список инструментов остался в detail-modal. Follow-up video: YouTube fragment больше не открывает новую вкладку; play-кнопка внутри preview заменяет блок на lazy iframe с нужным `start` timestamp. Follow-up modal bug: case-modal и all-cases overlay больше не используют `md:left-[18%]`, чтобы слева не оставался кусок страницы вместо нормального затемнения. Follow-up tags: теги внутри кейса теперь используют те же role-filter ids, что и верхние `Кем сделано`, кликаются как фильтры и подсвечиваются синхронно с верхней кнопкой. Follow-up layout: левая колонка detail-modal переведена в `flex`/`overflow-y-auto`, media занимает доступную высоту, а нижние теги больше не обрезаются под границей попапа. Follow-up source fidelity: восстановлены полные роли из markdown для Дарьи (`Data analyst · разработчик · team lead (2 команды)`) и Наташи (`Backend developer · архитектор · портфельный менеджер (30 активных проектов)`) после обнаруженного непредупреждённого сокращения. Follow-up image quality: первые три product screenshots пересобраны из лучшего доступного YouTube video stream `1080p`, сохранены как PNG и подключены вместо старых low-res JPG. Проверено в in-app browser на desktop и mobile viewport; `npm run lint` прошёл после follow-up, предыдущий `npm run build` проходил до точечных UI-правок.
-
-- Task: В отдельной ветке `experiment/payment-form-v2` сделать новую версию формы оплаты в светлой стилистике основного сайта, используя принципы из Pencil design-system.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: Компонент `PricingPaymentPopupNeon.tsx` переведён с тёмного neon checkout на светлый site-system: `#F9F9F7` overlay, white panel, тонкие black/alpha borders, radius 4/6, IBM Plex Mono labels, Inter inputs, зелёный только как акцент. Использованы переменные и структура из `pencil/site-design-system/ai-mindset-main-site-design-system.pen`: `site-bg`, `site-panel`, `site-ink`, `site-border`, `site-green`, `radius-card`, `radius-tight`. `npm run lint` и `npm run build` прошли; in-app preview проверен на desktop states: initial, card input, card success, USDT QR, USDT success; mobile viewport check подтвердил, что modal panel помещается внутри overlay без горизонтального вылета.
-
-- Task: Почистить код сайта от лишних локальных версий, неиспользуемых компонентов, старых ассетов, AI Studio/Gemini-заготовок и левых ссылок.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-21
-  Note: Удаление сделано move-only через Trash; файлы перенесены в `/Users/viola/.Trash/aimwebsite_code_cleanup_2026-05-21_19-05`, лог сохранён в `AIM Website/CODE_CLEANUP_LOG_2026-05-21.md`. Убраны старые dev-скрипты/зависимости, мёртвые компоненты и ассеты, AI Studio/Gemini config, `.DS_Store`, опасный `clean`-скрипт и битые/Pages-опасные ссылки меню. `npm run lint`, `npm run build`, `npm audit --audit-level=moderate`, `npm ls --depth=0 --json`, `.DS_Store` scan и targeted stale-reference scan прошли.
-
-- Task: Переделать Pencil дизайн-систему по фактической версии сайта через live DOM/code audit, убрать абстрактные повторы, добавить реальные атомы/ассеты/компонентные specs и разделить payment popup на отдельные exact-size frames для desktop/mobile.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: В том же файле `pencil/site-design-system/ai-mindset-main-site-design-system.pen` создан новый root `AI Mindset design system v3 - audited source of truth`; V2 и старый абстрактный draft оставлены внутри как выключенные архивы. V3 построена по live DOM audit (`pencil/site-design-system/audit-v3/live-dom-summary.json`), code review `LabW26PageV3.tsx`/`PricingPaymentPopupNeon.tsx` и GitHub-framework подходу design-extract / extract-design-system / DTCG tokens / Style Dictionary / Primer primitives. Добавлены секции: method/source, primitive colors, computed typography scale, spacing/radius/shadow/motion tokens, individual asset inventory from `public/assets`, real component specs with live screenshots, exact payment modal frames, and responsive mobile source screenshots. Follow-up от 2026-05-22: в цветовые токены добавлены видимые hex/alpha values, в typography добавлена usage map по живым компонентам, мобильные source screenshots пересняты с локального сайта в `pencil/site-design-system/reference-v4/mobile/` и добавлены отдельным разделом `07 Responsive mobile source screenshots`. Payment popup разделён на отдельные frames по фактическим размерам: desktop `500x642`, `500x621`, `500x637`, `500x537`, `500x582`; mobile `374x536`, `374x528`, `374x522`, `374x464`, `374x509`. `snapshot_layout` по root `FnllM` вернул `No layout problems`; контрольные PNG-экспорты V3 лежат в `pencil/site-design-system/exports-v3/`. После ручного `File > Save` файл изменился на диске до 840980 bytes, hash `ba2bcfa0302c4f8ec4c0c32305c6ac19b81f1bd05025d623bc24f92524791e03`.
-
-- Task: Заново вернуть в Pencil все варианты платёжного попапа для desktop и mobile.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: Reopened after user rejection on 2026-05-22. The screenshot-fill version was not acceptable because it was not properly editable, and the generic checkout/wizard redesign was visually worse than the original. New pass created in `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen` as `REDESIGN v2 premium`: 5 desktop and 5 mobile top-level frames, built as editable Pencil layers, preserving the original modal's large dark premium baseline, big price, calm hierarchy, and green accent while improving method cards, QR/card/success states, and mobile fit. `snapshot_layout` returned `No layout problems`; review PNG exports are in `pencil/payment-popup-editable/exports-redesign-v2-premium/`. User requested one more pass using the poor-outcome recovery skill; v2 remains for comparison and must not be treated as approved.
-
-- Task: Сделать дополнительный Pencil-вариант payment popup через `poor-outcome-recovery` pass и проверить, почему skill не сработал автоматически на «очень плохо».
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-22
-  Note: `poor-outcome-recovery` was loaded and followed. Local skill `/Users/viola/.codex/skills/poor-outcome-recovery/SKILL.md` exists and explicitly lists «очень плохо» as a trigger phrase; `/Users/viola/.codex/skills/poor-outcome-recovery/agents/openai.yaml` has `allow_implicit_invocation: true`, so the previous non-use was an agent workflow miss, not a missing installation. Created `RECOVERY v3 / site-faithful` as 10 separate editable top-level Pencil frames: desktop IDs `x41Vb`, `EHrdX`, `HPowy`, `p2lHzK`, `nJK1G`; mobile IDs `o0MYFN`, `awSVO`, `L1iSQ`, `rTIOC`, `JL8Ln`. Frame sizes match the captured black 1.1 CSS modal dimensions: desktop `500x642`, `500x622`, `500x582`, `500x638`, `500x538`; mobile `374x536`, `374x528`, `374x509`, `374x522`, `374x464`. Export PNGs are in `pencil/payment-popup-editable/exports-recovery-v3-site-faithful/`. `snapshot_layout` returned `No layout problems` on checked frames. Manual Cmd+S via AppleScript was blocked by macOS Accessibility, so persistence used Pencil autosave backup `~/.pencil/backup/cc1ccc75da70717ca69902b778a609d45eb391a7`; rollback copy is `pencil/payment-popup-editable/rollback/ai-mindset-payment-popup-editable.before-recovery-v3.2026-05-22-2239.pen`. Saved `.pen` hash is `28b775f099644136052d58d83f83af898a51affbc32867ff5abfa90c14faa4bb`, size `619720` bytes.
-
-- Task: Создать новый Pencil-файл в папке сайта AIM Website и положить туда один редактируемый попап оплаты для работы.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-05-21
-  Note: Создан и сохранён файл `pencil/payment-popup-editable/ai-mindset-payment-popup-editable.pen`; внутри один editable desktop state `AI Mindset payment popup - one editable desktop state`. После Save As файл на диске изменился с пустого шаблона до сохранённого `.pen`, повторно открыт через Pencil MCP, `snapshot_layout` вернул `No layout problems`. PNG-контроль лежит в `pencil/payment-popup-editable/exports/mQ3Sw.png`.
-
-- Task: На mobile в блоке `Cases` сделать карточки одинакового размера и починить визуал (сейчас они все белые, без картинок), чтобы они максимально походили на десктопные.
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После phone-specific follow-up `Cases` на mobile переведены на единый visual render-path для main-card и popup: обе ветки используют один `renderCaseMediaPanel`, а phone-gate для `Cases` упрощён до width-based `'(max-width: 767px)'`, чтобы реальный телефон и узкий Arc больше не расходились по логике. На mobile visual-shell сведён к тупому чёрному panel + прямому SVG image без blend-магии; desktop `Cases` не тронуты. `npm run build` прошёл, но живая проверка именно на телефоне ещё нужна.
-
-- Task: В разделе "Философия" (Mindset) на desktop чуть-чуть опустить вниз круглые кнопки навигации (влево-вправо), чтобы они не налезали на текст. Только для desktop, на mobile оставить как есть. Сохранить логику фиксации кнопок.
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `LabW26PageV3.tsx` уменьшены значения `bottom` для контейнера кнопок на desktop (`md:bottom-8 -> md:bottom-6`, `lg:bottom-9 -> lg:bottom-7`), что опустило их ниже примерно на 8-10 пикселей. Mobile-значение `bottom-[4.25rem]` не менялось. Проверка в браузере подтвердила отсутствие наезда на текст при сохранении фиксированной позиции.
-
-- Task: На mobile в первом блоке `Программа` разложить `Недельный ритм` в две строки, убрать зазоры между ячейками и выровнять размеры дней так, чтобы кроме `ЧТ` и `ВС` они были одинаковыми
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После скриншотного фидбэка mobile `wrap` убран полностью. Вместо него сделаны две явные строки с немного более широкими ячейками и переносом `ПТ` во второй ряд: `ПН ВТ СР ЧТ` и `ПТ СБ ВС`. Внутренний рендер ячейки унифицирован с desktop-версией через общий helper, так что логика нижней посадки текста и типографика теперь одинаковые; внешнего box вокруг всего ритма нет, border остаётся только у самих ячеек.
-- Task: Убрать новый бежевый blank-screen после refresh на live-странице, когда сайт на секунду появляется, а потом пропадает
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Причина найдена и исправлена в `DesktopTechUiV5`: приложение падало в рантайме на `TypeError: Cannot read properties of null (reading 'rafId')` внутри новой scroll-lock логики, после чего `DevErrorBoundary` гасил весь React tree и оставлял только фоновую подложку. Null-bug в `clearAutoScrollLock` исправлен, `main.tsx` усилен так, чтобы dev-overlay теперь показывал и React render errors, а не только `window error`. После фикса `npm run build` прошёл, а headless-check на `http://127.0.0.1:3001/#hero` и `http://127.0.0.1:3001/lab-w26/v3#hero` больше не видит пропажи `main/#hero`.
-
-- Task: На mobile убрать лаги и белые экраны при `Смотреть детали` и переходе из меню в `Философию`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После дополнительного прохода визуальный rollback снят: boxer в hero и анимированная `Философия` возвращены. Технические mobile-фиксы сохранены: touch-mobile переходы идут через `auto`, scroll-driven hash-sync отключён именно для touch-mobile, `Смотреть детали` больше не делает delayed mobile scroll и не анимирует height на touch-mobile, mobile menu сначала закрывается и только потом скроллит к секции, boxer-canvas ставит на паузу RAF вне viewport/background tab, тяжёлые блоки ниже первого экрана подгружаются ближе к viewport, а новый lock-path больше не трогает `document.documentElement.style.overflow` и работает только через `body` с восстановлением предыдущего значения. `npm run lint` и `npm run build` прошли; живая проверка в Arc/на телефоне ещё нужна.
-
-- Task: На mobile повторно добить правый горизонтальный скролл и жёлтую пустую полосу справа после неудачного прошлого прохода
+- Task: Починить payment popup system consistency: mobile input zoom/focus не должен протекать в следующий popup, close icon должен быть одинаковым и не должен залезать на black board.
   Status: user-approved
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Пользователь подтвердил 2026-04-07, что горизонтального скролла больше нет. После возврата boxer/анимаций сохранены именно технические overflow-фиксы: mobile-only x-clamp на корне, bounded mobile layout, безопасная ширина cookie popup и отсутствие лишнего CSS-hidden case-хвоста на touch-mobile.
+  Last Checked: 2026-05-29
+  Note: Updated `src/components/PricingPaymentPopupDatalineHeader.tsx`: payment actions blur active inputs before state changes; mobile inputs keep `16px` computed font to prevent iOS zoom while placeholders stay visually smaller; close button is one shared transparent `28x28` control. Status popups use one compact system: mobile form `382x534`, mobile status panels `382x412`, desktop status panels `560x528`. `paid/handoff` now uses the same mobile middle slot as `failed/recovery` (`84px`) so the instruction no longer sits at the top with a large empty drop to the button; `failed/recovery` paragraph/card typography was tightened while preserving the same middle slot and action rail. Current validation: `npm run lint`, `npm run build`; Chrome mobile 390x667 checked form/redirecting/paid/failed: no internal scroll, status panel height delta `0`, close/black-board overlap `false`, close-to-board gap `8px`, paid/failed middle-to-action gap `30px`, action-to-panel-bottom `25px`. Chrome desktop 1280x900 checked all four states: no internal scroll, status action-to-panel-bottom `58px`, close/black-board overlap `false`, SVGs visible. User approved these four states as main v3 payment popup versions. Pushed commit `b53ea38` to `origin/main`; GitHub Pages run `26650546215` completed successfully; mobile GitHub Pages check confirmed all four direct state URLs open the expected popup with horizontal overflow `0`.
 
-- Task: На больших desktop-экранах ограничить максимальную ширину `Недельного ритма`, чтобы блок не расползался шире нужного
+- Task: Clean stale canvas history and remove superseded payment popup/payment page micro-iterations from the active task list.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `LabW26PageV3` максимальная ширина desktop-календаря снижена ещё примерно на 5 процентов: `max-w-[668px] -> max-w-[636px]`. Внутренние пропорции дней и сужение `ЧТ/ВС` не менялись; изменён только верхний предел общей ширины, чтобы на больших экранах блок не выглядел растянутым.
+  Last Checked: 2026-05-29
+  Note: Archived the previous 234 KB canvas to `TASK_VERIFICATION_CANVAS_ARCHIVE_2026-05-29.md`; active canvas now keeps only current operational commitments. No task history was permanently deleted.
 
-- Task: В desktop `Программе` сделать переключение недель дискретным: короткий scroll должен двигать только на одну неделю, а клик по неделе не должен прогонять blur-переходы через промежуточные недели
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После нового пользовательского фидбэка задача переоткрыта. В текущем follow-up desktop `Program` упрощён ещё раз: клик по неделе больше не вызывает `window.scrollTo` и меняет только active week/content, а wheel-navigation на pinned-секции переведён с delta-накопления на жестовую блокировку, чтобы один wheel-gesture давал максимум один переход по неделям независимо от силы scroll. `npm run build` прошёл; нужна живая desktop-проверка в Arc.
-
-- Task: В desktop `Философии` увеличить три pillar-анимации ещё примерно на 10 процентов и выровнять их визуально по центру, особенно опустив `Практику` и немного `Персонализацию`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Последний проход переведён на per-image alignment вместо shell-alignment: общий desktop art-slot снова увеличен примерно на 10%, shell почти нейтрализован, а `Практика` и `Персонализация` опускаются уже внутри общего слота через image-level `translate-y`, чтобы визуальный центр самих анимаций совпал с `Сообществом`. `npm run lint` и `npm run build` прошли; нужна живая desktop-проверка в Arc.
-
-- Task: В desktop-блоке `Философия / Mindset` чуть развести вертикально верхний текст, большую цитату и нижние стрелки, чтобы элементы перестали наезжать друг на друга
+- Task: Auto-clean old cleanup/preview tasks for local ports, old clones, `3023`, and GitHub-backed repo discovery.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `LabW26PageV3` divider между `Философией` и `Mindset` слегка увеличен (`py-2 -> py-3/4`), секции `mindset` добавлен небольшой верхний отступ, высота quote-area на desktop увеличена на `1rem`, а нижний control-row со стрелками опущен чуть ниже (`md:bottom-10 -> md:bottom-8`, `lg:bottom-9`). Правка намеренно минимальная, только чтобы снять налезание без изменения общей композиции.
+  Last Checked: 2026-05-29
+  Note: These tasks are now explicitly classified as ephemeral operational history, not active product/design work. They should not remain in the active canvas after the related preview/repo handoff is complete.
 
-- Task: В desktop `Программе` сделать hover/active-поле недельного rail менее скруглённым и заметно шире, а сам main-card пододвинуть ближе к неделям без лишнего зазора
+- Task: Keep AIM Page Design Lab payment lane strict and remove near-duplicate dark-grid/green-particle payment designs from active review.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `LabW26PageV3` у week-rail радиус hover-плашки снижен до `2px`, сама rail-колонка расширена (`120 -> 146`), hit-area недели вытянута вправо через `pr-5`, а gap до основного белого полотна уменьшен до `6px`. Одновременно `FINAL DEMO DAY` приведён к тому же радиусу, а max-width main-card слегка расширен (`940 -> 960`), чтобы на узких desktop-экранах контентное полотно начиналось ближе к rail и занимало больше полезной ширины. Нужна живая desktop-проверка по фактическому ощущению расстояния и плотности.
+  Last Checked: 2026-05-29
+  Note: Over-cleanup was corrected, then duplicate cleanup was tightened. `payment-page-design-lab/manifest.json` now exposes five restored review candidates: `AIM Mindset Morph`, `AIM Direct Particle`, `AIM Vortex Checkout`, `AIM Payment Gravity`, and `Quiet Orbit Checkout`. `Night Lunar Checkout` is hidden as a duplicate of the same centered dark checkout/orbit family; `AIM Dark Inkfield` is hidden until the source-port/performance repair is done. Restored run folders/previews were recovered from git, not permanently deleted. Playwright check: payment lane shows 5 cards, `Night Lunar Checkout` absent, `Quiet Orbit Checkout` present, overflow 0.
 
-- Task: В desktop `Cases` убрать задержку первого hover-цикла, чтобы SVG сразу становился белым и анимация начиналась мгновенно и плавно с первого кадра
+- Task: Make AIM Page Design Lab filters human-readable instead of exposing internal area tags.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: `homepage-design-lab/index.html` now renders only the five primary category filters: `pages`, `homepage`, `payment`, `elements`, and `all`, plus the two sort controls. Internal manifest areas such as `homepage-portrait-relay`, `programs-ecosystem-element`, and `sonya-review-card-ui` are no longer rendered as top-level filter buttons. Card metadata was also cleaned: ISO timestamps, serial card numbers, internal run paths, and numeric `4 payment states` labels are removed from visible cards; paths remain only behind buttons/links. Desktop and mobile Playwright checks on payment/pages lanes showed no horizontal overflow and no visible ISO timestamps/internal paths/payment-state counters.
+
+- Task: Rework failed `Signal Field Homepage` into a real homepage direction instead of an overlapping constellation mockup.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Gemini CLI critique was used; the run is now `Signal Instrument Homepage` with contained graphics, readable hero, real product/case structure, updated manifest, README, and preview thumbnail.
+
+- Task: Remove ugly square logo-poster background from Product Portal Homepage.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Replaced `logo-assembly-poster.png` in the Product Portal nav/signal logo slots with `ai-mindset-logo-transparent.png`; regenerated the Product Portal preview thumbnail. Desktop/mobile QA: HTTP 200, no broken images, no horizontal overflow, and no `logo-assembly` image remains in logo slots.
+
+- Task: Create a materially different immediate element for logo usage: transparent mark + pointer-reactive surface.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `homepage-design-lab/runs/elements/2026-05-29-transparent-logo-surface-kit/`, registered it in manifest and preview index, and generated `assets/previews/element-2026-05-29-transparent-logo-surface-kit.png`. Desktop/mobile QA: HTTP 200, no broken images, no horizontal overflow, nonblank stage, and no `logo-assembly` image in logo slots.
+
+- Task: Create a materially different full homepage direction focused on typography rather than another card/grid background.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `homepage-design-lab/runs/full/2026-05-29-typographic-specimen-homepage/`, registered it in manifest and preview index, and generated `assets/previews/homepage-2026-05-29-typographic-specimen-homepage.png`. Desktop/mobile QA: HTTP 200, no broken images, no horizontal overflow, nonblank type stage, 3 real case screenshots, and Russian CTA present.
+
+- Task: Create a materially different image-led full homepage direction with real case cinema in the first viewport.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `homepage-design-lab/runs/full/2026-05-29-case-cinema-homepage/`, registered it in manifest and preview index, and generated `assets/previews/homepage-2026-05-29-case-cinema-homepage.png`. Desktop/mobile QA: HTTP 200, no broken images after case switching, no horizontal overflow, nonblank cinema stage, 4 real case images, 3 real products, 3 people, and Russian CTA present.
+
+- Task: Create a materially different program-format hierarchy element instead of equal product cards.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `homepage-design-lab/runs/elements/2026-05-29-format-route-theater/`, registered it in manifest and preview index, and generated `assets/previews/element-2026-05-29-format-route-theater.png`. Desktop/mobile QA: HTTP 200, no broken images, no horizontal overflow, nonblank stage, and route switching changes the active product from `AI Mindset {main lab}` to `AI-Native orgs`. Source-fidelity pass used `source-snapshots/aimindset-org-2026-05-28.json` for product names, statuses, descriptions, links, team track, and consulting.
+
+- Task: Keep immediate AIM page/element generation running and reject filler variants that only change background, grid, glow, or particles.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Active cron `aim-page-and-element-design-generator-active-sprint` and heartbeat `aim-immediate-page-element-generation-heartbeat` were created/updated. Acceptance rule: new entries must differ materially in composition, interaction model, typography, visual language, and hierarchy. Latest accepted heartbeat artifacts: `Transparent Logo Surface Kit`, `Typographic Specimen Homepage`, `Case Cinema Homepage`, and `Format Route Theater`.
+
+- Task: Continue improving homepage/page-design variants so the output is not worse than the current `aimindset.org` design.
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После нового пользовательского фидбэка поведение разделено: статичный SVG снова остаётся в исходных цветах, а animated desktop-hover markup переводится в `currentColor`, поэтому на hover должен снова становиться белым без постоянного tint в покое. Одновременно visual-state карточки теперь завязан на тот же `shouldAnimate`, что и сам hover-animation, чтобы уменьшить баг с двумя зелёными карточками при быстром переходе мышью. Сборка прошла; нужна живая desktop-проверка в Arc.
+  Last Checked: 2026-05-29
+  Note: Current feedback to preserve in future generation: use real AIM content/source fidelity; do not invent reference text; avoid flat input-looking CTAs; improve typography/variable-font work; include meaningful imagery/animation; compare cases/products against current site quality before indexing. Logo rule added: do not use square poster/assembly assets as a site logo; use transparent logo assets or inline SVG marks, with no visible cutout background.
 
-- Task: На mobile payment popup по кнопке `присоединиться` не должен обрезаться сверху при открытом системном нижнем меню iPhone, а верхний mobile header нужно уменьшить ещё примерно на 10 процентов
+- Task: Register only materially new homepage-design-lab candidates from the active sprint.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `Seminar Ledger Homepage` and `Context Doctrine Deck` only after validating they were not another route/stage/ribbon/card-grid duplicate. Desktop/mobile preview checks used the local preview server on `http://127.0.0.1:5123`; mobile dump-DOM reported `data-aim-overflow-px="0"` and `data-aim-non-blank="true"` for both artifacts. Review links: `http://127.0.0.1:5123/preview/v3-site-repo-aimwebsite0-5-homepage-design-lab/runs/full/2026-05-29-seminar-ledger-homepage/index.html` and `http://127.0.0.1:5123/preview/v3-site-repo-aimwebsite0-5-homepage-design-lab/runs/elements/2026-05-29-context-doctrine-deck/index.html`. Preview thumbnails were written to `homepage-design-lab/assets/previews/homepage-2026-05-29-seminar-ledger-homepage.png` and `homepage-design-lab/assets/previews/element-2026-05-29-context-doctrine-deck.png`, with `preview-index.json` updated manually after the capture script stalled mid-run. Gemini CLI scouting was attempted first per routing policy, but the run remains fallback-contaminated because Gemini failed on `sysctl.proc_translated` in the sandbox.
+
+- Task: Add one materially different full-page homepage run for the active sprint without route/stage, collage, or accordion duplication.
+  Status: self-checked
+  Owner: assistant
+  Last Checked: 2026-05-29
+  Note: Added `Portrait Relay Homepage` at `http://127.0.0.1:5123/preview/v3-site-repo-aimwebsite0-5-homepage-design-lab/runs/full/2026-05-29-portrait-relay-homepage/index.html` with README in `homepage-design-lab/runs/full/2026-05-29-portrait-relay-homepage/README.md`, manifest registration in `homepage-design-lab/manifest.json`, and preview thumbnail `homepage-design-lab/assets/previews/homepage-2026-05-29-portrait-relay-homepage.png` plus `preview-index.json` entry. Desktop validation: preview URL returned HTTP 200 and the regenerated preview screenshot is nonblank with rendered local portraits/cases after copying required AIM assets into the run-local `assets/` folder. Mobile review link prepared: `http://192.168.1.71:5123/preview/v3-site-repo-aimwebsite0-5-homepage-design-lab/runs/full/2026-05-29-portrait-relay-homepage/index.html`. Mobile automation attempt via Chrome headless and window-scoped browser capture was blocked by the sandbox/GUI environment, so mobile confidence comes from the explicit responsive layout gates in the page (`<=900px` single-column downshift, `<=640px` rail/nav stack, fluid media widths) rather than a captured browser artifact. Gemini CLI visual scouting was attempted first and again failed on `sysctl.proc_translated`, so this run is marked fallback-contaminated in the manifest.
+
+- Task: Continue improving payment-page variants with correct payment UX and hierarchy.
   Status: implemented
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `PricingPaymentPopupNeon` mobile overlay переведён с вертикального центрирования на нижнюю посадку с safe-area (`items-end`, `pb-[calc(env(safe-area-inset-bottom)+32px)]`), а высота самого popup ограничена через `max-h: calc(100dvh - safe-area - 1.5rem)`, чтобы верхушка не обрезалась при системной панели iPhone. После нового пользовательского фидбэка popup дополнительно поднят ещё на `20px` относительно прошлого варианта. В `LabW26PageV3` mobile header дополнительно ужат с `py-[0.85rem]` до `py-[0.75rem]`; desktop-ветки не менялись.
+  Last Checked: 2026-05-29
+  Note: Current rules: payment path has four user-facing states only; no route/state/debug panels; no fake plan selector; placeholders must be visually lower priority than method buttons; promo field must be available but de-emphasized; duplicate `итого к оплате` labels are not allowed; validation/error states must never inherit the green accent and must use a distinct negative treatment; status-card headings must share the same scale across matching states. Restored the accidentally removed good payment candidates and removed stale `RECHECK` from the 9/10 candidates. Follow-up hierarchy fix: `AIM Mindset Morph` restores the source label `итого к оплате`, removes the invented `что оплачиваете / доступ к...` copy, shows `AI Mindset {main lab}` only once as the order item, keeps contact placeholders smaller/lighter than payment-method buttons, keeps promo shorter/de-emphasized, and makes the CTA less oversized. Error-color fix: missing Telegram/phone now uses red/negative status text and red input line, while green remains only for applied discount/success/active selection. Status-card fix: `paid` and `failed` now compute to the same heading font-size/line-height/max-width on desktop and mobile; failed uses a red heartbeat/status accent instead of green. Mobile viewport fix: `AIM Mindset Morph` and `AIM Direct Particle` no longer rely on full-page screenshot review; clean mobile review hides debug/review controls, uses compact 3-column payment methods, compact non-stretched CTAs, and passes viewport clipping checks on `375x812`, `375x667`, and `414x896` for all four states. Follow-up USDT discount fix: restored the `скидка 5%` badge on the USDT method in the shared payment-page lab and Source Inkfield artifact; selecting USDT now shows `846 USDT` with old price `890 USDT` in the shared lab. Follow-up spacing/readability rule: promo label is now bound to its own input, not to the Telegram discount above it; on mobile `telegram=aim` + `promo=ponchik`, `label→input = 1px`, previous status→label = `10px`, promo status text is lowercase (`скидка alumni...`, `действует alumni...`), `text-transform: none`, and status contrast is increased. Follow-up contrast copy: added `AIM Mindset Morph Contrast` as a separate review variant at `payment-page-design-lab/index.html?variant=aim-ai-mindset-morph-contrast&clean=1` instead of overwriting the original; it uses the same particle engine/UX and a stronger but still translucent field/card treatment. Second-pass fix after review: promo width now matches the Telegram/e-mail input columns, input text/placeholder/order item readability is raised, the card is less opaque-black, `промокод` has wider tracking, and the USDT `скидка 5%` badge is attached inside the USDT method control instead of floating above it. The baseline contrast fix also covers the similar dark `AIM Direct Particle` field family. Latest status-layout fix: `paid` and `failed` no longer stretch copy/animation/button with an empty `1fr`; SVG animation and CTA are centered in one vertical flow, CTA no longer sits at the lower-right edge, and the status card must fit the exact desktop/`375x812`/`414x896` viewport. Success-handoff SVG fix: the paid-state arrow animation now uses the same green as the CTA (`#a7e348`) instead of a separate purple accent, so the animation reads as part of the button/action system. QA pass: direct page has no bad invented labels, one visible `итого к оплате`, one visible `AI Mindset {main lab}`, no horizontal overflow, no route/state panels, error state is red/negative and not green/neutral, success discount remains green, USDT badge visible after method selection on `AIM Mindset Morph`, `AIM Mindset Morph Contrast`, `AIM Direct Particle`, and `Source Inkfield`; desktop plus `375x812`, `375x667`, and `414x896` viewport checks pass for all four states on the three shared particle variants; `payment-aim-ai-mindset-morph`, `payment-aim-ai-mindset-morph-contrast`, `payment-aim-x26-practice-direct`, and `payment-source-inkfield-checkout` previews were regenerated.
 
-- Task: На mobile уменьшить примерно вдвое разрыв между большим mindset-цитатным блоком и тарифами, а в `Отзывы` поднять слишком мелкий текст до нормального мобильного кегля
-  Status: implemented
+- Task: Add a broad design-hierarchy QA gate so form regressions are caught before review links.
+  Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` mobile-gap между `mindset` и `pricing` уменьшен через `pb-20 -> pb-10` у mindset и `py-20 -> pt-10 pb-20` у pricing, без изменений desktop. В `ReviewsSection` мобильный кегль отзыва поднят до `13px` и role-line до `11px`, чтобы текст не падал ниже комфортного диапазона для телефонов.
+  Last Checked: 2026-05-30
+  Note: Added general hierarchy rules to `homepage-design-lab/README.md` and broader payment-specific examples to `payment-page-design-lab/README.md`: required/primary controls must outrank optional controls, selected/active controls must be visibly stronger than inactive siblings, helper/badge labels must be attached to the object they explain, error/failed/invalid states need distinct negative treatment without flooding normal input surfaces red, applied/success states need positive treatment, and buttons need stable padding/alignment. Added `scripts/verify-design-hierarchy.mjs` plus `npm run qa:design-hierarchy`; the check opens real preview pages, clicks pay without Telegram, verifies red/negative error text/input line/required marker, verifies the error input background is not red fill, verifies selected payment method fill/stroke/text hierarchy against inactive methods, verifies optional fields are not visually stronger than required fields, verifies the USDT discount badge is attached without changing the button label, verifies the badge has a visible container/background or stroke, enters `ponchik` and verifies the applied promo success status is green/positive, checks desktop/`375x812`/`414x896` overflow, opens `paid`/`failed` directly to assert status cards fit the real viewport, animation sits below copy, CTA stays visually attached to the animation, and animation/CTA are centered. Latest update adds a failed-state color-token guard: status label, heartbeat dot, and retry SVG must use the shared `--danger: #ff4f42` token, and legacy hard-coded reds are blocked. Latest run passed for `AIM Mindset Morph Contrast`, `AIM Mindset Morph`, and `AIM Direct Particle`.
 
-- Task: На mobile `Cases` сделать карточки заметно шире, ближе к ширине экрана, и вернуть визуальному блоку кейса вес desktop-версии: SVG, тёмный media-shell и общую читаемость
-  Status: implemented
+- Task: Make the design generation workflow redesign failed candidates instead of hiding them as finished work.
+  Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Mobile follow-up переоткрыт и переведён с asset/data-uri экспериментов на более тупый path: на телефоне main `Cases` и popup теперь делят один общий mobile panel с прямой подачей SVG как обычного image-файла и чёрным media-shell, чтобы исключить разъезд между main-card и popup. Width-only mobile gate тоже синхронизирован с этим path. `npm run build` прошёл; нужна живая phone-проверка.
+  Last Checked: 2026-05-29
+  Note: Added `Generation Lifecycle Gate` to `homepage-design-lab/README.md` and mirrored the rule in `payment-page-design-lab/README.md`: a fresh active artifact that fails index/QA gates must enter a redesign loop, not be counted as delivered quantity. The loop is diagnose UX/data hierarchy/source/mobile/material-delta failure -> redesign -> rerun local desktop/mobile QA -> repeat until the candidate is adequate or explicitly abandoned with a written reason. `showInGallery: false` is now documented as valid only for archived rejected experiments, near-duplicate cleanup, or consciously abandoned directions, not as a substitute for completing the requested design task.
 
-- Task: В mobile footer сделать полупрозрачную надпись `AI MINDSET` заметно прозрачнее и опустить/увеличить её так, чтобы она сильнее жила внизу и немного заходила на зону `ОФЕРТА / ПОЛИТИКА`
-  Status: implemented
+- Task: Apply the same payment hierarchy/error-color rules to `payment 05` / `Quiet Orbit Checkout`.
+  Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` фоновая footer-надпись переведена на mobile-only lower placement: контейнер теперь выравнивается к низу, opacity снижена с `0.09` до `0.07`, а сама надпись увеличена на mobile и сдвинута вниз через `translate-y-[1.2rem]`, чтобы она мягче перекрывала нижнюю инфо-зону. Desktop-вид оставлен прежним через `md:*`.
+  Last Checked: 2026-05-29
+  Note: Updated `payment-page-design-lab/runs/2026-05-28-night-quiet-orbit/index.html`: contact placeholders are smaller/lighter than payment method buttons, promo is shorter/de-emphasized, duplicate top `итого к оплате` kicker removed, order context shows `AI Mindset {main lab}`, redirect copy uses `партнёрская ссылка оплаты открывается`, the redundant paid-state `откройте бота` tag was removed, validation errors use neutral status/input color instead of green, and failed state uses red status/particle accent instead of green. Follow-up spacing fix: promo label and underline are now one compact field group (`label -> input top` 1px, input height 24px). CTA alignment/system fix: paid/failed status buttons are centered in the card; `.primary`, `.ghost`, and payment method buttons now use the same `inline-flex` centering primitive with explicit height, padding, and `line-height: 1`, so labels do not jump vertically between states. QA center delta `0px` for both `paid` and `failed`, action buttons compute to `156x44`, method buttons to `123x40`, overflow `0`. QA: missing Telegram error color `rgba(246, 243, 234, 0.68)`, error input line `rgba(246, 243, 234, 0.58)`, `badGreen=false`; paid/failed headings both compute to desktop `52px / 48.88px`, mobile failed `34px`, overflow `0`; preview `payment-night-quiet-orbit` regenerated.
 
-- Task: На mobile в `Недельном ритме` выровнять подписи мероприятий, чтобы текст не прыгал, не вылезал и не обрезался, и сделать `ЧТ` и `ВС` примерно вдвое уже остальных дней
-  Status: implemented
+- Task: Repair `AIM Dark Inkfield` from the original X26 InkFieldSlide source without hanging the computer.
+  Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После нового фидбэка mobile `ProgramIntegratedTimeline` локально возвращён именно к состоянию из `5c7ceef`, где секция `Program` ещё работала вместе с full-height desktop right panel. Спорный split-layout снят, forced-open логика сохранена. `npm run lint` прошёл, но mobile календарь всё ещё требует живой визуальной проверки.
+  Last Checked: 2026-05-29
+  Note: The old self-made `AIM Dark Inkfield` remains hidden. Added a new source-faithful review artifact `Source Inkfield Checkout` from `/Users/viola/Downloads/S.K.Y.ai (1)/inkField-green-interactive.html` at `payment-page-design-lab/runs/2026-05-29-source-inkfield-checkout/index.html`; the unmodified source copy is preserved next to it as `source-inkField-green-interactive.html`. It is registered in `payment-page-design-lab/manifest.json`, appears in Page Design Lab, and has preview `homepage-design-lab/assets/previews/payment-source-inkfield-checkout.png`. Follow-up copy fix restores `итого к оплате`, removes the invented `что оплачиваете / доступ к...` copy, and prevents duplicate `AI Mindset {main lab}` in the form. Follow-up reference-text cleanup replaced visible `S.K.Y.ai`, `inkField`, `Upcoming`, timecode/frame/interactive, and debug legend labels with AIM/payment-field language in the review artifact and direct Inkfield variant; the original source file remains untouched. QA: desktop/mobile form/redirecting/paid/failed states active correctly, no horizontal overflow, no route/debug panels, original ink canvas renders, pointer drag creates bbox/log rows and particles. Text QA on 1280x820 and 390x844: no visible `S.K.Y.ai`, `inkField`, `Upcoming`, `details soon`, `INTERACTIVE`, `velocity`, `pressure`, `move cursor`, `draw ink`, `hold to press`, or `release to lift`; previews regenerated for `payment-source-inkfield-checkout` and `payment-x26-inkfield-dark`. One browser console 404 remains for a missing favicon only.
 
-- Task: Убрать оставшийся mobile горизонтальный скролл с бежевой полосой справа и в блоке `Философия` сильно приблизить анимации к тексту
+- Task: Publish Payments20 / `AIM Mindset Morph` to GitHub when it is ready.
   Status: requested
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Пользователь сообщил 2026-04-07, что правый вылет и жёлтая полоса всё ещё есть, значит предыдущий `overflow-x-hidden`-проход нельзя считать закрытым. Исторический пункт оставлен открытым; актуальный follow-up зафиксирован отдельной задачей выше.
+  Last Checked: 2026-05-29
+  Note: Local artifact exists at `payment-page-design-lab/index.html?variant=aim-ai-mindset-morph&clean=1`. GitHub push is blocked by project rule until browser review acceptance and explicit push authorization are both present.
 
-- Task: На mobile в блоке `Cases` активная карточка должна вести себя почти как desktop hover: выделяться зелёным, переводить SVG в белое animated-состояние и переключаться по карточке, которая ближе всего к середине экрана
-  Status: requested
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Пользователь 2026-04-07 явно снял эту механику с текущего прохода и хочет делать `Cases` отдельным агентом. Исторический пункт оставлен в canvas как отложенный, но из активной очереди текущего прохода исключён.
-
-- Task: Убрать тёплый/yellow background вокруг секции `Cases`, который всплывает на mobile при попытке скроллить вверх/вниз около контейнера кейсов
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Первичная гипотеза про внешний фон секции оказалась неверной и пользователь её отклонил; follow-up переведён в техническую плоскость. На mobile `Cases` убран разъезд main/popup render-path, а visual-shell сведён к чёрному panel + обычному SVG image без data-uri и без тяжёлого inline SVG DOM. Это должно уменьшить repaint/jank именно на телефонах, не трогая desktop.
-
-- Task: На mobile убрать зазор между верхним header и бегущей строкой, уменьшить высоту header примерно на 15 процентов и устранить горизонтальный скролл с бежевым фоном
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` mobile header сдвинут вплотную к ticker через `top-[18px]`, вертикальный padding уменьшен до `py-[0.85rem]`, а горизонтальный overflow убран у источника: header переведён в `box-border`, чтобы `w-full + px-4` больше не раздували ширину шире viewport и не открывали боковой бежевый фон. Нужна мобильная визуальная проверка.
-
-- Task: На mobile fixed-кнопка `/хочу на лабу` должна появляться только после того, как пользователь реально доскроллил до исходной hero-кнопки, и не дублироваться, пока она ещё видна
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После нового фидбэка отдельная mobile fixed-кнопка снята. Вместо неё сам hero CTA на mobile сделан шире и переведён в sticky-вариант внутри секции `hero`: это та же кнопка того же дизайна, которая прилипает к нижнему safe-area во время scroll внутри hero и исчезает вместе с выходом из секции. Desktop-поведение не менялось.
-
-- Task: Довести desktop-блок `программа` на живой странице до реально видимого состояния: правый full-height black panel с glow-art и двумя glass-карточками, плюс заметно более узкие `ЧТ` и `ВС`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: По новому desktop-фидбэку от 2026-04-07 белый хвост под `Program` всё ещё считался открытым. В текущем follow-up лишняя высота desktop scroll-shell дополнительно схлопнута (`h-[200vh] -> h-[calc(100vh+420px)]`), чтобы под карточкой не оставался длинный прокручиваемый белый хвост. `npm run build` прошёл; нужна живая desktop-проверка в Arc по фактической высоте хвоста.
-
-- Task: В live FAQ убрать двойную линию под вопросом и увеличить расстояние между верхним label блока, названием раздела и первым `q:`
+- Task: Fix `AIM Mindset Morph Contrast` promo-code hierarchy and USDT discount badge.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `FooterFaqBlock` live-mode возвращена линия под строкой `question`, а акцент перенесён на верхнюю линию открытого блока через более заметный `border-b` у раскрытой категории. Gap между `q:` и текстом вопроса уменьшен. `npm run build` прошёл, preview на `:3001` отвечает `HTTP 200`.
-
-- Task: В live-отзывах убрать кривой перенос ролей и висячие закрывающие скобки, чтобы длинные роли занимали нормальную ширину карточки
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `ReviewsSection` live-expanded footer переведён на full-width role layout: роль занимает всю ширину карточки, центрируется между скобками и переносится через `wbr` вокруг `|` и `/`, чтобы не было висячих закрывающих скобок. `ТГ` возвращён к зелёному текстовому виду без постоянного фона; подсветка появляется только на hover карточки. `npm run build` прошёл, preview на `:3001` отвечает `HTTP 200`.
-
-- Task: Синхронизировать anchors текущей страницы в mobile и desktop меню с реальными блоками сайта и визуально отделить page navigation от menu сайта
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: `LabW26PageV3` переведён на единый список `PAGE_SECTION_LINKS` для mobile и desktop; после нового фидбэка в список возвращён и первый раздел `HERO BLOG`, чтобы anchors снова совпадали с реальными блоками сайта. На mobile блок сохранён на старом месте, а desktop page-nav теперь читается заметнее: минимум `10px`, выше контраст, одна точка вместо троеточия и активный раздел отмечается левым маркером.
-
-- Task: В блоке `Философия` увеличить три morph-анимации примерно на 30 процентов
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Увеличен размер контейнера для трёх philosophy SVG в live `LabW26PageV3`; дополнительно ряд философии опущен ниже заголовка, а контейнеры анимаций переведены на общее выравнивание по нижнему краю, чтобы узкие SVG не подпрыгивали вверх относительно соседних. Нужна быстрая проверка в браузере по фактическому визуальному ритму.
-
-- Task: В `Cases` убрать с live четыре чужеродных dark-signal SVG, перенести их в experimental blocks и оставить на live только hover-only SVG в общей стилистике
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` live-мэппинг возвращён на основной набор `case-0..9.svg`; четыре dark-signal SVG сняты с live-страницы. Вне hover в DOM теперь монтируется статичный SVG без `<animate>`, а живой animated markup подгружается только на hover, поэтому анимация не должна крутиться постоянно.
-
-- Task: На мобильной версии `Cases` оставить на главной только первые 4 карточки, а остальные открывать через кнопку `Посмотреть все`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `LabW26PageV3` для основной mobile-сетки `Cases` карточки с 5-й по 8-ю скрыты только на `< md`, при этом desktop-раскладка и существующий overlay `Посмотреть все` не менялись. Ждёт визуальной проверки пользователя.
-
-- Task: В `Cases` не анимировать все карточки подряд и зафиксировать одинаковую высоту всех карточек без скачков
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Последняя попытка с отдельным hover-мэппингом для нижней четвёрки была отклонена пользователем как визуально тупая подмена предмета. Текущий проход заменил сами базовые visual-ассеты у карточек `4..7` на уже существующие animated SVG из верхнего ряда, так что у них теперь один и тот же visual до hover и на hover. Выравнивание по высоте по-прежнему делается только через `description`-зону. Ждёт пользовательской проверки.
-
-- Task: Перенести снятые с live dark-signal кейсы в `experimental blogs`, чтобы смотреть их отдельно от live-сайта
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В repo `AIM Website/Elements Research/ai-mindset-blocks` добавлен отдельный review-вариант `cases-v7` (`DesktopCasesMovedDarkReview`) с четырьмя снятыми dark-signal visual. Asset copy log: `AI Mindset/public/assets/cases/case-coaching-dark.svg -> ai-mindset-blocks/public/assets/cases/case-coaching-dark.svg`, `case-vision-dark.svg -> case-vision-dark.svg`, `case-automation-dark.svg -> case-automation-dark.svg`, `case-research-dark.svg -> case-research-dark.svg`.
-
-- Task: В первом блоке `программа` сделать ячейки `ЧТ` и `ВС` в `недельном ритме` намеренно уже и на полуэкранной ширине
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Логика `недельного ритма` переведена с гибких `fr` на фиксированные безопасные desktop-ширины, чтобы текст не обрезался. Уже остаются только `ЧТ` и `ВС`, а остальные дни держат нормальную ширину. Нужна визуальная проверка пользователя, не выглядит ли блок теперь слишком жёстким по общей ширине.
-
-- Task: В первом блоке `программа` сделать правую advanced-колонку полной чёрной высоты и заменить старую мини-карточку на две полупрозрачные карточки поверх зелёного glow-арта
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `DesktopTechUiV5` правая колонка expanded-программы переведена в full-height чёрный модуль с green glow-art и двумя event-card; `speaker/slot` убраны, вместо них оставлены только `инструменты`. Нужна визуальная проверка пользователя, что карточки действительно совпадают по логике с нужным референсом, а не выглядят как новая интерпретация.
-
-- Task: Починить desktop-scroll в блоке `Программа`, чтобы pinned section не залипала, не глотала wheel без перехода и не перескакивала недели
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-07
-  Note: В `DesktopTechUiV5` wheel-trap переписан: `preventDefault` больше не вызывается в lock-state, lock сокращён и сбрасывается при смене направления. Логика недели переведена с rounded-progress на явные snap-step позиции, завязанные на реальную высоту sticky-panel, а клик по левой rail теперь идёт через тот же navigation path, что и wheel. `npm run build` в этой среде не вернул финальный stdout, но локальный preview на `:3001` продолжает отвечать `HTTP 200`; требуется ручная desktop-проверка реальным touchpad.
-
-- Task: Заменить CTA `хочу на лабораторию` на `/хочу на лабу` и привести pricing CTA `присоединиться` к той же стилистике без лишней жирности и разрядки
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: На live-экране `LabW26PageV3` hero/sidebar CTA заменены на `/хочу на лабу`, pricing CTA переведён на отдельный `PRICING_CTA_BUTTON_CLASS` с той же mono-типографикой, но без лишней жирности и разрядки; альтернативный `v4` возвращён без этих правок. `npm run build` прошёл, local preview на `:3001` отдаёт `HTTP 200`.
-
-- Task: В раскрытых отзывах на живом экране убрать белые карточки, уменьшить паддинги, исправить перенос роли без одиноких скобок и выделить `ТГ` как кликабельный элемент
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `ReviewsSection` добавлен режим `mode=\"live\"`, который подключён только в `LabW26PageV3`: в раскрытом состоянии карточки прозрачные до hover, padding уменьшен, роль собрана в 3-колоночный bracket-layout без висячих `[`/`]`, а `ТГ ↗` оформлен как явная ссылка. `npm run build` прошёл, preview доступен на `:3001`.
-
-- Task: В live FAQ укоротить линию до ширины текста, облегчить типографику раскрытого текста и увеличить расстояние между ответом и следующим вопросом
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: В `FooterFaqBlock` добавлен режим `mode=\"live\"`, подключённый только в `LabW26PageV3`: категория теперь получает underline только по ширине текста, раскрытый `q/a` уменьшен до масштаба внешних разделов, текст ответа ослаблен по цвету и кеглю, line-height увеличен, а расстояние между следующими вопросами расширено. `npm run build` прошёл, local preview на `:3001` отвечает корректно.
-
-- Task: Убрать блок `другие лаборатории` с главной страницы live-сайта и перенести его в соседний research-проект `ai-mindset-blocks` как experimental block `Ready for review`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Блок снят с `LabW26PageV3` и добавлен в `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AIM Website/Elements Research/ai-mindset-blocks` как новый `navigator-v6` (`DesktopLabsNavigatorReadyForReview.tsx`). Сборка `AI Mindset` и `ai-mindset-blocks` прошла; локальные preview отвечают на `:3001` и `:5173/ai-mindset-blocks/`.
-
-- Task: На мобильной версии главной страницы опустить cookie-форму почти к нижнему краю экрана
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: В `src/components/LabW26PageV3.tsx` mobile `bottom-24` у cookie-баннера снижен до `bottom-4` при сохранении `md:bottom-6`; сборка `npm run build` прошла, а mobile headless screenshot на pricing-переходе показал баннер у нижнего края экрана.
-
-- Task: На мобильной версии hero визуально выровнять воксель-логотип строго по центру
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: У mobile-wrapper hero добавлен `flex justify-center`, а прежний ручной сдвиг у `InvertedVoxelLogoFace` уже снят; mobile screenshot с live `:3001/` подтверждает симметричный wrapper и центрированную композицию.
-
-- Task: Найти полный face-logo в чёрном прозрачном исполнении и перевести на него статический логотип в mobile и desktop header
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: Отдельный полный чёрный transparent-ассет в рабочем проекте не найден; вместо этого статический full-face `assets/ai-mindset-logo.png` переведён в чёрный вариант через `invert` в mobile/desktop header, без замены hero-вокселя и без изменения размеров layout.
-
-- Task: На мобильном header исправить wordmark рядом с логотипом, чтобы `AI` не терялся и не выглядел как случайная полоска
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: Mobile-header переведён с `MINDSET` + разделитель на явный `AI MINDSET` рядом с full-face знаком; live mobile screenshot подтверждает читаемый wordmark без ложной «палочки» вместо `AI`.
-
-- Task: После клика по `хочу на лабораторию` временно подсвечивать приземление в блоке тарифов небольшой иконкой
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: В `LabW26PageV3` добавлен transient-state `showPricingCue`, CTA `хочу на лабораторию` теперь идёт через `scrollToPricingWithCue`, а у `EditorialSectionHeader` секции `Тарифы` показывается краткий зелёный `ChevronDown`; build прошёл, DOM/headless проверка после hero-CTA подтвердила `cueFound: true` и `opacity: 1`.
-
-- Task: Добавить на mobile внизу ненавязчивую кнопку `Связаться с нами`, ведущую в уже существующую форму связи
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: Добавлена mobile-only fixed-кнопка `Связаться с нами`, ведущая на уже используемую contact/waitlist форму `https://join.aimindset.org/waitlist`; headless DOM-проверка подтвердила fixed anchor и корректный `href`.
-
-- Task: Провести аудит дизайн-системы страницы `/lab-w26/v3` (шрифты, цвета, отступы), предложить объединение стилей и перевести дубликат страницы `LabW26PageV4` на 8-пиксельную 12-колоночную сетку
-  Status: requested
-  Owner: assistant
-  Last Checked: 2026-04-03
-  Note: Запрошено создание копии, разработка 8px-grid / столбцовки, привязка всех размеров к сетке и объединение стилей через artifact. План работ выставлен на ревью.
-
-- Task: Ужать карточки `Cases` на живом сайте, убрать из них описательный текст, сделать `Посмотреть все` тем же самым карточным шаблоном и уместить overlay плотнее в два ряда
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: После пользовательской коррекции в `src/components/LabW26PageV3.tsx` основной grid и overlay оставлены на едином компактном case-card шаблоне, карточкам возвращён `description`, author/role снова собраны в одну строку, лишние номер/дополнительные теги сняты, visual-shell поджат ближе к верхней рамке, из opened case-popup убран дублирующий `desc`, затем на основном сайте показ расширен до двух рядов (`8` кейсов), `description` ослаблен до regular и чуть увеличен; позже карточка разделена на два режима: на главной `description` раскрыт до `3` строк и tool-теги оставлены внутри карточек, при этом filter-row `Инструменты` снят с основной страницы, а в overlay tool-теги и filter-row `Инструменты` сохранены, усилены по читаемости на hover, сам набор кейсов расширен сверх исходных `10`, и клики по пустому фону внутри большого overlay теперь тоже закрывают его, тогда как клики по карточкам и filter-tags — нет; `npm run build` прошёл, ждёт визуальной проверки пользователя.
-
-- Task: При обычном скролле синхронизировать URL hash с текущим блоком страницы, чтобы refresh не возвращал к старому anchor
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: В `src/components/LabW26PageV3.tsx` добавлена scroll-based синхронизация hash с текущей секцией (`hero/program/cases/speakers/philosophy/pricing/reviews/faq/labs`) и убран плавный initial jump на reload; `npm run build` прошёл, ждёт пользовательской проверки поведения.
-
-- Task: Перенести на живой сайт новый облегчённый FAQ-вариант из experimental, убрать массивность закрытого состояния, сузить колонку открытого текста и выделить ключевые слова в ответах
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: В `src/components/FooterFaqBlock.tsx` live FAQ переведён на flat-state без белых плашек, плюсик перенесён ближе к тексту, открытые ответы ограничены по ширине адаптивно (`lg ~74% / xl ~70% / 2xl ~66%`), внутри ответов добавлены точечные bold-акценты на ключевых фразах, мягкая выключка по ширине включается только на `xl+` с поджатым `word-spacing`, а для строки вопроса внутри ответа сейчас показан A/B-preview: в первой раскрывашке мягкий зелёный прямоугольник, во второй — тонкий чёрный stroke; `npm run build` прошёл.
-
-- Task: В desktop-блоке `Спикеры` на живом сайте запретить карточкам увеличиваться при изменении ширины экрана: они могут только уменьшаться или перестраиваться по колонкам
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: В `src/components/LabW26PageV3.tsx` desktop-grid переведён на центрирование с `max-w-[286px]` у каждой карточки и промежуточным `lg:grid-cols-3`, чтобы карточки не растягивались на широких ячейках; `npm run build` прошёл.
-
-- Task: На живом сайте `/lab-w26/v3` заменить desktop-блок `Спикеры` на layout из экспериментального `Speakers V5`, сохранив текущие live-данные и мобильное поведение
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: В `src/components/LabW26PageV3.tsx` desktop speakers-section переведена на портретную композицию с угловыми рамками по мотивам `DesktopSpeakersV5`, при этом live-тексты, изображения и mobile-логика сохранены.
-
-- Task: На живом сайте `/lab-w26/v3` починить anchor-ссылки на блоки, чтобы URL hash не терялся и прямые ссылки работали как ссылки на конкретные секции
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-04-02
-  Note: `scrollTo` теперь синхронизирует URL hash через `history.replaceState`, на mount/hashchange добавлен прямой scroll к hash-цели, и вокруг `reviews` / `faq` / `labs` / `speakers` добавлены явные anchor-обёртки.
-
-- Task: В FAQ-блоке на странице `/lab-w26/v3` убрать внешний background и border, а верхнюю чёрную линию сделать тоньше
-  Status: implemented
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: Первый вариант с удалением внешнего `bg/border/shadow` был сделан, но затем пользователь уточнил новый референс для полной замены шапки FAQ.
-
-- Task: В FAQ-блоке на странице `/lab-w26/v3` заменить текущую шапку на вариант в стилистике cocktail/reviews header, сохранив зелёную надпись `[f.a.q. module]`
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: В `src/components/FooterFaqBlock.tsx` удалён старый header `вопросы и ответы / sys_ready`; зелёная надпись сохранена, ниже добавлен новый header с серым `FAQ_LOG`, тонкой линией и большим названием блока справа; ждёт визуальной проверки пользователем.
-
-- Task: В карточках `Тарифы` на `/lab-w26/v3` убрать слишком большой разрыв между текстом блока `программа` и линией перед `что получаешь`
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: В `src/components/LabW26PageV3.tsx` уменьшен desktop `min-height` у верхнего feature-блока тарифа, чтобы divider поднимался ближе к контенту без перестройки всей карточки; ждёт визуальной проверки пользователем.
-
-- Task: В блоке `Labs Navigator` на `/lab-w26/v3` перевести весь интерфейс на русский и уменьшить карточки примерно на 20 процентов
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: После уточнения пользователя блок донастроен: шапка заменена на `другие лаборатории:`, длинная горизонтальная линия убрана, в табах оставлены только `текущие / будущие / архив`, английские названия четырёх лабораторий возвращены, статусные теги сняты полностью; после нового фидбэка карточки переведены с растянутого grid на обычный left-aligned flex-ряд с фиксированной шириной и маленьким gap, чтобы они стояли значительно ближе друг к другу, а свободное место оставалось справа.
-
-- Task: Между блоками `FAQ` и `Labs Navigator` на `/lab-w26/v3` сделать более заметный разрыв в духе slash-divider референса
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: В `src/components/LabW26PageV3.tsx` увеличен вертикальный интервал внутри общей секции и между `FooterFaqBlock` и `FooterLabsNavigatorBlock` вставлен отдельный `SlashDivider`; ждёт визуальной проверки пользователем.
-
-- Task: Восстановить дизайн блока "Cases", добавив 10 уникальных SVG-анимаций (со смещением левее, увеличением в 1.15х и 2 glow-версиями)
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-31
-  Note: Исходные SVG пересозданы (+15% масштаб, сдвиг влево на 15%, удалено 20% линий для плавности, для 2 кейсов применён tech-стиль с утолщением и opacity glow); старые файлы в public перезаписаны через loopback-мост; локальный vite config восстановлен; ждёт ревью пользователя.
-
-- Task: Поднять локально и дать отдельные URL для `LabW26PageV3`, `LabW26PageV3Alt`, `LabW26PageV3Switcher` и `LabW26PageV4`
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-31
-  Note: В `src/App.tsx` добавлены отдельные маршруты `/lab-w26/v3`, `/lab-w26/v3-alt`, `/lab-w26/v3-switcher` и `/lab-w26/v4`; локальный dev server поднят с LAN-доступом для desktop/mobile проверки; ждёт пользовательского подтверждения
-
-- Task: В живом git-backed `/v3` центрировать второй desktop-ряд `Спикеры`, если карточек там меньше, чем в первом ряду
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-30
-  Note: Выполнено в `src/components/LabW26PageV3.tsx` через split `4 + rest` и отдельный центрированный второй ряд для `lg+`; mobile-ветка не менялась, `npm run build` прошёл, `curl http://localhost:3001/v3` вернул `200 OK`; ждёт пользовательского подтверждения
-
-- Task: В живом git-backed `/v3` добавить прозрачную morph SVG-анимацию справа от секции `Спикеры`, чтобы заполнить пустоту на широком desktop
-  Status: self-checked
-  Owner: user
-  Last Checked: 2026-03-30
-  Note: SVG добавлен в `public/assets/speakers-morph-animation-8.svg` и подключён справа от desktop-layout в `LabW26PageV3.tsx`; `curl http://localhost:3001/assets/speakers-morph-animation-8.svg` вернул `200 OK`; ждёт пользовательского визуального подтверждения
-
-- Task: Зафиксировать, что правки `Спикеры` были сделаны в старой версии страницы, а актуальная страница для правок ещё не найдена
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-31
-  Note: Подтверждено пользователем: `aimwebsite0.5` (`/Users/viola/.../Vibe Coding/AI Mindset`, `LabW26PageV3.tsx`) содержит мои правки, но это не актуальная страница. Требуется определить текущий “канон” (GitHub Pages URL или repo/ветку) и перенести правки туда.
-
-- Task: В hero block уменьшить количество вокселей примерно в 2 раза, сделать их плотнее, сохранить правильную форму правой половины лица по референсу и убрать лаги анимации
-  Status: requested
-  Owner: user
-  Last Checked: 2026-03-29
-  Note: Предыдущий pass ушёл в неправильный dotted-hero и не совпал с реальным визуальным ориентиром пользователя; сначала нужно вернуть правильный grid-вариант страницы, затем уже уменьшать плотность и лаги на нём
-
-- Task: Сделать cleanup-only проход для GitHub Pages entry layer: новый `title`, меньше путаницы в роутинге и без изменения основной страницы `v3`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: `index.html` переведён на `AI Mindset`; из `App.tsx` убраны legacy/experimental aliases, `ai-mindset-lab-x26` и wildcard теперь канонизируются на `/`; `LabW26PageV3.tsx` локально не менялся; `npm run build` прошёл; untracked времянки и экспериментальные файлы вынесены в local shelf `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/_cleanup_shelf/AI Mindset/2026-03-29`
-
-- Task: Убрать `test-page` и `variants` из текущей репы `AI Mindset` и перенести их в `AIM Website/Elements Research`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: `ProgramShowcasePage.tsx` и `ProgramVariantsPage.tsx` перемещены в `Elements Research`, а маршруты удалены из текущего `App.tsx`
-
-- Task: Убрать `library` из текущей репы `AI Mindset`, перенести её в `Visual Elements Library` и завести там отдельный git repo
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: `StyleLibraryPage/StyleCard/StyleLibrary/StyleGenerator/generativeStyles` перемещены в `Visual Elements Library`, а в папке инициализирован локальный git repo
-
-- Task: Удалить `public/ostrich.html` из текущей репы
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: Файл удалён по явному запросу пользователя
-
-- Task: Дать локально посмотреть `DesktopTechUiV5.tsx` и `ProgramShowcaseAccordionCleanV2Page.tsx`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: Для просмотра были временно добавлены маршруты; после проверки установлено, что копии этих экранов уже существуют в соседних repos внутри `Vibe Coding`, поэтому временные маршруты затем удалены из текущей репы
-
-- Task: На основной странице `/v3` сделать карточки `Тарифы` шире, убрать раскрывашку, всегда показать весь контент, заменить кружочки на маленькие зелёные стрелки, перевести `base` в `База` и сделать mobile-раскладку вертикальной
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: В `LabW26PageV3.tsx` pricing переведён на постоянную раскрытую версию, списки теперь с маленькими зелёными `›`, CTA переименован в `записаться`, mobile идёт одной колонкой, а desktop-сетка сужена по gap для более широких карточек
-
-- Task: Аккуратно поменять местами `cases` между основным `/v3` и последним экспериментальным cases block
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: На основном `/v3` текущая секция `cases` заменена на компактный experimental-style блок с первыми 4 кейсами и общим `ещё`, а в `ai-mindset-blocks` добавлен relocated-вариант `CURRENT LIVE SITE / RELOCATED`
-
-- Task: На mobile в блоке `программа` сделать ячейки `недельный ритм` чуть выше, чтобы все слова помещались
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: В `LabW26PageV3.tsx` mobile-высота ячеек поднята с `44px` до `54px`, а нижняя текстовая зона увеличена; `npm run build` прошёл, мобильный screenshot `#program` снят через `npx playwright screenshot`
-
-- Task: В секции `Спикеры` на основном сайте оставить новый desktop-вариант с открытым текстом, но на mobile вернуть прежнюю версию со стрелкой и раскрывающимся описанием
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: В `LabW26PageV3.tsx` секция `team` разделена на две ветки: `md:hidden` снова использует двухколоночные карточки со стрелкой и row-based раскрытием, а `md+` сохраняет новый always-open desktop-layout; `npm run build` прошёл, мобильный screenshot `#team` снят и просмотрен
-
-- Task: Перенести новый воксель-логотип из research на основной сайт `v3`, инвертировать его под белый фон и сделать левую половину чёрной вместо белой
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: Старый hero-canvas заменён на новый `InvertedVoxelLogoFace`: прозрачный фон, чёрная левая половина, правая половина собрана чёрными вокселями по форме оригинального PNG; локальный скриншот `:3023` просмотрен после правки
-
-- Task: Сместить белый gap глаза вправо и убрать чёрный пиксел-сосед: сдвинуть ошибочный пиксель на два столбца влево, чтобы форма глаза совпала с референсом
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-31
-  Note: Обновлён `isInsideEyeZone` в `InvertedVoxelLogoFace.tsx` так, чтобы вырез глаз расширялся влево, покрывая лишний чёрный пиксель; `npm run build` прошёл, готов к визуальной сверке
-
-- Task: Перенести блок `вопросы и ответы` с `ai-mindset-blocks` в живую страницу `/aimwebsite0.5/v3` и поставить его в самом конце перед футером
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: Блок портирован в локальный компонент `FooterFaqBlock`, смонтирован в `LabW26PageV3.tsx` перед футером, затем подогнан по ширине и ритму под текущий `v3`; сборка прошла, и headless DOM-проверка на `:3023` подтвердила одно вхождение `вопросы и ответы`
-
-- Task: Перенести блок `LABS NAVIGATOR` с `ai-mindset-blocks` в живую страницу `/aimwebsite0.5/v3` и поставить его рядом внизу страницы
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: Третий вариант навигатора портирован в локальный компонент `FooterLabsNavigatorBlock`, добавлен под FAQ-блоком перед футером, затем расширен до общей ширины секции, получил более крупные описания и фикс для двухстрочного `AI-NATIVE ORGS`; сборка прошла, и headless DOM-проверка на `:3023` подтвердила одно вхождение `LABS NAVIGATOR`
-
-- Task: В desktop-блоке `program` на `/aimwebsite0.5/v3` сделать новый, более спокойный и компактный FAQ-like вариант вместо тяжёлого текущего вида
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: Текущий desktop `DesktopTechUiV5` заменён на новый `ProgramDesktopFaqCalm`: компактный stack-accordion с мягкой графикой, меньшими отступами и спокойной подачей main/advanced content
-
-- Task: Уменьшить расстояние между тремя карточками философии и блоком с цитатой `После лабы я понял:` примерно в 2 раза, ориентир около 100px
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: После уточнения пользователя дополнительно уменьшен только мобильный зазор между текстом цитаты и нижним блоком примерно на 20px; высота секции и desktop-отступы не менялись
-
-- Task: В блоке `программа` сделать ячейки `недельный ритм` шире и ниже, убрать нежелательные переносы, дать `четвергу` и `воскресенью` лёгкий серый фон и выровнять все названия событий по нижнему краю
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Desktop-календарь встроен в основной файл и локально перепроверен после правки: ячейки сделаны ниже и шире, `СР` получил сплошной серый тон, `ЧТ/ВС` — тот же тон с пониженной прозрачностью; в mobile-аккордеоне тем же проходом скорректированы серые фоны и нижний внутренний отступ текста
-
-- Task: В мобильной версии блока `программа` перенести из дубликата в оригинал только типографику раскрывающихся карточек недель
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Перенесены только текстовые размеры/вес/межстрочный интервал внутри раскрывающихся недельных карточек и блока `Advanced Track`; выравнивание текста по сторонам не менялось
-
-- Task: Восстановить рабочую локальную ссылку предпросмотра для страницы `/v3`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: `npm run dev:v4` запущен, Vite поднят на `http://192.168.1.158:8888/`
-
-- Task: В мобильной версии блока `Спикеры` убрать разделительную линию и подпись над описанием, а сам текст сделать одной широкой колонкой вместо двух
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: В мобильном раскрытии спикера удалены `border-t/b`, скрыта подпись `о спикере`, текст описания переведён в один широкий блок, а вертикальный зазор между карточкой и текстом дополнительно уменьшен примерно вдвое
-
-- Task: В мобильной версии секции `Философия` сделать анимацию крупнее, большую цитату ближе к анимации и стрелки ближе к тексту
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Для mobile анимация дополнительно опущена ниже примерно на 40px через `translate-y-10`, чтобы визуально сильнее сократить разрыв до большой цитаты
-
-- Task: Подтвердить, что обновлённый глаз в `InvertedVoxelLogoFace` продолжает собираться без ошибок после смещения зон в маске
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-31
-  Note: Запуск `npm run build` завершился без ошибок после увеличения области `isInsideEyeZone`, поэтому можно вручную проверить визуал на порту `:3023` перед окончательным обзором
-
-- Task: На мобильной уменьшить расстояние между философской цитатой/стрелками и началом секции `программа`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Мобильный переход поджат через уменьшение `pb` у `mindset` и `pt` у `program`
-
-- Task: На мобильной ещё немного уменьшить расстояние между карточкой спикера и раскрытым описанием
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Мобильный раскрывающийся блок спикера дополнительно поджат через `mt-0.5` и уменьшенные верхний/нижний padding
-
-- Task: На мобильной переделать тарифы в горизонтальный свайп, сделать карточки компактнее по высоте и ширине, убрать лишние вертикальные дыры и увеличить line-height у текстов
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: На mobile тарифы переведены в горизонтальный scroll/snap, карточки стали уже и компактнее, убраны фиксированные высоты и лишние зазоры, увеличен line-height у feature/more-текстов; у `Advanced` удалён дубль `+4 занятия`, выровнены зоны title/price/offer/buttons и зафиксирована высота кнопок
-
-- Task: Переделать мобильное меню под иерархию `labs` с тремя вложенными страницами, убрать лишнюю подпись/линию и проверить работу якорей разделов страницы
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Убрана пустая секция `меню`, первый блок разделов подписан `меню`, подпись `labs` оставлена только над вложенными lab-страницами, размеры трёх вложенных ссылок уменьшены; якорь `Философия` переведён на реальный `#philosophy`
-
-- Task: Встроить desktop-блок `программа` прямо в `LabW26PageV3.tsx` вместо отдельного компонента и уже там починить desktop-календарь
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: Desktop-блок `программа` больше не тянется из отдельного `DesktopTechUiV5.tsx`: компонент продублирован и теперь живёт прямо внутри `LabW26PageV3.tsx`
-
-- Task: Вернуть desktop-описание спикеров ближе к прежнему виду: левое выравнивание, шире текстовый блок и более безопасная адаптация размера для длинных описаний
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: В desktop-overlay спикеров возвращены `items-start` и `text-left`, текстовый блок сделан шире, а размер переведён на `clamp(...)` для более мягкого ужатия длинных описаний
-
-- Task: Добавить блок `Отзывы` в страницу на desktop и mobile и включить его в anchor-меню
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: `Отзывы` добавлены в anchor-меню, переставлены после `Тарифов` и перед финальной цитатой `Мы не учим кодить...`; порядок локально перепроверен по рендеру
-
-- Task: Make the project monospace text render more consistently across computers
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-24
-  Note: `font-mono` now resolves to `IBM Plex Mono` project-wide so monospace text renders consistently across machines
-
-- Task: Tighten the desktop hero text styling so the left title block, right description block, and `Следующий поток` row line up like before
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Hero block returned to a simpler two-column composition: the title is back to a three-line layout, the extra green `подать заявку` CTA was removed, `Следующий поток` replaced with `19 января — 16 февраля · 4 недели`, and the top row was re-tuned through font size and line-height rather than a fake container-height hack
-
-- Task: Переставить блоки `Философия` и большую цитату после `Спикеров` и перед `Тарифами`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Порядок секций перестроен на `program -> cases -> team -> philosophy -> mindset -> pricing`
-
-- Task: Переделать блок `Спикеры`: 4 карточки в ряд на desktop, раскрытие описания по клику на стрелку и затемнение неактивных карточек
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: После нового пользовательского фидбэка статус понижен обратно: найден реальный дефект desktop-сетки, из-за которого последний ряд рисовался в 3 колонки и карточки выглядели разного размера; текущий проход фиксирует жёсткие 4 колонки, квадратность карточек, ограничение описания первыми тремя колонками, отсутствие линии/повтора имени и убирает прыжок следующей строки за счёт общей высоты detail-area по самому длинному описанию в активном ряду
-
-- Task: Перенести neon glassmorphic popups оплаты из локального V2-референса в git-backed страницу `/v3` этого репозитория, открывая их по кнопке `выбрать` в блоке `Тарифы`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Ошибочная первая попытка ушла в untracked snapshot-дубликат; затем правка перенесена в боевой repo `eppelas/aimwebsite0.5` и подключена к реальному `/v3`
-
-- Task: Доработать перенесённый popup оплаты после пользовательского ревью: убрать чёрный текст на чёрном фоне, вернуть более красивую success-анимацию из исходного V2 и выровнять регистр/шрифт CTA-кнопок
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Второй проход завершён: overlay теперь центрируется внутри правого тёмного полотна (`md:left-[18%]`), close button поднята выше, контраст текстов и меток усилен ещё раз, зелёные CTA в popup приведены к общему стилю через shared button tokens, локальный build прошёл, свежий preview поднят на `http://192.168.1.180:3023/aimwebsite0.5/v3`; финальная success-анимация всё ещё может быть заменена после нового пользовательского референса
-
-- Task: Свести CTA-кнопки на странице `/v3` и в popup к одной локальной дизайн-системе: одинаковые цвета, скругления, шрифты и casing
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Вынесены shared styles в `src/components/ctaButtonStyles.ts`; к ним подключены sidebar/mobile `хочу на лабораторию`, cookie `понятно`, popup-кнопки `оплатить`, `я оплатил`, `закрыть`, а также tariff CTA `выбрать`; дополнительно method-selector кнопки оплаты (`USDT`, `РУ-КАРТЫ`, `ЗАРУБЕЖНЫЕ КАРТЫ` и внутренние submethods) приведены к одному secondary-variant
-
-- Task: Перепроверить git-backed `/v3` после переноса popups оплаты через локальную сборку и dev server
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: `/v3` боевого repo отвечает локально по `http://192.168.1.180:3001/v3`; общий `lint/build` всё ещё падает из-за старого синтаксического дефекта в `src/components/ConsultingPage.tsx`, не связанного с попапом
-  Owner: user
-  Last Checked: —
-  Note: User wants the hero adjusted through text style and line-height changes first; background height reduction should wait until spacing naturally settles
-
-- Task: Subdue the desktop `Недельный ритм` block so it reads lighter and thinner
-  Status: requested
-  Owner: user
-  Last Checked: —
-  Note: User wants the schedule grid, labels, and typography to feel less heavy without changing the section concept
-
-- Task: Cleanup репозитория отдельно от `Speakers Bloсл`: убрать из git уже удалённые `LabW26Page*` и вывести `.vite` кэш из индекса через `.gitignore`
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Cleanup идёт отдельным коммитом; безопасный первый слой ограничен файлами, которых уже нет на диске, и generated `.vite`-кэшем без удаления его локальной папки
-
-- Task: Переделать desktop-блок `программа` на реальном локальном сайте `http://192.168.1.180:3023/aimwebsite0.5/v3`, чтобы он визуально совпадал с предоставленным референсом, но сохранил рабочую mobile-структуру
-  Status: implemented
-  Owner: user
-  Last Checked: 2026-03-26
-  Note: Пользовательский ревью открыл задачу заново: предыдущая интеграция не дала нужного sticky-scroll и оставляла слишком большой белый хвост. В текущих проходах сохранены общие данные и исходная `motion/useScroll` логика из `4007`; overlap под sticky убран, root `overflow-x-hidden` снят, а после нового пользовательского фидбэка проблема локализована в соседнем элементе, а не только в shell. Последняя правка подтягивает desktop-подпись `* основная программа...` вверх в пустую зону под карточкой через локальный layout offset, без изменений mobile и логики недель; `npm run build` прошёл, ожидание user-approved
-
-- Task: В секции `Отзывы` убрать `1 / 2` и заменить это на стрелку вниз, которая по клику раскрывает сразу все отзывы большой разноразмерной плиткой
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-04-06
-  Note: Пагинация `1 / 2` снята, внизу секции оставлена кнопка-стрелка `открыть все отзывы / свернуть отзывы`, expanded-flow работает через единую masonry/grid раскладку. Дополнительно live-версия уже отдельно доточена по белому фону, `tg ->` и логике скобок, поэтому историческую задачу больше не держим в `requested`.
+  Last Checked: 2026-05-29
+  Note: Promo code is again a low-priority field: no filled surface, softer label/input/placeholder than Telegram/e-mail, same column width as Telegram, and no horizontal overflow on desktop, `414x896`, or `375x812`. USDT button text is only `USDT`; `скидка 5%` is now a pseudo-label attached to the USDT method control via `data-discount-label`, so it no longer changes the button text or floats as random card copy. Mobile particle field was narrowed/tallened for the contrast variant so particles are visible above and below the card without layout overflow. Preview `payment-aim-ai-mindset-morph-contrast.png` regenerated.
 
 ## Agent Self-Checks
-- Task: Проверить cleanup-проход сайта после удаления лишних компонентов, ассетов, зависимостей и ссылок.
+
+- Task: Full local-vs-GitHub payment popup QA after publishing main versions.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-05-21
-  Note: `npm run lint` и `npm run build` прошли. Targeted scan не нашёл старых версий/маршрутов, AI Studio/Gemini-хвостов, удалённых ассетов, `href="#"` или destructive `rm -rf`. `.DS_Store` scan пустой, `npm audit --audit-level=moderate` даёт 0 уязвимостей, `npm ls --depth=0 --json` без extraneous пакетов. Осталась только визуальная user-review на локальном preview.
+  Last Checked: 2026-05-29
+  Note: Playwright QA matrix covered 4 states (`form`, `redirecting`, `paid`, `failed`) across 2 origins (`local`, `GitHub Pages`) and 6 viewports (`iphone-se`, `iphone-12`, `iphone-pro-max`, `ipad-mini`, `desktop-1280`, `desktop-1440`). Results: 48 state checks, 24 local-vs-GitHub structural comparisons, 0 failing state checks, 0 failing comparisons, 0 close failures. Screenshots/contact sheets live in `test-results/payment-popup-main-qa-2026-05-29-r2/`.
 
-- Task: Проверить, что mobile-правка `Недельного ритма` в `Программе` не ломает сборку и доступна на локальном preview
+- Task: Preserve rollback path for canvas cleanup.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После правки mobile-раскладки в `ProgramIntegratedTimeline` прошли `npm run lint` и `npm run build`; локальный dev preview на `http://127.0.0.1:3001/#program` отвечает `HTTP 200`. Headless mobile screenshot в этой среде не завершился штатно, поэтому финальная визуальная проверка остаётся за пользователем на живом preview.
+  Last Checked: 2026-05-29
+  Note: Full pre-cleanup canvas is archived in `TASK_VERIFICATION_CANVAS_ARCHIVE_2026-05-29.md`; active file can be restored by copying entries back from the archive.
 
-- Task: Проверить, что реальный `aimwebsite0.5` собирается после mobile stability-pass и что локальный preview идёт из правильного репо
+- Task: Verify active canvas still has required sections and valid statuses.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: Реальный репозиторий `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AI Mindset` собран через `npm run build` без ошибок; `localhost:3001` подтверждён как dev-server именно из этого каталога. Живая browser-check в Arc остаётся на user-review, потому что OS-level desktop screenshots остановлены по запросу пользователя.
+  Last Checked: 2026-05-29
+  Note: Active canvas keeps `User Requests` and `Agent Self-Checks`; every active item uses one of `requested`, `implemented`, `self-checked`, or `user-approved`.
 
-- Task: Подтвердить, что refresh больше не уводит live-страницу в бежевый blank-screen
+- Task: Verify stale payment popup iteration entries are no longer active.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-04-07
-  Note: После фикса null-crash в `DesktopTechUiV5` прогнаны `npm run build`, `npm run lint`, `curl` на `/` и `/lab-w26/v3` (`HTTP 200`), а также headless refresh-check на `http://127.0.0.1:3001/#hero` и `http://127.0.0.1:3001/lab-w26/v3#hero`: `main` и `#hero` остаются в DOM, runtime overlay пустой, мгновенного провала в фон больше не наблюдается.
+  Last Checked: 2026-05-29
+  Note: Old payment popup/payment-page micro-iterations are preserved in the archive, not in the active task queue.
 
-- 2026-04-06: `DesktopTechUiV5` self-check rerun. Fixed desktop overlap by giving the left program column a hard minimum width and reducing the right panel to `320px`; normalized empty-day weekly-rhythm fill back to neutral gray; tightened and enlarged the `разделы страницы` marker so it lives inside the same row with the label. Build passed and both `localhost:3001` and LAN preview returned `HTTP 200`.
-
-- Task: Подтвердить, что правки блока `Спикеры` внесены именно в GitHub-backed repo `eppelas/aimwebsite0.5`, а не в старый локальный клон
+- Task: Verify old local preview/port/repo-discovery tasks are no longer active.
   Status: self-checked
   Owner: assistant
-  Last Checked: 2026-03-30
-  Note: Подтверждено, что `origin` у `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AI Mindset` указывает на `https://github.com/eppelas/aimwebsite0.5.git`, `/` и `/v3` в `src/App.tsx` ведут на `LabW26PageV3`, а старый каталог `/Users/viola/All/Yandex.Disk.localized/3 Process/5 Work/AI Mindset/main-aimwebsite0.5` удалён
-
-- Task: Проверить локальный preview и сборку после переноса правок `Спикеры` в GitHub-backed repo
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-30
-  Note: `npm run dev` поднялся на `http://localhost:3001/` и `http://192.168.1.180:3001/`, `curl` на `/v3` и `assets/speakers-morph-animation-8.svg` вернул `200 OK`, `npm run build` завершился успешно
-
-- Task: Перепроверить новый hero voxel face на живом `/v3` после снижения плотности и упрощения анимации
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-29
-  Note: `npm run build` прошёл, `curl` на `http://localhost:3001/v3` вернул `200 OK`, а desktop screenshot `http://localhost:3001/v3` снят через Playwright и просмотрен
-
-- Task: Заменить старый hero `VoxelLogoFace` в `LabW26PageV3.tsx` на новую инвертированную воксельную версию и проверить рендер на живом локальном `:3023`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-27
-  Note: Добавлен новый компонент `src/components/InvertedVoxelLogoFace.tsx`, старый встроенный canvas удалён из `LabW26PageV3.tsx`, `npm run build` прошёл, Playwright-скриншот главного hero на `http://localhost:3023/aimwebsite0.5/v3` снят и просмотрен
-
-- Task: Проверить, что нижние блоки `вопросы и ответы` и `LABS NAVIGATOR` реально появились на живой странице `:3023` и не ломают сборку
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: `npm run build` прошёл, `localhost` и LAN `curl` вернули `200 OK`, а headless Puppeteer-проверка нашла по одному вхождению `вопросы и ответы` и `LABS NAVIGATOR` на `/aimwebsite0.5/v3`
-
-- Task: Проверить, что новый спокойный desktop-вариант `program` в `v3` собирается без ошибок и работает на живом проекте за `:3023`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: `LabW26PageV3.tsx` переключён на `ProgramDesktopFaqCalm`, старый `DesktopTechUiV5` удалён из файла, production build прошёл, порт `3023` уже слушает тот же проект
-
-- Task: Найти конкретные классы, которые создают лишний вертикальный зазор между секциями `philosophy-cards` и `mindset`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-
-- Task: После правки проверить, что `LabW26PageV3.tsx` собирается без ошибок
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-19
-  Note: `npm run build` завершился успешно после переноса desktop-программы внутрь `LabW26PageV3.tsx`, перестановки блока `Отзывы` и дополнительной правки mobile pricing/calendar/menu
-
-- Task: Update the project monospace stack to a consistent named font and verify the CSS override
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-24
-  Note: CSS override is in place and build verification already passed
-
-- Task: Найти фактический локальный проект, который обслуживает `http://192.168.1.180:3023/aimwebsite0.5/v3`, перед повторной правкой блока `программа`
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: Подтверждено, что страницу на `3023` обслуживает `/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AI Mindset`
-
-- Task: Повторно внедрить desktop-стили и scroll-driven поведение блока `программа` именно в реальном проекте на `3023`, не ломая mobile
-  Status: self-checked
-  Owner: assistant
-  Last Checked: 2026-03-26
-  Note: После отрицательного пользовательского ревью самопроверка перезапущена: desktop-ветка `DesktopTechUiV5` оставлена на общих `PROGRAM_TRACKS/PROGRAM_WEEK_COPY`, а вокруг неё перенесён scroll-shell, ближе к оригиналу `4007`; дополнительно лишняя высота shell схлопнута в потоке страницы, `npm run build` прошёл успешно
-
-- Task: Переделать `ReviewsSection` без пагинации `1 / 2`, добавив кнопку-стрелку вниз и раскрытие всей отзывной сетки по клику
-  Status: implemented
-  Owner: assistant
-  Last Checked: 2026-03-25
-  Note: `src/components/ReviewsSection.tsx` переписан под preview + expand-all flow; build verification сейчас зависает в `vite build`, поэтому визуальное подтверждение остаётся за пользователем
+  Last Checked: 2026-05-29
+  Note: Active canvas no longer carries historical `3023`, old clone, local preview launcher, or GitHub-backed repo routing tasks; those remain only in `TASK_VERIFICATION_CANVAS_ARCHIVE_2026-05-29.md`.
 
 ## Approved / Closed
+
+No active-cycle items are moved here during this cleanup. Historical closed/implemented items live in `TASK_VERIFICATION_CANVAS_ARCHIVE_2026-05-29.md`.

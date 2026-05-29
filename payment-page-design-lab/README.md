@@ -46,6 +46,12 @@ Active rule:
 - if two variants intentionally share the same structural shell, keep at most
   two of them and explain the exact difference in `reviewFocus` /
   `designDelta`;
+- if a fresh active payment-page variant fails UX, hierarchy, readability,
+  source-fidelity, mobile, or material-difference QA, that failure starts a
+  redesign loop. Do not count the variant as done and do not solve it by merely
+  hiding it from the index. Diagnose the failure, redesign, rerun desktop/mobile
+  QA, and repeat until it is adequate or explicitly abandoned with a written
+  reason;
 - Sonya must not send near-duplicate skins as separate review cards.
 
 The following initial variants are hidden from the default gallery and Sonya
@@ -68,11 +74,23 @@ review until rebuilt with a real design argument: `garden-ledger`,
   - Slide 6 `Storm` / `StormSystem.tsx` -> `AIM Slow Storm`.
   - Slide 9 `Inkfield` / `InkFieldSlide.tsx` -> `AIM Dark Inkfield`.
   These variants adapt interaction mechanics, motion logic, and atmospheric composition only. Payment copy, states, labels, CTAs, discounts, and validation stay sourced from the current payment component.
+- Inkfield review artifacts may keep the owned interaction mechanics, but visible reference labels must not leak into the page. Do not show `S.K.Y.ai`, `inkField`, source timecodes, frame counters, or raw debug labels; replace with AIM/payment-field language or remove the UI.
 - `AIM Event Horizon` was the 2D canvas approximation after Anka's `7.5/10` feedback. It kept the mouse-dependent glow, but the user rejected it as still much weaker than the actual X26 source.
 - `AIM Direct Particle` is the correction: a native Three.js direct port of the owned X26 `ParticleSystem.tsx` mechanics into this standalone payment page. The shader, particle count, strand count, bowl/dust formulas, additive blending, camera, and mouse smoothing are kept as close to the source as possible, then raised slightly in frame after user feedback.
 - `AIM Mindset Morph` is a close sibling of `AIM Direct Particle`: it keeps the same source particle density and compact payment form, but uses a shader-side morph toward an AI/mindset/transformation field instead of a 1:1 source copy. It does not add new checkout text.
+- `AIM Mindset Morph Contrast` is a separate copy of `AIM Mindset Morph` for comparison only. It keeps the same UX and particle engine, but darkens the form surface and raises placeholder/input/status contrast so the field group is readable over light particle haze. Do not overwrite the original while this copy is under review.
 - `AIM Payment Gravity` and `AIM Vortex Checkout` remain archive candidates only after a clearly stronger replacement is user-approved.
 - QA rule before sharing links: check active control contrast, no black text on dark backgrounds, no red CTA/active cards, no gradient-heavy active states, no invented payment copy, compact input typography, no horizontal overflow, no tariff selector in the payment form, cancel as no-op, and `Telegram: aim` + promo `ponchik` discount behavior.
+- Input contrast rule for dark particle variants: if the background behind the form can become lighter than the panel, inputs and method buttons must use a local surface and placeholders must stay lower priority than method labels while still readable. Do not solve contrast by making the card opaque black; keep the card visibly translucent and tune input surface, text color, and haze together.
+- General form hierarchy rule: primary/required fields, selected methods, and primary CTAs must visually outrank optional fields, helper text, placeholders, and secondary controls. Optional controls may be available and aligned, but they must not get stronger fill, border, contrast, type scale, or spacing priority than the primary action path.
+- Selected-state rule: payment method buttons and any segmented/radio-like controls must have an explicit selected state. The selected option must differ from inactive options through fill and/or stroke plus text contrast; an `aria-pressed` value without visible hierarchy is a failed UI state.
+- Control annotation rule: discounts, helper notes, error messages, and state labels must be spatially attached to the field/control they explain. A label must not float between unrelated controls, become a random card caption, or replace the actual button/control label.
+- Payment-method discount rule: the 5% discount label belongs to the USDT method as a small attached badge/pseudo-label. It must not become part of the method button text (`USDT` stays the button label) and must not float as unrelated copy on the card.
+- Validation/state rule: error, failed, invalid, and blocked states need a distinct negative treatment. They must not use the positive green accent, and they must not be so neutral that the required correction is easy to miss. Success, applied discounts, and active selections can use green.
+- Field validation rule: missing required input should show negative text/line/required marker, but should not flood the entire input with a red background. Red fill is reserved for explicit alert surfaces, not normal form fields.
+- Label/status hierarchy rule: label-to-control spacing must be tighter than label-to-neighbor-status spacing. Status copy should stay readable and contrast-tested; do not force tiny uppercase labels when sentence-case support text communicates better.
+- Mobile QA must check viewport clipping, not only full-page screenshots. At minimum test `375x812` (iPhone 11 Pro CSS viewport), `375x667` (safe-height with browser chrome), and `414x896` (iPhone 11 CSS viewport). Pass condition: active card/content top and bottom are inside the viewport, review/debug UI is hidden in `clean=1`, and primary CTAs do not stretch into full-width review-tool bars unless that is an explicit design choice.
+- Automated local check: `npm run qa:design-hierarchy` verifies the current payment-page review candidates for required-field negative treatment, optional/control hierarchy, attached USDT discount badge, and mobile viewport overflow.
 
 No external layouts, assets, typefaces, or page compositions are copied.
 

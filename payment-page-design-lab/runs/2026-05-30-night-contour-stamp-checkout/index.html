@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>AIM Payment — Contour Stamp Checkout (review)</title>
+  <style>
+    :root{
+      --bg: #fbfbfa;
+      --paper: rgba(255,255,255,0.76);
+      --ink: #0f1011;
+      --muted: rgba(15,16,17,0.62);
+      --hair: rgba(15,16,17,0.14);
+      --hair2: rgba(15,16,17,0.18);
+      --accent: #8ad036;
+      --accentInk: #0b1203;
+      --danger: #c7462f;
+      --ok: #1d8d5c;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Garamond, Georgia, serif;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--ink);
+      background:
+        radial-gradient(900px 640px at 15% 0%, rgba(138,208,54,0.14), transparent 60%),
+        radial-gradient(1000px 780px at 85% -10%, rgba(0,0,0,0.06), transparent 65%),
+        linear-gradient(180deg, rgba(255,255,255,0.66), transparent 38%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: 22px 14px;
+      position: relative;
+    }
+
+    .brand{
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      opacity: .9;
+    }
+    .brand img{width: 26px; height: 26px}
+    .brand b{font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase}
+
+    .stage{
+      width: min(540px, 100%);
+      border: 1px solid var(--hair);
+      border-radius: 24px;
+      background: var(--paper);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 26px 90px rgba(0,0,0,0.12);
+      overflow:hidden;
+      position: relative;
+    }
+
+    .stage::before{
+      content:"";
+      position:absolute;
+      inset: -40px;
+      background:
+        radial-gradient(600px 320px at 22% 10%, rgba(138,208,54,0.18), transparent 60%),
+        radial-gradient(520px 340px at 85% 15%, rgba(0,0,0,0.08), transparent 60%);
+      pointer-events:none;
+      opacity: .85;
+    }
+
+    .contour{
+      position:absolute;
+      inset: 12px;
+      border-radius: 18px;
+      pointer-events:none;
+    }
+
+    .contour svg{width:100%; height:100%}
+
+    .inner{position:relative; padding: 18px 18px 16px}
+
+    .k{
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: rgba(15,16,17,0.56);
+    }
+
+    h1{
+      margin: 10px 0 0;
+      font-family: var(--serif);
+      font-weight: 650;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .row{
+      display:flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0,0,0,0.10);
+    }
+
+    .price{
+      text-align:right;
+    }
+    .price b{
+      display:block;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(15,16,17,0.52);
+    }
+    .price strong{
+      display:block;
+      margin-top: 6px;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+    }
+    .price s{
+      display:block;
+      margin-top: 4px;
+      color: rgba(15,16,17,0.46);
+      font-size: 13px;
+    }
+
+    .methods{margin-top: 16px}
+    .methods label{display:block; margin-bottom: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: rgba(15,16,17,0.52)}
+    .methodRow{display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px}
+    .mBtn{
+      height: 44px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.18);
+      background: rgba(255,255,255,0.82);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      cursor:pointer;
+      transition: transform .14s ease, background .14s ease, border-color .14s ease;
+    }
+    .mBtn:hover{transform: translateY(-1px)}
+    .mBtn[data-active="1"]{background: rgba(138,208,54,0.22); border-color: rgba(0,0,0,0.28)}
+
+    .form{margin-top: 14px; display:grid; gap: 10px}
+
+    .field label{display:block; margin: 0 0 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: rgba(15,16,17,0.52)}
+    input{
+      width:100%;
+      border: 1px solid rgba(0,0,0,0.14);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.86);
+      padding: 12px 12px;
+      font-size: 15px;
+      outline:none;
+      transition: border-color .14s ease, background .14s ease;
+    }
+    input::placeholder{color: rgba(15,16,17,0.34); font-size: 13px}
+    input:focus{border-color: rgba(0,0,0,0.42); background: #fff}
+
+    .hint{margin-top: 6px; color: rgba(15,16,17,0.54); font-size: 12px}
+
+    .err{color: var(--danger); font-size: 12.5px; margin-top: 6px}
+
+    .actions{margin-top: 14px; display:grid; gap: 10px}
+
+    .btn{
+      height: 46px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.24);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: .18em;
+      text-transform: lowercase;
+      cursor:pointer;
+      background: rgba(255,255,255,0.86);
+      transition: transform .14s ease, background .14s ease;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn.primary{background: var(--accent); color: var(--accentInk)}
+
+    .btn.link{border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 6px; color: rgba(15,16,17,0.56)}
+
+    .status{
+      margin-top: 14px;
+      border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.82);
+      padding: 12px;
+      display:grid;
+      gap: 10px;
+    }
+
+    .statusTop{display:flex; align-items:flex-start; justify-content: space-between; gap: 10px}
+    .badge{
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,0.86);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(15,16,17,0.64);
+    }
+    .badge.ok{background: rgba(29,141,92,0.12)}
+    .badge.bad{background: rgba(199,70,47,0.12)}
+
+    .status h2{
+      margin: 0;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+    .status p{margin: 0; color: rgba(15,16,17,0.68)}
+
+    .progress{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .dot{width: 8px; height: 8px; border-radius: 999px; background: rgba(0,0,0,0.12)}
+    .dot.on{background: rgba(0,0,0,0.68)}
+    .line{height: 2px; width: 22px; background: rgba(0,0,0,0.10)}
+
+    .foot{
+      padding: 14px 18px 18px;
+      border-top: 1px solid rgba(0,0,0,0.10);
+      color: rgba(15,16,17,0.56);
+      font-size: 12.5px;
+    }
+
+    .foot a{color: inherit}
+
+    .debug{
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      border: 1px solid rgba(0,0,0,0.16);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.92);
+      padding: 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      display:none;
+      gap: 8px;
+    }
+    .debug button{height: 34px; border-radius: 12px; border:1px solid rgba(0,0,0,0.16); background: rgba(255,255,255,0.86); font-family: var(--mono); font-size: 10px; letter-spacing: .12em; cursor:pointer}
+
+    @media (max-width: 420px){
+      .methodRow{grid-template-columns: 1fr;}
+      h1{font-size: 24px}
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{transition:none !important; animation:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <img src="../../../../public/assets/ai-mindset-logo-transparent.png" alt="AI Mindset" />
+      <b>AIM · payment</b>
+    </div>
+
+    <div class="stage" role="main" aria-label="Оплата">
+      <div class="contour" aria-hidden="true">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path id="contourPath" d="M6,10 C22,4 34,6 46,10 C60,14 70,6 94,12 L94,88 C72,94 60,86 48,90 C34,94 22,92 6,90 Z" fill="none" stroke="rgba(0,0,0,0.24)" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="6 5" />
+        </svg>
+      </div>
+
+      <div class="inner" id="view"></div>
+
+      <div class="foot">
+        Для проверки скидок: в Telegram введите <b>aim</b>, в промокод — <b>ponchik</b>. • Review-only prototype.
+      </div>
+    </div>
+  </div>
+
+  <div class="debug" id="debug">
+    <div>debug state</div>
+    <button data-s="form">form</button>
+    <button data-s="redirecting">redirect</button>
+    <button data-s="paid">paid</button>
+    <button data-s="failed">failed</button>
+  </div>
+
+  <script>
+    const PAYMENT_ACQUIRING_URL = 'https://join.aimindset.org/waitlist';
+    const TELEGRAM_ACCESS_BOT_URL = 'https://t.me/prod_ai_mind_set_bot?start=payment_success';
+
+    const TELEGRAM_ALUMNI_DISCOUNT_HANDLES = new Set(['aim', '@aim']);
+    const PROMO_CODE_DISCOUNTS = new Set(['ponchik']);
+
+    const BASE_PRICE_EUR = 890;
+
+    const url = new URL(window.location.href);
+    const debug = url.searchParams.get('debug') === '1';
+
+    const forcedState = url.searchParams.get('state');
+
+    const state = {
+      method: (url.searchParams.get('paymentMethod') || 'card_intl'),
+      view: (forcedState && ['form','redirecting','paid','failed'].includes(forcedState)) ? forcedState : 'form',
+      telegram: '',
+      promo: '',
+      telegramDiscount: 'idle',
+      promoDiscount: 'idle',
+      error: '',
+    };
+
+    function formatRoublePrice(amount){
+      return `${new Intl.NumberFormat('ru-RU').format(amount)}\u00a0₽`;
+    }
+
+    function hasTelegramContact(v){
+      return (v || '').trim().length > 0;
+    }
+
+    function computeDiscount(){
+      const tg = (state.telegram || '').trim().toLowerCase();
+      const pc = (state.promo || '').trim().toLowerCase();
+      const tgApplied = TELEGRAM_ALUMNI_DISCOUNT_HANDLES.has(tg);
+      const promoApplied = PROMO_CODE_DISCOUNTS.has(pc);
+      state.telegramDiscount = tg.length ? (tgApplied ? 'applied' : 'not_applied') : 'idle';
+      state.promoDiscount = pc.length ? (promoApplied ? 'applied' : 'not_applied') : 'idle';
+      const appliedRate = tgApplied ? 0.2 : promoApplied ? 0.05 : 0;
+      const superseded = tgApplied && promoApplied;
+      return { appliedRate, superseded };
+    }
+
+    function getPrice(){
+      const { appliedRate } = computeDiscount();
+      const discountedBase = Math.round(BASE_PRICE_EUR * (1 - appliedRate));
+      if (state.method === 'usdt') return `${Math.round(discountedBase * 0.95)}\u00a0USDT`;
+      if (state.method === 'card_intl') return `€${discountedBase}`;
+      return formatRoublePrice(discountedBase * 100);
+    }
+
+    function getOriginalPrice(){
+      const { appliedRate } = computeDiscount();
+      if (!appliedRate) return '';
+      if (state.method === 'usdt') {
+        const originalUsdtPrice = Math.round(BASE_PRICE_EUR * 0.95);
+        return `${originalUsdtPrice}\u00a0USDT`;
+      }
+      if (state.method === 'card_intl') return `€${BASE_PRICE_EUR}`;
+      return formatRoublePrice(BASE_PRICE_EUR * 100);
+    }
+
+    function contourFor(view){
+      // subtle, state-specific contour shape (not a debug panel)
+      if (view === 'redirecting') return 'M6,12 C18,4 34,8 46,10 C64,14 76,6 94,14 L92,86 C74,96 60,86 46,90 C30,95 18,90 8,90 Z';
+      if (view === 'paid') return 'M8,14 C22,6 34,10 48,12 C66,16 76,8 92,16 L92,84 C78,92 66,86 50,88 C34,90 22,92 8,86 Z';
+      if (view === 'failed') return 'M8,12 C22,6 34,8 48,12 C66,16 76,8 92,14 L94,86 C74,94 62,86 48,90 C30,96 18,92 6,88 Z';
+      return 'M6,10 C22,4 34,6 46,10 C60,14 70,6 94,12 L94,88 C72,94 60,86 48,90 C34,94 22,92 6,90 Z';
+    }
+
+    function badgeFor(view){
+      if (view === 'failed') return { cls: 'badge bad', text: 'retry' };
+      if (view === 'paid') return { cls: 'badge ok', text: 'access' };
+      if (view === 'redirecting') return { cls: 'badge', text: 'route' };
+      return { cls: 'badge', text: 'form' };
+    }
+
+    function statusCopy(view){
+      if (view === 'redirecting') return { label: 'переход к оплате', title: 'ПЕРЕХОД К ОПЛАТЕ', body: 'Открывается партнёрская ссылка оплаты. Если окно не появилось — нажмите «перейти к оплате».', tone: 'neutral' };
+      if (view === 'paid') return { label: 'статус оплаты', title: 'ОПЛАТА ПОЛУЧЕНА', body: 'Перейдите в Telegram-бот для доступа к группе.', tone: 'success', cta: '/присоединиться' };
+      if (view === 'failed') return { label: 'статус оплаты', title: 'ОПЛАТА НЕ ПРОШЛА', body: 'Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно попробовать снова.', tone: 'danger' };
+      return null;
+    }
+
+    function render(){
+      const view = document.getElementById('view');
+      const contourPath = document.getElementById('contourPath');
+      contourPath.setAttribute('d', contourFor(state.view));
+
+      const { appliedRate, superseded } = computeDiscount();
+      const price = getPrice();
+      const original = getOriginalPrice();
+      const badge = badgeFor(state.view);
+
+      const discountLine = appliedRate
+        ? (appliedRate === 0.2 ? 'скидка alumni −20%' : 'промокод −5%')
+        : 'скидка —';
+
+      const supersededLine = superseded ? 'промокод введён, но скидка по Telegram уже активна.' : '';
+
+      if (state.view === 'form') {
+        view.innerHTML = `
+          <div class="k">MAIN LAB X26 · ADVANCED TRACK</div>
+          <h1>оплата участия</h1>
+          <div class="row">
+            <div>
+              <div class="k">итого к оплате</div>
+              <div style="margin-top:8px; color: rgba(15,16,17,0.70)">${discountLine}${supersededLine ? ` · <span style="color: rgba(15,16,17,0.56)">${supersededLine}</span>` : ''}</div>
+            </div>
+            <div class="price">
+              <b>сумма</b>
+              <strong>${price}</strong>
+              ${original ? `<s>${original}</s>` : ''}
+            </div>
+          </div>
+
+          <div class="methods">
+            <label>способ оплаты</label>
+            <div class="methodRow">
+              <button class="mBtn" data-m="usdt" data-active="${state.method === 'usdt' ? '1':'0'}" type="button">USDT</button>
+              <button class="mBtn" data-m="card_ru" data-active="${state.method === 'card_ru' ? '1':'0'}" type="button">РУ-КАРТЫ</button>
+              <button class="mBtn" data-m="card_intl" data-active="${state.method === 'card_intl' ? '1':'0'}" type="button">EU-КАРТЫ</button>
+            </div>
+          </div>
+
+          <div class="form">
+            <div class="field">
+              <label>telegram или телефон</label>
+              <input id="telegram" inputmode="text" autocomplete="off" placeholder="@username / +7..." value="${escapeHtml(state.telegram)}" />
+              ${state.error ? `<div class="err">${escapeHtml(state.error)}</div>` : ''}
+            </div>
+            <div class="field">
+              <label>промокод</label>
+              <input id="promo" inputmode="text" autocomplete="off" placeholder="ponchik" value="${escapeHtml(state.promo)}" />
+              <div class="hint">Скидки: Telegram <b>aim</b> (−20%), промокод <b>ponchik</b> (−5%).</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" id="pay" type="button">оплатить</button>
+            <a class="btn link" href="https://aimindset.org/ai-mindset-lab" target="_blank" rel="noreferrer">вернуться на страницу лаборатории</a>
+          </div>
+        `;
+      } else {
+        const copy = statusCopy(state.view);
+        const isFailed = state.view === 'failed';
+        const isRedirect = state.view === 'redirecting';
+        const ctaHref = isRedirect ? PAYMENT_ACQUIRING_URL : TELEGRAM_ACCESS_BOT_URL;
+        const showBotCta = state.view === 'paid';
+
+        const dots = {
+          form: [1,0,0],
+          redirecting: [1,1,0],
+          paid: [1,1,1],
+          failed: [1,1,0],
+        }[state.view];
+
+        view.innerHTML = `
+          <div class="k">${copy.label}</div>
+          <h1>${copy.title.toLowerCase()}</h1>
+
+          <div class="status" role="status" aria-live="polite">
+            <div class="statusTop">
+              <div>
+                <h2>${copy.title}</h2>
+                <p>${copy.body}</p>
+              </div>
+              <div class="${badge.cls}">${badge.text}</div>
+            </div>
+
+            <div class="progress" aria-label="Прогресс">
+              <span class="dot ${dots[0] ? 'on':''}"></span><span class="line"></span>
+              <span class="dot ${dots[1] ? 'on':''}"></span><span class="line"></span>
+              <span class="dot ${dots[2] ? 'on':''}"></span>
+              <span style="margin-left:8px; color: rgba(15,16,17,0.56)">${isFailed ? 'можно повторить' : isRedirect ? 'переходим к оплате' : 'доступ готов'}</span>
+            </div>
+
+            <div class="actions" style="margin-top: 8px">
+              <a class="btn primary" href="${ctaHref}" target="_blank" rel="noreferrer">${isRedirect ? 'перейти к оплате' : 'открыть бота'}</a>
+              ${isFailed ? `<button class="btn" id="retry" type="button">попробовать снова</button>` : `<button class="btn" id="back" type="button">вернуться</button>`}
+            </div>
+
+            ${showBotCta ? `<div class="hint">Команда в боте: <b>${copy.cta}</b></div>` : ''}
+          </div>
+        `;
+      }
+
+      if (debug) {
+        document.getElementById('debug').style.display = 'grid';
+      }
+
+      wire();
+    }
+
+    function wire(){
+      document.querySelectorAll('.mBtn').forEach((b) => {
+        b.addEventListener('click', () => {
+          state.method = b.getAttribute('data-m');
+          render();
+        });
+      });
+
+      const telegram = document.getElementById('telegram');
+      if (telegram) {
+        telegram.addEventListener('input', (e) => { state.telegram = e.target.value; state.error = ''; render(); });
+        telegram.addEventListener('keydown', (e) => { if (e.key === 'Enter') telegram.blur(); });
+      }
+
+      const promo = document.getElementById('promo');
+      if (promo) {
+        promo.addEventListener('input', (e) => { state.promo = e.target.value; render(); });
+        promo.addEventListener('keydown', (e) => { if (e.key === 'Enter') promo.blur(); });
+      }
+
+      const pay = document.getElementById('pay');
+      if (pay) {
+        pay.addEventListener('click', () => {
+          if (!hasTelegramContact(state.telegram)) {
+            state.error = 'укажите telegram или телефон';
+            render();
+            return;
+          }
+          state.error = '';
+          state.view = 'redirecting';
+          render();
+        });
+      }
+
+      const retry = document.getElementById('retry');
+      if (retry) retry.addEventListener('click', () => { state.view = 'form'; render(); });
+
+      const back = document.getElementById('back');
+      if (back) back.addEventListener('click', () => { state.view = 'form'; render(); });
+
+      const debugPanel = document.getElementById('debug');
+      if (debugPanel && debug) {
+        debugPanel.querySelectorAll('button[data-s]').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            state.view = btn.getAttribute('data-s');
+            render();
+          });
+        });
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+    }
+
+    render();
+  </script>
+</body>
+</html>

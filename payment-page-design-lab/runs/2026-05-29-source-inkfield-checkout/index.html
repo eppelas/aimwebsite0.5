@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Mindset — Source Inkfield Checkout</title>
+<style>
+  :root{
+    --bg:#f4f3ee;
+    --ink:#006a4e;
+    --ink-2:#1aa37a;
+    --ink-3:#2dd39a;
+    --ui:#2a2a2a;
+    --ui-dim:#8a8a8a;
+    --accent:#d94f2a;
+    --vector:#1f6feb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    width:100%;height:100%;
+    background:var(--bg);
+    overflow:hidden;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color:var(--ui);
+  }
+  .stage{
+    position:fixed; inset:0;
+    display:grid; place-items:center;
+  }
+  .frame{
+    position:relative;
+    width: min(100vw, calc(100vh * 2));
+    aspect-ratio: 2 / 1;
+    background:
+      radial-gradient(ellipse at 30% 40%, #ffffff 0%, transparent 70%),
+      var(--bg);
+    overflow:hidden;
+    border: 1px solid rgba(0,0,0,.06);
+    cursor: none;
+  }
+  canvas{position:absolute; inset:0; width:100%; height:100%;}
+  .log, .bboxes, .vectors, .annotations, .title, .statusbar, .cursor, .hint{
+    position:absolute; pointer-events:none;
+  }
+  .log{
+    top:2.2%; left:2.2%; right:40%;
+    font-size: clamp(8px, .78vw, 12px);
+    line-height:1.55;
+    color:var(--ui);
+    white-space:nowrap;
+  }
+  .log .row{
+    display:flex; gap:.6em; align-items:baseline;
+    opacity:0;
+    transform: translateY(-3px);
+    animation: logIn .4s ease-out forwards;
+  }
+  .log .t{color:var(--ui-dim)}
+  .log .arr{color:var(--ink-2); font-weight:600}
+  .log .k{color:var(--ui)}
+  .log .v{color:var(--ink); font-weight:600}
+  .log .p{color:var(--ui-dim)}
+  @keyframes logIn{to{opacity:1; transform:translateY(0)}}
+
+  .bboxes svg, .vectors svg, .annotations svg{
+    width:100%; height:100%; position:absolute; inset:0;
+  }
+
+  .title{
+    left:2.2%; bottom:3.2%;
+    color:#111;
+  }
+  .title .upcoming{
+    font-size: clamp(9px, .72vw, 11px);
+    color:var(--ink);
+    letter-spacing:.02em;
+    margin-bottom:.4em;
+    opacity:.8;
+  }
+  .title h1{
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 42px);
+    line-height:1;
+    color:#0f0f0f;
+    letter-spacing:-.01em;
+  }
+  .title h2{
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 42px);
+    line-height:1;
+    color:var(--ink);
+    letter-spacing:-.01em;
+    margin-top:.05em;
+  }
+
+  .statusbar{
+    bottom:1%; left:2.2%;
+    font-size: clamp(7px, .62vw, 10px);
+    color:var(--ui-dim);
+    letter-spacing:.12em;
+  }
+  .statusbar .rec{
+    display:inline-block; width:.6em; height:.6em;
+    background:var(--accent); border-radius:50%;
+    margin-right:.5em; vertical-align:middle;
+    animation: rec 1.2s ease-in-out infinite;
+  }
+  @keyframes rec{ 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .grid{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(to right, rgba(0,106,78,.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,106,78,.06) 1px, transparent 1px);
+    background-size: 5% 10%;
+    pointer-events:none;
+    mix-blend-mode: multiply;
+  }
+
+  .crop{
+    position:absolute;
+    width:14px; height:14px;
+    border-color:var(--ui);
+    border-style:solid;
+  }
+  .crop.tl{top:1%;  left:1%;  border-width:1px 0 0 1px;}
+  .crop.tr{top:1%;  right:1%; border-width:1px 1px 0 0;}
+  .crop.bl{bottom:1%; left:1%;  border-width:0 0 1px 1px;}
+  .crop.br{bottom:1%; right:1%; border-width:0 1px 1px 0;}
+
+  .legend{
+    position:absolute;
+    right:2.2%; top:2.2%;
+    font-size: clamp(7px, .6vw, 10px);
+    color:var(--ui);
+    border:1px solid rgba(0,0,0,.15);
+    padding:.5em .7em;
+    background:rgba(255,255,255,.55);
+    backdrop-filter: blur(2px);
+    line-height:1.6;
+    letter-spacing:.02em;
+    min-width:160px;
+  }
+  .legend.is-hidden{display:none}
+  .legend .row{display:flex; justify-content:space-between; gap:.8em}
+  .legend .sw{
+    display:inline-block; width:.9em; height:.9em;
+    vertical-align:middle; margin-right:.4em;
+    border:1px solid rgba(0,0,0,.2);
+  }
+  .legend .val{color:var(--ink); font-weight:600}
+  .legend hr{border:none; border-top:1px dashed rgba(0,0,0,.15); margin:.35em 0}
+
+  /* custom cursor */
+  .cursor{
+    top:0; left:0;
+    width:32px; height:32px;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+  }
+  .cursor svg{ width:100%; height:100%; overflow:visible }
+
+  .hint{
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    font-size: clamp(10px, .9vw, 14px);
+    color: var(--ui-dim);
+    letter-spacing:.3em;
+    text-transform:uppercase;
+    text-align:center;
+    transition: opacity .6s ease;
+  }
+  .hint.hidden{ opacity:0 }
+  .hint small{
+    display:block;
+    font-size:.7em;
+    letter-spacing:.2em;
+    margin-top:.8em;
+    color:var(--ui-dim);
+    opacity:.7;
+  }
+  .hint .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    background:var(--ink);
+    border-radius:50%;
+    margin:0 .6em;
+    vertical-align:middle;
+  }
+
+  .aim-payment-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 8;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .aim-payment-card {
+    width: min(430px, calc(100vw - 28px));
+    min-height: 570px;
+    border: 1px solid rgba(0, 106, 78, .28);
+    background: rgba(244, 243, 238, .78);
+    box-shadow: 0 26px 90px rgba(0, 54, 38, .16);
+    backdrop-filter: blur(9px);
+    pointer-events: auto;
+    color: #101310;
+  }
+  .aim-payment-view {
+    display: none;
+    min-height: inherit;
+    padding: 34px 34px 28px;
+  }
+  .aim-payment-view.is-active {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .aim-kicker,
+  .aim-label,
+  .aim-ghost,
+  .aim-primary,
+  .aim-method {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    text-transform: uppercase;
+  }
+  .aim-kicker {
+    margin-bottom: 12px;
+    color: var(--ink);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .06em;
+  }
+  .aim-payment-card h1,
+  .aim-payment-card h2 {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 56px;
+    line-height: .92;
+    letter-spacing: -.05em;
+    text-transform: uppercase;
+  }
+  .aim-order {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 22px;
+    align-items: end;
+    margin-top: 28px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(16, 19, 16, .22);
+  }
+  .aim-order-copy {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color: rgba(16, 19, 16, .58);
+    font-size: 10px;
+    font-weight: 850;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+  .aim-order-copy span {
+    display: block;
+    margin-bottom: 4px;
+    color: rgba(16, 19, 16, .38);
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: none;
+  }
+  .aim-price {
+    font-size: 32px;
+    line-height: .95;
+    font-weight: 950;
+  }
+  .aim-methods {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin: 20px 0 18px;
+  }
+  .aim-method {
+    position: relative;
+    min-height: 39px;
+    border: 1px solid rgba(16, 19, 16, .22);
+    background: rgba(255, 255, 255, .25);
+    color: rgba(16, 19, 16, .62);
+    font-size: 10px;
+    font-weight: 850;
+  }
+  .aim-method-discount {
+    position: absolute;
+    left: 8px;
+    top: -13px;
+    color: var(--ink);
+    font-size: 7px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .aim-method[aria-pressed="true"] {
+    border-color: rgba(0, 106, 78, .72);
+    background: rgba(0, 106, 78, .14);
+    color: #05110d;
+  }
+  .aim-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .aim-field,
+  .aim-promo {
+    display: grid;
+    gap: 4px;
+  }
+  .aim-label {
+    color: rgba(16, 19, 16, .54);
+    font-size: 9px;
+    font-weight: 850;
+  }
+  .aim-field input,
+  .aim-promo input {
+    width: 100%;
+    height: 35px;
+    border: 0;
+    border-bottom: 1px solid rgba(16, 19, 16, .22);
+    background: rgba(255, 255, 255, .2);
+    padding: 0 8px;
+    outline: none;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 8.5px;
+    font-weight: 440;
+  }
+  .aim-field input::placeholder,
+  .aim-promo input::placeholder {
+    color: rgba(16, 19, 16, .32);
+  }
+  .aim-promo {
+    width: min(38%, 250px);
+    margin-top: 18px;
+    gap: 1px;
+  }
+  .aim-promo .aim-label {
+    color: rgba(16, 19, 16, .5);
+    font-size: 8px;
+  }
+  .aim-promo input {
+    background: transparent;
+    border-bottom-color: rgba(16, 19, 16, .14);
+  }
+  .aim-field-status {
+    min-height: 16px;
+    padding-top: 3px;
+    color: rgba(16, 19, 16, .66);
+    font-size: 8.5px;
+    font-weight: 650;
+    text-transform: none;
+  }
+  .aim-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .aim-ghost,
+  .aim-primary {
+    min-height: 42px;
+    border: 0;
+    padding: 0 18px;
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: lowercase;
+  }
+  .aim-ghost {
+    background: transparent;
+    color: rgba(16, 19, 16, .42);
+  }
+  .aim-primary {
+    min-width: 148px;
+    background: #07120f;
+    color: #f4f3ee;
+  }
+  .aim-status-copy {
+    display: grid;
+    gap: 18px;
+  }
+  .aim-status-copy p {
+    max-width: 320px;
+    margin: 0;
+    color: rgba(16, 19, 16, .6);
+    font-size: 20px;
+    line-height: 1.22;
+  }
+  .aim-status-actions {
+    display: flex;
+    justify-content: center;
+  }
+  .aim-status-actions .aim-primary {
+    text-decoration: none;
+  }
+  .aim-review-note {
+    position: fixed;
+    left: 18px;
+    bottom: 16px;
+    z-index: 9;
+    max-width: calc(100vw - 36px);
+    color: rgba(16, 19, 16, .48);
+    font-size: 12px;
+    font-style: italic;
+    pointer-events: none;
+  }
+  @media (max-width: 700px) {
+    .frame {
+      width: 100vw;
+      height: 100vh;
+      aspect-ratio: auto;
+      border: 0;
+    }
+    .log,
+    .legend,
+    .title,
+    .statusbar {
+      opacity: .28;
+    }
+    .aim-payment-card {
+      min-height: min(780px, calc(100vh - 28px));
+    }
+    .aim-payment-view {
+      padding: 28px 18px 20px;
+    }
+    .aim-payment-card h1,
+    .aim-payment-card h2 {
+      font-size: 42px;
+    }
+    .aim-fields {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .aim-promo {
+      width: 42%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="frame" id="frame">
+      <div class="grid"></div>
+      <canvas id="ink"></canvas>
+      <div class="vectors"><svg id="svgVectors" viewBox="0 0 2000 1000" preserveAspectRatio="none"></svg></div>
+      <div class="bboxes"><svg id="svgBbox" viewBox="0 0 2000 1000" preserveAspectRatio="none"></svg></div>
+      <div class="annotations"><svg id="svgAnno" viewBox="0 0 2000 1000" preserveAspectRatio="none"></svg></div>
+
+      <div class="log" id="log"></div>
+
+      <div class="legend">
+        <div class="row"><span><span class="sw" style="background:#006a4e"></span>signal</span><span class="val" id="lgStrokes">0</span></div>
+        <div class="row"><span><span class="sw" style="background:#1aa37a"></span>context</span><span class="val" id="lgParticles">0</span></div>
+        <div class="row"><span><span class="sw" style="background:#2dd39a"></span>access</span><span class="val" id="lgFps">0</span></div>
+        <hr/>
+        <div class="row"><span>motion</span><span class="val" id="lgVel">0.00</span></div>
+        <div class="row"><span>focus</span><span class="val" id="lgPress">0.00</span></div>
+        <div class="row"><span>field</span><span class="val" id="lgPos">0,0</span></div>
+      </div>
+
+      <div class="crop tl"></div>
+      <div class="crop tr"></div>
+      <div class="crop bl"></div>
+      <div class="crop br"></div>
+
+      <div class="title">
+        <div class="upcoming">AI Mindset payment</div>
+        <h1>AI Mindset</h1>
+        <h2>payment field</h2>
+      </div>
+
+      <div class="statusbar">
+        <span class="rec"></span><span id="tc">ORDER #890ADVA</span> &nbsp; / &nbsp; <span id="fi">AIM</span> &nbsp; / &nbsp; PAYMENT
+      </div>
+
+      <!-- hint overlay -->
+      <div class="hint" id="hint">
+        AI Mindset<span class="dot"></span>payment field
+        <small>motion responds to pointer</small>
+      </div>
+
+      <!-- custom cursor -->
+      <div class="cursor" id="cursor">
+        <svg viewBox="-16 -16 32 32">
+          <circle cx="0" cy="0" r="10" fill="none" stroke="#006a4e" stroke-width="1" stroke-dasharray="3 2"/>
+          <circle cx="0" cy="0" r="2" fill="#d94f2a"/>
+          <line x1="-16" y1="0" x2="-12" y2="0" stroke="#006a4e" stroke-width="1"/>
+          <line x1="12"  y1="0" x2="16"  y2="0" stroke="#006a4e" stroke-width="1"/>
+          <line x1="0" y1="-16" x2="0" y2="-12" stroke="#006a4e" stroke-width="1"/>
+          <line x1="0" y1="12"  x2="0" y2="16"  stroke="#006a4e" stroke-width="1"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <section class="aim-payment-overlay" aria-label="AI Mindset payment page">
+    <div class="aim-payment-card">
+      <form class="aim-payment-view is-active" data-view="form" autocomplete="on">
+        <div>
+          <h1>Оплата заказа</h1>
+          <div class="aim-order" aria-label="Заказ">
+            <div class="aim-order-copy">итого к оплате:<span>AI Mindset {main lab}</span></div>
+            <div class="aim-price">€890</div>
+          </div>
+          <div class="aim-methods" role="group" aria-label="Способ оплаты">
+            <button class="aim-method" type="button" data-method="usdt" aria-pressed="false"><span class="aim-method-discount">скидка 5%</span>USDT</button>
+            <button class="aim-method" type="button" data-method="ru" aria-pressed="false">РУ-КАРТЫ</button>
+            <button class="aim-method" type="button" data-method="eu" aria-pressed="true">EU-КАРТЫ</button>
+          </div>
+          <div class="aim-fields">
+            <label class="aim-field">
+              <span class="aim-label">* Telegram</span>
+              <input name="telegram" placeholder="@user или телефон" autocomplete="off" />
+              <span class="aim-field-status" data-status="telegram">&nbsp;</span>
+            </label>
+            <label class="aim-field">
+              <span class="aim-label">E-mail</span>
+              <input name="email" type="email" placeholder="mail@mail.com" autocomplete="email" />
+              <span class="aim-field-status">&nbsp;</span>
+            </label>
+          </div>
+          <label class="aim-promo">
+            <span class="aim-label">промокод</span>
+            <input name="promo" placeholder="..." autocomplete="off" />
+            <span class="aim-field-status" data-status="promo">&nbsp;</span>
+          </label>
+        </div>
+        <div class="aim-actions">
+          <button class="aim-ghost" type="button" data-action="noop">отмена</button>
+          <button class="aim-primary" type="button" data-action="pay">оплатить</button>
+        </div>
+      </form>
+      <section class="aim-payment-view" data-view="redirecting">
+        <div class="aim-status-copy">
+          <div class="aim-kicker">переход к оплате</div>
+          <h2>Партнёрская ссылка оплаты открывается</h2>
+          <p>Оставьте страницу открытой. Следующий шаг загрузится автоматически.</p>
+        </div>
+        <div class="aim-status-actions"><button class="aim-ghost" type="button" data-action="back">отмена</button></div>
+      </section>
+      <section class="aim-payment-view" data-view="paid">
+        <div class="aim-status-copy">
+          <div class="aim-kicker">оплата получена</div>
+          <h2>Откройте Telegram-бота</h2>
+          <p>Бот подключит вас к группе лаборатории и покажет дальнейшие шаги.</p>
+        </div>
+        <div class="aim-status-actions"><a class="aim-primary" href="https://t.me/prod_ai_mind_set_bot?start=payment_success">открыть бота</a></div>
+      </section>
+      <section class="aim-payment-view" data-view="failed">
+        <div class="aim-status-copy">
+          <div class="aim-kicker">оплата не прошла</div>
+          <h2>Попробуйте снова</h2>
+          <p>Платёж не подтвердился. Деньги не списались или банк отклонил операцию.</p>
+        </div>
+        <div class="aim-status-actions"><button class="aim-primary" type="button" data-action="back">попробовать снова</button></div>
+      </section>
+    </div>
+  </section>
+  <p class="aim-review-note">Для проверки скидок: в Telegram введите aim, в промокод — ponchik.</p>
+
+<script>
+(() => {
+  const canvas = document.getElementById('ink');
+  const ctx = canvas.getContext('2d');
+  const frame = document.getElementById('frame');
+  const tcEl = document.getElementById('tc');
+  const fiEl = document.getElementById('fi');
+  const cursor = document.getElementById('cursor');
+  const hint = document.getElementById('hint');
+
+  const svgVec = document.getElementById('svgVectors');
+  const svgBox = document.getElementById('svgBbox');
+  const svgAnn = document.getElementById('svgAnno');
+  const logEl = document.getElementById('log');
+
+  const lgStrokes = document.getElementById('lgStrokes');
+  const lgParticles = document.getElementById('lgParticles');
+  const lgFps = document.getElementById('lgFps');
+  const lgVel = document.getElementById('lgVel');
+  const lgPress = document.getElementById('lgPress');
+  const lgPos = document.getElementById('lgPos');
+
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const VW = 2000, VH = 1000;
+
+  function resize(){
+    const r = frame.getBoundingClientRect();
+    canvas.width  = Math.round(r.width  * DPR);
+    canvas.height = Math.round(r.height * DPR);
+    canvas.style.width  = r.width + 'px';
+    canvas.style.height = r.height + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // palette rotator — each new stroke picks next color
+  const palette = [
+    'rgba(0,90,64,1)',
+    'rgba(0,120,84,1)',
+    'rgba(26,163,122,1)',
+    'rgba(0,140,96,1)',
+    'rgba(45,211,154,.9)',
+  ];
+  let strokeColorIdx = 0;
+
+  // ---- STATE -----------------------------------------------------------
+  const splats = [];
+  let mouseInside = false;
+  let pointerDown = false;
+  let mouse = {x: VW/2, y: VH/2, px: VW/2, py: VH/2, vx:0, vy:0, v:0};
+  let lastMoveT = 0;
+  let currentStroke = null;   // {id, color, points:[{x,y}], bbox:{x,y,w,h}, node, labelNode, tStart, tEnd}
+  const strokes = [];         // completed strokes for bbox/vector trail
+  const MAX_TRAIL = 8;
+
+  // hint hide
+  let firstMove = false;
+
+  // ---- INPUT -----------------------------------------------------------
+  function frameCoords(e){
+    const r = frame.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  * VW;
+    const y = (e.clientY - r.top ) / r.height * VH;
+    return {x, y};
+  }
+
+  frame.addEventListener('pointermove', (e) => {
+    const p = frameCoords(e);
+    const now = performance.now();
+    const dt = Math.max(1, now - lastMoveT);
+    mouse.px = mouse.x; mouse.py = mouse.y;
+    mouse.x = p.x; mouse.y = p.y;
+    mouse.vx = (mouse.x - mouse.px) / dt * 16;  // per ~frame
+    mouse.vy = (mouse.y - mouse.py) / dt * 16;
+    mouse.v  = Math.hypot(mouse.vx, mouse.vy);
+    lastMoveT = now;
+    mouseInside = true;
+    // move custom cursor (CSS-space coords)
+    const r = frame.getBoundingClientRect();
+    const cx = p.x / VW * r.width;
+    const cy = p.y / VH * r.height;
+    cursor.style.transform = `translate(${cx}px, ${cy}px) translate(-50%,-50%)`;
+    cursor.style.opacity = 1;
+
+    if(!firstMove){ firstMove = true; hint.classList.add('hidden'); }
+
+    // if no stroke yet, start one on first move
+    if(!currentStroke) beginStroke();
+    else addPointToStroke();
+  });
+
+  frame.addEventListener('pointerdown', (e) => {
+    pointerDown = true;
+    // cycle color on each press for variety
+    strokeColorIdx = (strokeColorIdx + 1) % palette.length;
+    if(!currentStroke) beginStroke();
+  });
+  frame.addEventListener('pointerup', () => { pointerDown = false; });
+  frame.addEventListener('pointerleave', () => {
+    mouseInside = false;
+    cursor.style.opacity = 0;
+    endStroke();
+  });
+  frame.addEventListener('pointerenter', () => {
+    mouseInside = true;
+    cursor.style.opacity = 1;
+  });
+
+  // double-click clears canvas
+  frame.addEventListener('dblclick', () => {
+    splats.length = 0;
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,canvas.width, canvas.height);
+    ctx.restore();
+    for(const s of strokes){
+      if(s.bboxNode) s.bboxNode.remove();
+      if(s.labelNode) s.labelNode.remove();
+      if(s.vecNode) s.vecNode.remove();
+    }
+    strokes.length = 0;
+    logEl.innerHTML = '';
+    pushLog('[sys]','Canvas cleared',{trigger:'dblclick'});
+  });
+
+  // ---- STROKES ---------------------------------------------------------
+  const svgNS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    const e = document.createElementNS(svgNS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function beginStroke(){
+    const id = Math.floor(Math.random()*9000+1000);
+    const color = palette[strokeColorIdx];
+    currentStroke = {
+      id, color,
+      points: [{x: mouse.x, y: mouse.y, t: performance.now(), v: 0}],
+      bbox: {x:mouse.x, y:mouse.y, w:0, h:0},
+      bboxNode: null, labelNode: null, vecNode: null,
+      seed: Math.floor(Math.random()*1e9),
+    };
+    pushLog('[trk]', 'New stroke started', {
+      Seed: String(currentStroke.seed),
+      Mode: 'Brush mode ' + (1 + (strokeColorIdx%3)),
+      Position: `[${Math.round(mouse.x)},${Math.round(mouse.y)}]`,
+    });
+  }
+
+  function addPointToStroke(){
+    if(!currentStroke) return;
+    const s = currentStroke;
+    const last = s.points[s.points.length-1];
+    const dx = mouse.x - last.x, dy = mouse.y - last.y;
+    const d = Math.hypot(dx, dy);
+    if(d < 3) return; // resample
+    s.points.push({x: mouse.x, y: mouse.y, t: performance.now(), v: mouse.v});
+    // update bbox
+    const b = s.bbox;
+    const x0 = Math.min(b.x, mouse.x);
+    const y0 = Math.min(b.y, mouse.y);
+    const x1 = Math.max(b.x + b.w, mouse.x);
+    const y1 = Math.max(b.y + b.h, mouse.y);
+    b.x = x0; b.y = y0; b.w = x1-x0; b.h = y1-y0;
+
+    // update or create SVG bbox
+    const pad = 30 + (pointerDown ? 30 : 0);
+    if(!s.bboxNode){
+      s.bboxNode = el('rect',{
+        x: b.x-pad, y: b.y-pad, width: b.w+pad*2, height: b.h+pad*2,
+        fill:'none', stroke:'rgba(31,111,235,.55)', 'stroke-width':'1',
+        'stroke-dasharray':'6 4',
+      });
+      svgBox.appendChild(s.bboxNode);
+      s.labelNode = el('text',{
+        x: b.x-pad+4, y: b.y-pad-4,
+        'font-family':'ui-monospace, monospace', 'font-size':'10',
+        fill:'rgba(31,111,235,.85)',
+      });
+      s.labelNode.textContent = `stroke_${s.id}`;
+      svgBox.appendChild(s.labelNode);
+      s.vecNode = el('polyline',{
+        points:'',
+        fill:'none', stroke:'rgba(31,111,235,.35)', 'stroke-width':'1',
+        'stroke-dasharray':'4 3',
+      });
+      svgVec.appendChild(s.vecNode);
+    }else{
+      s.bboxNode.setAttribute('x', b.x-pad);
+      s.bboxNode.setAttribute('y', b.y-pad);
+      s.bboxNode.setAttribute('width',  b.w+pad*2);
+      s.bboxNode.setAttribute('height', b.h+pad*2);
+      s.labelNode.setAttribute('x', b.x-pad+4);
+      s.labelNode.setAttribute('y', b.y-pad-4);
+    }
+    // update vector polyline (simplified — every 3rd pt)
+    const simp = s.points.filter((_,i)=>i%3===0);
+    s.vecNode.setAttribute('points', simp.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
+
+    // emit particles for the new segment
+    emitSegment(last.x, last.y, mouse.x, mouse.y, mouse.v, s.color);
+  }
+
+  function endStroke(){
+    if(!currentStroke) return;
+    const s = currentStroke;
+    strokes.push(s);
+    pushLog('[aim]', 'Signal closed', {
+      id: String(s.id),
+      points: String(s.points.length),
+      context: String(splats.length),
+    });
+    // fade out bbox of oldest strokes
+    while(strokes.length > MAX_TRAIL){
+      const old = strokes.shift();
+      fadeAndRemove(old.bboxNode);
+      fadeAndRemove(old.labelNode);
+      fadeAndRemove(old.vecNode);
+    }
+    currentStroke = null;
+  }
+
+  function fadeAndRemove(node){
+    if(!node) return;
+    node.style.transition = 'opacity 1.2s ease';
+    node.style.opacity = '0';
+    setTimeout(()=>node.remove(), 1300);
+  }
+
+  // ---- PARTICLES -------------------------------------------------------
+  function emitSegment(x0,y0,x1,y1,v,color){
+    const dx = x1-x0, dy = y1-y0;
+    const d = Math.hypot(dx,dy);
+    if(d < 0.1) return;
+    // pressure: pointerDown boosts, velocity boosts, with cap
+    const press = pointerDown ? 1 : 0.55;
+    const vNorm = Math.min(1, v / 60);
+    const width = (25 + vNorm * 90 + press*40);
+    const density = Math.ceil(d * (0.8 + press*1.2));
+    for(let i=0;i<density;i++){
+      const u = i/density;
+      const px = x0 + dx*u;
+      const py = y0 + dy*u;
+      // cluster
+      const cluster = 4 + Math.floor(Math.random()*6 + press*4);
+      for(let c=0;c<cluster;c++){
+        const ang = Math.random()*Math.PI*2;
+        const dist = Math.pow(Math.random(),.6) * width * (0.4 + Math.random()*0.9);
+        splats.push({
+          x: px + Math.cos(ang)*dist,
+          y: py + Math.sin(ang)*dist,
+          r: (0.6 + Math.random()*2.6) * (0.7 + press*0.5),
+          a: 0.18 + Math.random()*0.55 * (0.6 + press*0.4),
+          color,
+          vx: (Math.random()-0.5)*0.4 + dx/d*0.4,
+          vy: (Math.random()-0.5)*0.4 + dy/d*0.4 + 0.05,
+        });
+      }
+      // heavy core
+      if(Math.random() < 0.4 + press*0.3){
+        splats.push({
+          x: px + (Math.random()-0.5)*width*0.2,
+          y: py + (Math.random()-0.5)*width*0.2,
+          r: (2.5 + Math.random()*4 + press*2),
+          a: 0.55 + Math.random()*0.3,
+          color, vx:0, vy:0,
+        });
+      }
+    }
+    if(splats.length > 24000) splats.splice(0, splats.length - 24000);
+  }
+
+  function applyAlpha(color, a){
+    return color.replace(/rgba?\(([^)]+)\)/, (_,inside) => {
+      const parts = inside.split(',').map(x=>x.trim());
+      const base = parts.slice(0,3).join(',');
+      const baseA = parts[3] !== undefined ? parseFloat(parts[3]) : 1;
+      return `rgba(${base},${(a*baseA).toFixed(3)})`;
+    });
+  }
+
+  function drawSplats(){
+    const scaleX = canvas.clientWidth  / VW;
+    const scaleY = canvas.clientHeight / VH;
+    ctx.save();
+    ctx.scale(scaleX, scaleY);
+    for(let i=0;i<splats.length;i++){
+      const s = splats[i];
+      s.x += s.vx; s.y += s.vy;
+      ctx.beginPath();
+      ctx.fillStyle = applyAlpha(s.color, s.a);
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // slight fade per frame — subtle "wetness"
+  function fadeFrame(){
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = 'rgba(244,243,238,0.03)';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  // ---- LOG -------------------------------------------------------------
+  function pushLog(tag, msg, kv){
+    const d = new Date();
+    const t = `[${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}.${String(d.getMilliseconds()).padStart(3,'0')}]`;
+    const row = document.createElement('div');
+    row.className = 'row';
+    let kvStr = '';
+    for(const k in kv){
+      kvStr += ` <span class="k">${k}</span><span class="p">:</span><span class="v">"${kv[k]}"</span><span class="p">,</span>`;
+    }
+    kvStr = kvStr.replace(/,$/, '');
+    row.innerHTML = `<span class="t">${t}</span><span class="arr">→</span><span>${msg}</span><span class="p">{</span>${kvStr}<span class="p">}</span>`;
+    logEl.appendChild(row);
+    while(logEl.children.length > 12) logEl.removeChild(logEl.firstChild);
+  }
+
+  // preload logs
+  pushLog('[aim]','Payment field ready',{Surface:'AI Mindset', State:'interactive'});
+  pushLog('[aim]','Order context loaded',{Order:'#890ADVA', Product:'main lab'});
+  pushLog('[aim]','Pointer field active',{Motion:'signal', Access:'payment'});
+
+  // periodic heartbeat log
+  setInterval(()=>{
+    pushLog('[hbt]','AI Mindset field',{
+      signal: String(strokes.length + (currentStroke?1:0)),
+      context: String(splats.length),
+      frame: String(fps|0),
+      motion: mouse.v.toFixed(2),
+    });
+  }, 2200);
+
+  // ---- MAIN LOOP -------------------------------------------------------
+  const startTime = performance.now();
+  let lastFrame = startTime;
+  let fps = 60;
+  let fi = 0;
+
+  function fmtTC(sec){
+    const h = Math.floor(sec/3600) % 100;
+    const m = Math.floor(sec/60) % 60;
+    const s = Math.floor(sec) % 60;
+    const f = Math.floor((sec%1)*24);
+    const pad = n => String(n).padStart(2,'0');
+    return `${pad(h)}:${pad(m)}:${pad(s)}:${pad(f)}`;
+  }
+
+  function loop(now){
+    const dt = now - lastFrame;
+    lastFrame = now;
+    fps = fps*0.9 + (1000/Math.max(1,dt))*0.1;
+
+    // velocity decay if no motion
+    const sinceMove = now - lastMoveT;
+    if(sinceMove > 40){
+      mouse.vx *= 0.9; mouse.vy *= 0.9;
+      mouse.v = Math.hypot(mouse.vx, mouse.vy);
+    }
+    // idle too long -> end stroke
+    if(currentStroke && sinceMove > 180 && !pointerDown){
+      endStroke();
+    }
+
+    fadeFrame();
+    drawSplats();
+
+    tcEl.textContent = 'ORDER #890ADVA';
+    fiEl.textContent = 'AIM';
+    fi += 1;
+
+    lgStrokes.textContent = strokes.length + (currentStroke?1:0);
+    lgParticles.textContent = splats.length;
+    lgFps.textContent = Math.round(fps);
+    lgVel.textContent = mouse.v.toFixed(2);
+    lgPress.textContent = (pointerDown?1:0.55).toFixed(2);
+    lgPos.textContent = `${Math.round(mouse.x)},${Math.round(mouse.y)}`;
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+<script>
+(() => {
+  const views = [...document.querySelectorAll('.aim-payment-view')];
+  const params = new URLSearchParams(window.location.search);
+  const allowed = new Set(['form', 'redirecting', 'paid', 'failed']);
+  let state = allowed.has(params.get('status')) ? params.get('status') : 'form';
+  const setState = (next) => {
+    state = allowed.has(next) ? next : 'form';
+    views.forEach((view) => view.classList.toggle('is-active', view.dataset.view === state));
+    const url = new URL(window.location.href);
+    if (state === 'form') url.searchParams.delete('status');
+    else url.searchParams.set('status', state);
+    window.history.replaceState(null, '', url);
+  };
+  const aimPrice = document.querySelector('.aim-price');
+  const aimBasePrice = 890;
+  let aimSelectedMethod = 'eu';
+  const updateAimPrice = () => {
+    if (!aimPrice) return;
+    aimPrice.textContent = aimSelectedMethod === 'usdt' ? Math.round(aimBasePrice * 0.95) + '\u00a0USDT' : '€890';
+  };
+  document.querySelectorAll('.aim-method').forEach((button) => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.aim-method').forEach((item) => item.setAttribute('aria-pressed', 'false'));
+      button.setAttribute('aria-pressed', 'true');
+      aimSelectedMethod = button.dataset.method;
+      updateAimPrice();
+    });
+  });
+  updateAimPrice();
+  document.querySelector('[name="telegram"]')?.addEventListener('input', (event) => {
+    const status = document.querySelector('[data-status="telegram"]');
+    if (!status) return;
+    status.textContent = /^@?aim$/i.test(event.target.value.trim()) ? 'скидка alumni 20% применена' : '\u00a0';
+  });
+  document.querySelector('[name="promo"]')?.addEventListener('input', (event) => {
+    const status = document.querySelector('[data-status="promo"]');
+    if (!status) return;
+    status.textContent = /^ponchik$/i.test(event.target.value.trim()) ? 'промокод найден' : '\u00a0';
+  });
+  document.addEventListener('click', (event) => {
+    const action = event.target.closest('[data-action]')?.dataset.action;
+    if (!action) return;
+    if (action === 'pay') {
+      setState('redirecting');
+      window.setTimeout(() => setState(sessionStorage.getItem('aim-source-inkfield-outcome') === 'paid' ? 'failed' : 'paid'), 1200);
+      sessionStorage.setItem('aim-source-inkfield-outcome', sessionStorage.getItem('aim-source-inkfield-outcome') === 'paid' ? 'failed' : 'paid');
+    }
+    if (action === 'back') setState('form');
+  });
+  setState(state);
+})();
+</script>
+</body>
+</html>
