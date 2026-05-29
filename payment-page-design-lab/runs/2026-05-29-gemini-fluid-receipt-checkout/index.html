@@ -1,0 +1,980 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AIM Payment - Gemini Fluid Receipt Checkout</title>
+    <meta name="description" content="Review-only AIM payment-page candidate generated from a clean Gemini visual scout." />
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #f7f4ec;
+        --muted: rgba(247, 244, 236, 0.64);
+        --quiet: rgba(247, 244, 236, 0.38);
+        --line: rgba(247, 244, 236, 0.14);
+        --line-strong: rgba(247, 244, 236, 0.34);
+        --green: #9be36d;
+        --green-2: #70bd48;
+        --dark: #080b0d;
+        --card: rgba(11, 14, 16, 0.78);
+        --card-soft: rgba(247, 244, 236, 0.07);
+        --danger: #f2a08f;
+        --blue: #9bbdff;
+        --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      html {
+        background: var(--dark);
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        overflow-x: hidden;
+        color: var(--ink);
+        background: #050708;
+        font-family: var(--font-sans);
+        text-rendering: optimizeLegibility;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      :focus-visible {
+        outline: 2px solid rgba(155, 227, 109, 0.84);
+        outline-offset: 4px;
+      }
+
+      .canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        background: #050708;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(0, 0.78fr) minmax(360px, 520px);
+        gap: clamp(28px, 5vw, 72px);
+        align-items: center;
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: clamp(24px, 5vw, 64px) 0;
+      }
+
+      .context {
+        min-width: 0;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 32px;
+        pointer-events: none;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: rgba(247, 244, 236, 0.86);
+        font: 900 12px/1 var(--font-mono);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        display: grid;
+        place-items: center;
+        background: rgba(247, 244, 236, 0.06);
+      }
+
+      .brand-mark::before {
+        content: "";
+        width: 12px;
+        height: 18px;
+        border-radius: 999px 999px 4px 4px;
+        background: linear-gradient(180deg, rgba(155, 227, 109, 0.9), rgba(155, 189, 255, 0.38));
+        transform: rotate(-18deg);
+      }
+
+      .headline {
+        max-width: 720px;
+      }
+
+      .headline .kicker,
+      .receipt-caption,
+      .label,
+      .status-note,
+      .method-note {
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      .headline .kicker {
+        color: var(--quiet);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      h1 {
+        margin: 14px 0 0;
+        max-width: 9ch;
+        font-size: clamp(76px, 12vw, 170px);
+        line-height: 0.76;
+        letter-spacing: -0.075em;
+        text-transform: uppercase;
+      }
+
+      .headline p {
+        max-width: 49ch;
+        margin: 24px 0 0;
+        color: rgba(247, 244, 236, 0.68);
+        font-size: clamp(16px, 1.5vw, 19px);
+        line-height: 1.55;
+      }
+
+      .receipt-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        max-width: 620px;
+      }
+
+      .receipt-chip {
+        min-height: 76px;
+        border: 1px solid rgba(247, 244, 236, 0.12);
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(247, 244, 236, 0.045);
+        backdrop-filter: blur(18px);
+      }
+
+      .receipt-caption {
+        color: var(--quiet);
+        font-size: 9px;
+        font-weight: 900;
+      }
+
+      .receipt-chip strong {
+        display: block;
+        margin-top: 9px;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .checkout-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(247, 244, 236, 0.16);
+        border-radius: 30px;
+        background:
+          radial-gradient(circle at var(--focus-x, 50%) var(--focus-y, 18%), rgba(155, 227, 109, 0.12), transparent 34%),
+          linear-gradient(180deg, rgba(247, 244, 236, 0.11), transparent 28%),
+          var(--card);
+        box-shadow: 0 34px 120px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(26px);
+      }
+
+      .checkout-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.055), transparent),
+          radial-gradient(circle at 76% 18%, rgba(155, 189, 255, 0.13), transparent 30%);
+        opacity: var(--state-energy, 0.7);
+        pointer-events: none;
+      }
+
+      .card-inner {
+        position: relative;
+        padding: clamp(18px, 4vw, 30px);
+      }
+
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(247, 244, 236, 0.1);
+      }
+
+      .title-block {
+        min-width: 0;
+      }
+
+      .label {
+        color: var(--quiet);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .card-head h2 {
+        margin: 8px 0 0;
+        font-size: clamp(29px, 4vw, 48px);
+        line-height: 0.92;
+        letter-spacing: -0.05em;
+        text-transform: uppercase;
+      }
+
+      .heartbeat {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 52px;
+        height: 52px;
+        border: 1px solid rgba(155, 227, 109, 0.28);
+        border-radius: 18px;
+        background: rgba(155, 227, 109, 0.08);
+      }
+
+      .heartbeat span {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 0 rgba(155, 227, 109, 0.38);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(0.72); box-shadow: 0 0 0 0 rgba(155, 227, 109, 0.35); }
+        50% { transform: scale(1); box-shadow: 0 0 0 16px rgba(155, 227, 109, 0); }
+      }
+
+      .view {
+        display: none;
+        min-height: 524px;
+      }
+
+      .view.is-active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form {
+        padding-top: 22px;
+      }
+
+      .method-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 10px 0 22px;
+      }
+
+      .method {
+        min-height: 58px;
+        border: 1px solid rgba(247, 244, 236, 0.16);
+        border-radius: 18px;
+        background: rgba(247, 244, 236, 0.055);
+        color: var(--ink);
+        font: 900 12px/1 var(--font-mono);
+        letter-spacing: 0.14em;
+        transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+      }
+
+      .method[aria-pressed="true"] {
+        border-color: rgba(155, 227, 109, 0.62);
+        background: rgba(155, 227, 109, 0.14);
+        color: #f9fff4;
+      }
+
+      .method:hover {
+        transform: translateY(-1px);
+        border-color: rgba(247, 244, 236, 0.32);
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .field {
+        min-width: 0;
+      }
+
+      .field.promo {
+        max-width: 214px;
+        margin-top: 3px;
+      }
+
+      .field label {
+        display: block;
+        color: var(--quiet);
+        font: 800 10px/1 var(--font-mono);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .field input {
+        width: 100%;
+        margin-top: 8px;
+        border: 0;
+        border-bottom: 1px solid rgba(247, 244, 236, 0.22);
+        border-radius: 0;
+        background: transparent;
+        color: var(--ink);
+        padding: 0 0 9px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 600;
+        outline: none;
+      }
+
+      .field input::placeholder {
+        color: rgba(247, 244, 236, 0.25);
+        font-weight: 500;
+      }
+
+      .field input:focus {
+        border-bottom-color: rgba(155, 227, 109, 0.78);
+      }
+
+      .field-status {
+        min-height: 24px;
+        padding-top: 7px;
+        color: rgba(155, 227, 109, 0.78);
+        font: 800 9px/1.25 var(--font-mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .field-status.is-error {
+        color: var(--danger);
+      }
+
+      .price-line {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 20px 0;
+        padding: 18px 0;
+        border-top: 1px solid rgba(247, 244, 236, 0.1);
+        border-bottom: 1px solid rgba(247, 244, 236, 0.1);
+      }
+
+      .price {
+        font-size: clamp(48px, 7vw, 76px);
+        line-height: 0.84;
+        letter-spacing: -0.06em;
+        font-weight: 900;
+      }
+
+      .method-note {
+        max-width: 16ch;
+        color: var(--quiet);
+        font-size: 9px;
+        font-weight: 900;
+        text-align: right;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: auto;
+      }
+
+      .primary,
+      .ghost {
+        min-height: 48px;
+        border-radius: 999px;
+        padding: 0 22px;
+        border: 1px solid transparent;
+        font: 900 12px/1 var(--font-mono);
+        letter-spacing: 0.18em;
+        text-transform: lowercase;
+      }
+
+      .primary {
+        background: var(--green);
+        color: #071004;
+      }
+
+      .primary:hover {
+        background: #b3f182;
+      }
+
+      .ghost {
+        background: transparent;
+        border-color: rgba(247, 244, 236, 0.18);
+        color: rgba(247, 244, 236, 0.48);
+      }
+
+      .ghost:hover {
+        border-color: rgba(247, 244, 236, 0.34);
+        color: var(--ink);
+      }
+
+      .status-view {
+        justify-content: space-between;
+        padding-top: 34px;
+      }
+
+      .status-label {
+        color: var(--quiet);
+        font: 900 10px/1 var(--font-mono);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .status-view h2 {
+        margin: 16px 0 0;
+        max-width: 7ch;
+        font-size: clamp(52px, 8vw, 92px);
+        line-height: 0.82;
+        letter-spacing: -0.065em;
+      }
+
+      .status-view h2.long {
+        max-width: 8ch;
+        font-size: clamp(42px, 6vw, 72px);
+      }
+
+      .status-body {
+        max-width: 36ch;
+        margin: 18px 0 0;
+        color: rgba(247, 244, 236, 0.68);
+        font-size: 17px;
+        line-height: 1.52;
+      }
+
+      .status-art {
+        position: relative;
+        height: 132px;
+        margin-top: 26px;
+        border: 1px solid rgba(247, 244, 236, 0.12);
+        border-radius: 26px;
+        overflow: hidden;
+        background: rgba(247, 244, 236, 0.045);
+      }
+
+      .status-art::before,
+      .status-art::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+      }
+
+      .status-art::before {
+        inset: 50% auto auto 16%;
+        width: 70%;
+        height: 1px;
+        background: rgba(247, 244, 236, 0.28);
+      }
+
+      .status-art::after {
+        top: 50%;
+        left: var(--art-position, 34%);
+        width: 26px;
+        height: 26px;
+        margin: -13px 0 0 -13px;
+        background: var(--art-color, var(--green));
+        box-shadow: 0 0 34px var(--art-color, var(--green));
+        animation: travel 2.2s ease-in-out infinite alternate;
+      }
+
+      @keyframes travel {
+        to { left: calc(var(--art-position, 34%) + 26%); }
+      }
+
+      .status-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 28px;
+      }
+
+      .review-note {
+        position: relative;
+        z-index: 1;
+        width: min(1180px, calc(100% - 32px));
+        margin: -38px auto 24px;
+        color: rgba(247, 244, 236, 0.38);
+        font: 800 10px/1.5 var(--font-mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      body[data-state="redirecting"] .checkout-card { --state-energy: 1; }
+      body[data-state="paid"] .checkout-card { --art-position: 22%; --art-color: #9be36d; }
+      body[data-state="failed"] .checkout-card { --art-position: 62%; --art-color: #f2a08f; }
+      body.is-focused .checkout-card { --state-energy: 1; }
+
+      @media (max-width: 920px) {
+        .page {
+          grid-template-columns: minmax(0, 1fr);
+          align-items: start;
+          padding-top: 20px;
+        }
+
+        .context {
+          min-height: auto;
+          gap: 22px;
+        }
+
+        .headline {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        h1 {
+          max-width: 10ch;
+          font-size: clamp(62px, 18vw, 112px);
+        }
+
+        .headline p {
+          max-width: 42rem;
+        }
+
+        .receipt-strip {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .review-note {
+          margin-top: 0;
+        }
+      }
+
+      @media (max-width: 580px) {
+        .page {
+          width: min(100% - 20px, 1180px);
+          gap: 18px;
+        }
+
+        .brand {
+          font-size: 10px;
+          letter-spacing: 0.12em;
+        }
+
+        h1 {
+          font-size: clamp(52px, 20vw, 82px);
+        }
+
+        .headline p {
+          font-size: 15px;
+        }
+
+        .receipt-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .checkout-card {
+          border-radius: 22px;
+        }
+
+        .card-head {
+          align-items: center;
+        }
+
+        .view {
+          min-height: 500px;
+        }
+
+        .method-grid,
+        .field-row {
+          grid-template-columns: 1fr;
+        }
+
+        .field.promo {
+          max-width: 190px;
+        }
+
+        .price-line {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .method-note {
+          max-width: none;
+          text-align: left;
+        }
+
+        .actions,
+        .status-actions {
+          flex-direction: column-reverse;
+        }
+
+        .primary,
+        .ghost {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body data-state="form">
+    <canvas class="canvas" id="fluidCanvas" aria-hidden="true"></canvas>
+    <main class="page">
+      <section class="context" aria-label="AIM payment context">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>AI Mindset / review-only payment</span>
+        </div>
+        <div class="headline">
+          <div class="kicker">gemini clean scout / fluid checkout</div>
+          <h1>quiet payment field</h1>
+          <p>Платёжная форма остается минимальной: способы оплаты выше, поля тише, промокод не спорит с основными действиями, а состояние живёт на самой карточке.</p>
+        </div>
+        <div class="receipt-strip" aria-label="Payment constants">
+          <div class="receipt-chip">
+            <span class="receipt-caption">order</span>
+            <strong>EUR 890</strong>
+          </div>
+          <div class="receipt-chip">
+            <span class="receipt-caption">discount</span>
+            <strong>aim / ponchik</strong>
+          </div>
+          <div class="receipt-chip">
+            <span class="receipt-caption">states</span>
+            <strong>4 user states</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="checkout-card" aria-label="Оплата заказа">
+        <div class="card-inner">
+          <header class="card-head">
+            <div class="title-block">
+              <div class="label">оплата заказа</div>
+              <h2>AI Mindset</h2>
+            </div>
+            <div class="heartbeat" aria-label="статус формы"><span></span></div>
+          </header>
+
+          <form class="view form is-active" data-view="form" novalidate>
+            <div>
+              <div class="label">способ оплаты</div>
+              <div class="method-grid" role="group" aria-label="Способ оплаты">
+                <button class="method" type="button" data-method="usdt" aria-pressed="false">USDT</button>
+                <button class="method" type="button" data-method="card_ru" aria-pressed="false">РУ-КАРТЫ</button>
+                <button class="method" type="button" data-method="card_intl" aria-pressed="true">EU-КАРТЫ</button>
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="telegram">telegram *</label>
+                  <input id="telegram" name="telegram" type="text" placeholder="@user или телефон" autocomplete="off" />
+                  <div class="field-status" id="telegramStatus" aria-live="polite">&nbsp;</div>
+                </div>
+                <div class="field">
+                  <label for="email">e-mail</label>
+                  <input id="email" name="email" type="email" placeholder="mail@mail.com" autocomplete="email" />
+                  <div class="field-status">&nbsp;</div>
+                </div>
+              </div>
+
+              <div class="field promo">
+                <label for="promo">промокод</label>
+                <input id="promo" name="promo" type="text" placeholder="..." autocomplete="off" />
+                <div class="field-status" id="promoStatus" aria-live="polite">&nbsp;</div>
+              </div>
+
+              <div class="price-line">
+                <div class="price" id="price">890 EUR</div>
+                <div class="method-note" id="methodNote">EU-карты / partner payment link</div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="ghost" type="button" data-action="cancel">отмена</button>
+              <button class="primary" type="submit">оплатить</button>
+            </div>
+          </form>
+
+          <section class="view status-view" data-view="redirecting" aria-label="Переход к оплате">
+            <div>
+              <div class="status-label">переход к оплате</div>
+              <h2>ПЕРЕХОД К ОПЛАТЕ</h2>
+              <p class="status-body">Открываем партнёрскую страницу оплаты.</p>
+              <div class="status-art" aria-hidden="true"></div>
+            </div>
+            <div class="status-actions">
+              <button class="ghost" type="button" data-action="form">отмена</button>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="paid" aria-label="Оплата получена">
+            <div>
+              <div class="status-label">статус оплаты</div>
+              <h2>ОПЛАТА ПОЛУЧЕНА</h2>
+              <p class="status-body">Перейдите в Telegram-бот для доступа к группе.</p>
+              <div class="status-art" aria-hidden="true"></div>
+            </div>
+            <div class="status-actions">
+              <a class="primary" href="https://t.me/prod_ai_mind_set_bot?start=payment_success" target="_blank" rel="noopener noreferrer">/присоединиться</a>
+            </div>
+          </section>
+
+          <section class="view status-view" data-view="failed" aria-label="Оплата не прошла">
+            <div>
+              <div class="status-label">статус оплаты</div>
+              <h2 class="long">ОПЛАТА НЕ ПРОШЛА</h2>
+              <p class="status-body">Платёж не подтвердился. Деньги не списались или банк отклонил операцию. Можно попробовать снова.</p>
+              <div class="status-art" aria-hidden="true"></div>
+            </div>
+            <div class="status-actions">
+              <button class="ghost" type="button" data-action="form">отмена</button>
+              <button class="primary" type="button" data-action="form">/попробовать снова</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+    <p class="review-note">Для проверки скидок: в Telegram введите aim, в промокод - ponchik.</p>
+
+    <script>
+      (() => {
+        const stateNames = new Set(["form", "redirecting", "paid", "failed"]);
+        const body = document.body;
+        const canvas = document.getElementById("fluidCanvas");
+        const ctx = canvas.getContext("2d", { alpha: false });
+        const card = document.querySelector(".checkout-card");
+        const views = Array.from(document.querySelectorAll("[data-view]"));
+        const methods = Array.from(document.querySelectorAll("[data-method]"));
+        const telegram = document.getElementById("telegram");
+        const email = document.getElementById("email");
+        const promo = document.getElementById("promo");
+        const telegramStatus = document.getElementById("telegramStatus");
+        const promoStatus = document.getElementById("promoStatus");
+        const price = document.getElementById("price");
+        const methodNote = document.getElementById("methodNote");
+
+        let selectedMethod = "card_intl";
+        let activeState = "form";
+        let pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, vx: 0, vy: 0, down: false, press: 0 };
+        let last = performance.now();
+        let redirectTimer = null;
+
+        const normalized = (value) => value.trim().toLowerCase();
+        const hasTelegram = () => telegram.value.trim().length > 0;
+        const hasAlumni = () => ["aim", "@aim"].includes(normalized(telegram.value));
+        const hasPromo = () => normalized(promo.value) === "ponchik";
+
+        const setState = (nextState, options = {}) => {
+          if (!stateNames.has(nextState)) nextState = "form";
+          activeState = nextState;
+          body.dataset.state = nextState;
+          views.forEach((view) => view.classList.toggle("is-active", view.dataset.view === nextState));
+          if (redirectTimer && nextState !== "redirecting") {
+            clearTimeout(redirectTimer);
+            redirectTimer = null;
+          }
+          if (nextState === "redirecting" && options.autoResult) {
+            redirectTimer = setTimeout(() => {
+              const attempt = Number(sessionStorage.getItem("aim-fluid-payment-attempt") || "0") + 1;
+              sessionStorage.setItem("aim-fluid-payment-attempt", String(attempt));
+              setState(attempt % 2 ? "paid" : "failed");
+            }, 1800);
+          }
+        };
+
+        const updateDiscounts = () => {
+          telegramStatus.classList.remove("is-error");
+          if (!hasTelegram()) {
+            telegramStatus.textContent = "\u00a0";
+          } else if (hasAlumni()) {
+            telegramStatus.textContent = "скидка Alumni 20% применена";
+          } else {
+            telegramStatus.textContent = "\u00a0";
+          }
+
+          if (!promo.value.trim()) {
+            promoStatus.textContent = "\u00a0";
+          } else if (hasPromo()) {
+            promoStatus.textContent = hasAlumni() ? "действует Alumni 20%" : "промокод 5% применён";
+          } else {
+            promoStatus.textContent = "промокод не применён";
+          }
+
+          const base = selectedMethod === "usdt" ? 890 : 890;
+          const discount = hasAlumni() ? 0.8 : hasPromo() ? 0.95 : 1;
+          const total = Math.round(base * discount);
+          price.textContent = selectedMethod === "usdt" ? `${total} USDT` : `${total} EUR`;
+        };
+
+        methods.forEach((button) => {
+          button.addEventListener("click", () => {
+            selectedMethod = button.dataset.method;
+            methods.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+            methodNote.textContent = selectedMethod === "usdt"
+              ? "USDT / partner payment link"
+              : selectedMethod === "card_ru"
+                ? "РУ-карты / partner payment link"
+                : "EU-карты / partner payment link";
+            updateDiscounts();
+          });
+        });
+
+        document.querySelector(".form").addEventListener("submit", (event) => {
+          event.preventDefault();
+          if (!hasTelegram()) {
+            telegramStatus.textContent = "укажите telegram или телефон";
+            telegramStatus.classList.add("is-error");
+            telegram.focus();
+            return;
+          }
+          telegramStatus.classList.remove("is-error");
+          setState("redirecting", { autoResult: true });
+        });
+
+        document.querySelectorAll("[data-action='form']").forEach((button) => {
+          button.addEventListener("click", () => setState("form"));
+        });
+
+        document.querySelectorAll("[data-action='cancel']").forEach((button) => {
+          button.addEventListener("click", () => telegram.focus());
+        });
+
+        [telegram, promo].forEach((input) => input.addEventListener("input", updateDiscounts));
+
+        document.addEventListener("focusin", (event) => {
+          if (event.target.matches("input, button, a")) body.classList.add("is-focused");
+        });
+        document.addEventListener("focusout", () => {
+          window.setTimeout(() => {
+            if (!document.activeElement || !document.activeElement.matches("input, button, a")) {
+              body.classList.remove("is-focused");
+            }
+          }, 0);
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        if (stateNames.has(params.get("state"))) setState(params.get("state"));
+
+        const resize = () => {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          canvas.style.width = `${window.innerWidth}px`;
+          canvas.style.height = `${window.innerHeight}px`;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        };
+
+        const move = (clientX, clientY) => {
+          const nx = clientX / Math.max(window.innerWidth, 1);
+          const ny = clientY / Math.max(window.innerHeight, 1);
+          pointer.vx += (nx - pointer.tx) * 0.7;
+          pointer.vy += (ny - pointer.ty) * 0.7;
+          pointer.tx = nx;
+          pointer.ty = ny;
+          if (card) {
+            const rect = card.getBoundingClientRect();
+            const cx = ((clientX - rect.left) / rect.width) * 100;
+            const cy = ((clientY - rect.top) / rect.height) * 100;
+            card.style.setProperty("--focus-x", `${Math.max(0, Math.min(100, cx))}%`);
+            card.style.setProperty("--focus-y", `${Math.max(0, Math.min(100, cy))}%`);
+          }
+        };
+
+        window.addEventListener("resize", resize);
+        window.addEventListener("pointermove", (event) => move(event.clientX, event.clientY), { passive: true });
+        window.addEventListener("pointerdown", (event) => {
+          pointer.down = true;
+          pointer.press = 1;
+          move(event.clientX, event.clientY);
+        }, { passive: true });
+        window.addEventListener("pointerup", () => { pointer.down = false; }, { passive: true });
+
+        const draw = (now) => {
+          const dt = Math.min((now - last) / 1000, 0.04);
+          last = now;
+          pointer.x += (pointer.tx - pointer.x) * 0.045 + pointer.vx * 0.018;
+          pointer.y += (pointer.ty - pointer.y) * 0.045 + pointer.vy * 0.018;
+          pointer.vx *= 0.88;
+          pointer.vy *= 0.88;
+          pointer.press += ((pointer.down ? 1 : 0) - pointer.press) * 0.08;
+
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+          const energy = activeState === "redirecting" ? 1.2 : activeState === "paid" ? 0.84 : activeState === "failed" ? 0.96 : 0.58;
+          const drag = Math.min(1.6, Math.hypot(pointer.vx, pointer.vy) * 8 + pointer.press);
+
+          const base = ctx.createLinearGradient(0, 0, w, h);
+          base.addColorStop(0, "#050708");
+          base.addColorStop(0.48, activeState === "failed" ? "#15100f" : "#081010");
+          base.addColorStop(1, "#11141a");
+          ctx.fillStyle = base;
+          ctx.fillRect(0, 0, w, h);
+
+          const px = pointer.x * w;
+          const py = pointer.y * h;
+          const time = now * 0.00016;
+          const blobs = [
+            [px, py, 360 + drag * 120, `rgba(155, 227, 109, ${0.12 + energy * 0.07})`],
+            [w * (0.18 + Math.sin(time) * 0.06), h * 0.22, 520, "rgba(114, 170, 255, 0.12)"],
+            [w * 0.78, h * (0.18 + Math.cos(time * 1.4) * 0.08), 460, activeState === "failed" ? "rgba(242, 160, 143, 0.16)" : "rgba(155, 227, 109, 0.12)"],
+            [w * (0.58 + pointer.vx * 0.12), h * (0.82 + pointer.vy * 0.12), 600, "rgba(247, 244, 236, 0.06)"],
+          ];
+
+          blobs.forEach(([x, y, r, color]) => {
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+            gradient.addColorStop(0, color);
+            gradient.addColorStop(1, "rgba(0,0,0,0)");
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+          });
+
+          ctx.save();
+          ctx.globalAlpha = 0.28 + drag * 0.12;
+          ctx.strokeStyle = activeState === "failed" ? "rgba(242,160,143,0.18)" : "rgba(155,227,109,0.16)";
+          ctx.lineWidth = 1;
+          for (let i = 0; i < 18; i += 1) {
+            const y = h * (i / 17);
+            const amp = (18 + drag * 20) * Math.sin(time * 4 + i);
+            ctx.beginPath();
+            ctx.moveTo(0, y + amp);
+            for (let x = 0; x <= w; x += 80) {
+              const wave = Math.sin(x * 0.007 + time * 8 + i * 0.6) * (18 + drag * 26);
+              ctx.lineTo(x, y + wave + pointer.vy * h * 0.08);
+            }
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          window.requestAnimationFrame(draw);
+        };
+
+        resize();
+        updateDiscounts();
+        window.requestAnimationFrame(draw);
+      })();
+    </script>
+  </body>
+</html>

@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port=3001 --host=0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && node scripts/copy-review-labs-to-dist.mjs",
     "preview": "vite preview",
+    "verify:cases": "node scripts/verify-case-source-fidelity.mjs",
+    "qa:design-hierarchy": "node scripts/verify-design-hierarchy.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

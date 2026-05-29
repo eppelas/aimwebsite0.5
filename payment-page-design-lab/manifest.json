@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-28",
+  "updatedAt": "2026-05-29T23:29:01Z",
   "sourceOfTruth": "V3 Site Repo - aimwebsite0.5/payment-page-design-lab/manifest.json",
   "status": "review-only",
   "liveSiteReplacement": false,
@@ -31,7 +31,7 @@
     "type": "payment-page-visual-variants",
     "path": "runs/2026-05-27-payment-canvas-10x/index.html",
     "mainReviewPath": "index.html",
-    "variantCount": 21
+    "variantCount": 9
   },
   "paymentUx": {
     "fixedReviewOrder": {
@@ -66,157 +66,19 @@
   },
   "variants": [
     {
-      "id": "kinetic-type",
-      "title": "Kinetic Type Gate",
-      "reference": "X26 workshop presentation slide 9 mechanics: rotating rings of text",
-      "artifact": "index.html",
-      "reviewStatus": "promoted-owner-rating-9",
-      "ownerRating": {
-        "score": 9,
-        "scale": "0-10",
-        "date": "2026-05-28",
-        "rater": "Анка"
-      },
-      "reviewDisposition": "Owner rated this 9/10 via Page Design Lab (2026-05-28). Treat its successful mechanics as a preferred payment-lane input; keep the payment UX minimal and source-faithful."
-    },
-    {
-      "id": "garden-ledger",
-      "title": "Dark Garden Ledger",
-      "reference": "X26 garden / living participant system mechanics",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. It is useful only as a historical example of insufficient variant diversity.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring Payment 02-05 variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "noise-receipt",
-      "title": "Noise Receipt Theater",
-      "reference": "receipt and payment route as full-page theatrical canvas",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The promised receipt/theater idea was not implemented materially enough.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring Payment 02-05 variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "topographic-price",
-      "title": "Topographic Price Field",
-      "reference": "discount/price terrain and contour maps",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The topographic/price-terrain concept was not expressed as a real interaction or layout mechanic.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring Payment 02-05 variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "constellation-route",
-      "title": "Constellation Route",
-      "reference": "site to gateway to bank to bot route map",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The route-map idea did not become a different reviewable checkout composition.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring Payment 02-05 variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "vault-access",
-      "title": "Access Vault",
-      "reference": "payment unlocks group access",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The vault/access metaphor stayed at skin level.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring initial variants; the implemented delta is mostly background/accent/ambient/card-shadow skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "signal-lines",
-      "title": "Signal Lines",
-      "reference": "payment route as readable signal motion",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The signal-line idea did not become a different route/status mechanic.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring initial variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "glitch-grid",
-      "title": "Glitch Grid",
-      "reference": "controlled dark glitch system",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The glitch concept remained a cosmetic skew/skin.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring initial variants; the implemented delta is mostly background/accent plus a tiny card skew.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "case-mosaic",
-      "title": "Case Mosaic Checkout",
-      "reference": "real AIM case imagery from local V3 assets",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The case-imagery idea did not become a real payment/page mechanic.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring initial variants; the image layer is too minor to justify a separate review card.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "terminal-orbit",
-      "title": "Terminal Orbit",
-      "reference": "terminal route with orbital order state",
-      "artifact": "index.html",
-      "status": "hidden-near-duplicate",
-      "reviewStatus": "rejected-near-duplicate",
-      "showInGallery": false,
-      "nearDuplicateCluster": "2026-05-27-payment-atmospheric-skins",
-      "reviewFocus": "Do not send as a separate review design. The terminal/orbit idea stayed at naming and skin level.",
-      "designDelta": "Rejected: same centered payment card, same form hierarchy, same payment states, and same canvas shell as the neighboring initial variants; the implemented delta is mostly background/accent/ambient skin.",
-      "reviewDisposition": "Anca rejected this cluster as not meaningfully different designs. Future generators must rebuild the composition or interaction instead of making another skin."
-    },
-    {
-      "id": "anca-galaxy-form",
-      "title": "Anca Galaxy Form",
-      "reference": "Anca Projects hero-canvas mouse-reactive starfield copied as payment page canvas",
-      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/Anca Projects/index.html",
-      "artifact": "index.html?variant=anca-galaxy-form&clean=1",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-anca-galaxy-form.png",
-      "sonyaSendAllowed": true,
-      "reviewStatus": "sendable-with-user-rating-5",
-      "compositionRule": "Minimal centered payment form only; no extra content blocks on the page, only the interactive galaxy background."
-    },
-    {
-      "id": "anca-galaxy-clean-page",
-      "title": "Clean Galaxy Page",
-      "reference": "Anca Projects hero-canvas mouse-reactive starfield, refined as a page rather than popup",
-      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/Anca Projects/index.html",
-      "artifact": "index.html?variant=anca-galaxy-clean-page&clean=1",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-anca-galaxy-clean-page.png",
-      "sonyaSendAllowed": true,
-      "reviewStatus": "sendable-with-user-rating-5",
-      "compositionRule": "Cleaner page composition: no close/X control, no popup chrome, borderless transparent glass payment surface, reduced internal borders, and the same payment copy/UX."
+      "id": "source-inkfield-checkout",
+      "title": "Source Inkfield Checkout",
+      "reference": "Source-faithful port of /Users/viola/Downloads/S.K.Y.ai (1)/inkField-green-interactive.html with AIM payment overlay.",
+      "artifact": "runs/2026-05-29-source-inkfield-checkout/index.html",
+      "readme": "runs/2026-05-29-source-inkfield-checkout/README.md",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-source-inkfield-checkout.png",
+      "compositionRule": "Use the original standalone InkField canvas mechanics directly; add only the compact real AIM payment card and four user-facing payment states.",
+      "reviewStatus": "active-review-source-port",
+      "selfRating": 7,
+      "showInGallery": true,
+      "status": "active-review",
+      "sourceFile": "/Users/viola/Downloads/S.K.Y.ai (1)/inkField-green-interactive.html",
+      "reviewDisposition": "Replaces the hidden self-made AIM Dark Inkfield direction. Keep this as the only Inkfield candidate unless a later source-faithful iteration clearly improves it."
     },
     {
       "id": "night-lunar-checkout",
@@ -226,8 +88,11 @@
       "readme": "runs/2026-05-27-night-lunar-checkout/README.md",
       "screenshot": "../homepage-design-lab/assets/previews/payment-night-lunar-checkout.png",
       "compositionRule": "Dark payment page canvas with one compact centered payment form, no plan selector, no internal state switcher, and the four-state flow form -> redirecting -> paid/failed.",
-      "reviewStatus": "reworked-after-user-feedback",
-      "selfRating": 6
+      "reviewStatus": "hidden-duplicate",
+      "selfRating": 6,
+      "showInGallery": false,
+      "status": "hidden-duplicate",
+      "reviewDisposition": "Hidden from active Page Design Lab because it is not materially different from Quiet Orbit Checkout: same centered dark checkout composition, same compact form hierarchy, and only background/date-level differences."
     },
     {
       "id": "night-quiet-orbit",
@@ -237,19 +102,25 @@
       "readme": "runs/2026-05-28-night-quiet-orbit/README.md",
       "screenshot": "../homepage-design-lab/assets/previews/payment-night-quiet-orbit.png",
       "compositionRule": "Centered compact payment form with external review arrows only; no plan selector, no extra demo interface, and paid/open-bot merged into one success state.",
-      "reviewStatus": "reworked-after-user-feedback",
-      "selfRating": 6
+      "reviewStatus": "active-review-restored",
+      "selfRating": 6,
+      "showInGallery": true,
+      "status": "active-review",
+      "reviewDisposition": "Restored after accidental removal. Keep as the quiet orbit / bowl-family candidate until Anka explicitly rejects this representative."
     },
     {
-      "id": "night-filmstrip-checkout",
-      "title": "Filmstrip Checkout",
-      "reference": "AIM Night Design Pursuit 2026-05-29: split filmstrip route + compact checkout; four-state flow preserved.",
-      "artifact": "runs/2026-05-29-night-filmstrip-checkout/index.html",
-      "readme": "runs/2026-05-29-night-filmstrip-checkout/README.md",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-night-filmstrip-checkout.png",
-      "compositionRule": "Split layout (route + checkout): left filmstrip state route with scrubber, right compact checkout surface. Keep the exact payment labels/methods/discount note and the four states.",
+      "id": "night-contour-stamp-checkout",
+      "title": "Contour Stamp Checkout",
+      "reference": "AIM Night Design Pursuit 2026-05-30: light paper checkout with contour/stamp frame that morphs per payment state; compact minimal payment UX preserved; no visible QA/scrubber UI.",
+      "artifact": "runs/2026-05-30-night-contour-stamp-checkout/index.html",
+      "readme": "runs/2026-05-30-night-contour-stamp-checkout/README.md",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-night-contour-stamp-checkout.png",
+      "compositionRule": "Light calm payment page with one compact centered form; preserve payment copy, discount rules, cancel no-op, and the four states. Any QA forcing must be hidden (query params only) and never shown as part of the design.",
       "reviewStatus": "active-review",
-      "selfRating": null
+      "selfRating": 8,
+      "showInGallery": true,
+      "status": "active-review",
+      "reviewDisposition": "New May 30 payment direction: contour/stamp frame morph as the state mechanic; explicitly avoids the 0/10 Filmstrip Checkout failure pattern (no visible route/state scrubber or URL/state hints)."
     },
     {
       "id": "x26-practice-blackhole",
@@ -259,12 +130,14 @@
       "artifact": "index.html?variant=x26-practice-blackhole&clean=1",
       "screenshot": "../homepage-design-lab/assets/previews/payment-x26-practice-blackhole.png",
       "compositionRule": "Keep the current compact payment form and four-state UX; use the Practice slide only for particle-field motion, sparse axis composition, and mouse-reactive depth. Do not keep reference labels such as the slide title or reference-only words.",
-      "status": "promising-archive-candidate-after-better-replacement",
+      "status": "promising-restored",
       "archiveCandidate": true,
       "userRatings": {
         "anka": 7.5
       },
-      "reviewDisposition": "Anka rated 7.5/10: keep the mouse-dependent glow spread/direction, but the field motion is still weaker than the original X26 interaction and should be superseded by a stronger variant before archiving."
+      "reviewDisposition": "Restored as the older bowl/gravity direction Anka asked not to lose. Keep one representative, not the whole duplicate family.",
+      "showInGallery": true,
+      "reviewStatus": "active-review-restored"
     },
     {
       "id": "x26-stay-vortex-card",
@@ -274,43 +147,14 @@
       "artifact": "index.html?variant=x26-stay-vortex-card&clean=1",
       "screenshot": "../homepage-design-lab/assets/previews/payment-x26-stay-vortex-card.png",
       "compositionRule": "Make the checkout card itself behave like a round black-hole object on desktop; preserve payment copy, discount rules, cancel no-op, and the exact four states.",
-      "status": "promising-archive-candidate-after-better-replacement",
+      "status": "promising-restored",
       "archiveCandidate": true,
       "userRatings": {
         "anka": 7.5
       },
-      "reviewDisposition": "Anka rated the adjacent X26-derived direction around 7.5/10: promising but not approved; archive after a clearly stronger replacement is accepted."
-    },
-    {
-      "id": "x26-slow-storm",
-      "title": "AIM Slow Storm",
-      "reference": "X26 workshop presentation slide 6 Storm: cloud/lightning particle storm, slowed down and made mouse-reactive for payment-page ambience.",
-      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/StormSystem.tsx",
-      "artifact": "index.html?variant=x26-slow-storm&clean=1",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-slow-storm.png",
-      "compositionRule": "Use storm motion as the decorative field only; keep one compact payment object, no added product/tariff entities, and no internal reviewer controls."
-    },
-    {
-      "id": "x26-inkfield-dark",
-      "title": "AIM Dark Inkfield",
-      "reference": "X26 workshop presentation slide 9 Inkfield: autonomous brush/ink field with mouse pull, adapted to a darker green-black payment page.",
-      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/InkFieldSlide.tsx",
-      "artifact": "index.html?variant=x26-inkfield-dark&clean=1",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-inkfield-dark.png",
-      "compositionRule": "Use the Inkfield brush mechanics as an interactive dark background; do not copy presentation copy into the payment form."
-    },
-    {
-      "id": "aim-event-horizon",
-      "title": "AIM Event Horizon",
-      "reference": "X26 workshop presentation slide 3 Practice / ParticleSystem math reused more directly: bowl/even-horizon strand formula, pointer rotation, velocity wake, and mouse-dependent glow. No visible reference copy is reused.",
-      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/ParticleSystem.tsx",
-      "artifact": "index.html?variant=aim-event-horizon&clean=1",
-      "screenshot": "../homepage-design-lab/assets/previews/payment-aim-event-horizon.png",
-      "compositionRule": "New stronger candidate after Anka 7.5/10 feedback: keep one compact payment form and the exact four-state UX, preserve the successful mouse-dependent glow, and replace simple vertical sway with pointer-inertia bowl/vortex motion.",
-      "status": "rejected-weaker-than-source-reference",
-      "reviewStatus": "rejected-weaker-than-source-reference",
-      "selfRating": 7,
-      "reviewDisposition": "User rejected this as still much weaker than the X26 source. Keep it as a documented failed approximation; direct source port supersedes it."
+      "reviewDisposition": "Restored as the mouse-shadow/vortex concept candidate. Keep because its pointer-dependent shadow/glow was explicitly called useful.",
+      "showInGallery": true,
+      "reviewStatus": "active-review-restored"
     },
     {
       "id": "aim-x26-practice-direct",
@@ -327,8 +171,10 @@
         "date": "2026-05-28",
         "rater": "Анка"
       },
-      "reviewDisposition": "Owner rated this 9/10 via Page Design Lab (2026-05-28). Preferred strong payment-lane direction; reuse the owned source mechanics and keep checkout UX unchanged.",
-      "selfRating": null
+      "reviewDisposition": "Owner rated this 9/10 via Page Design Lab (2026-05-28). Restored after accidental removal; keep visible as the preferred direct X26 particle-code payment direction.",
+      "selfRating": null,
+      "showInGallery": true,
+      "status": "active-review"
     },
     {
       "id": "aim-ai-mindset-morph",
@@ -345,8 +191,76 @@
         "date": "2026-05-28",
         "rater": "Анка"
       },
-      "reviewDisposition": "Owner rated this 9/10 via Page Design Lab (2026-05-28). Promote its mechanics as a preferred sibling direction to AIM Direct Particle; keep checkout UX minimal and do not add invented copy.",
-      "selfRating": null
+      "reviewDisposition": "Owner rated this 9/10 via Page Design Lab (2026-05-28). Keep visible as a preferred payment direction; no stale recheck badge until Anka requests a new review.",
+      "selfRating": null,
+      "needsSonyaRereview": true,
+      "showInGallery": true,
+      "status": "active-review"
+    },
+    {
+      "id": "aim-ai-mindset-morph-contrast",
+      "title": "AIM Mindset Morph Contrast",
+      "reference": "Copy of AIM Mindset Morph for a separate readability/contrast pass. Same X26 ParticleSystem base and four-state payment UX; the delta is darker form surfaces, stronger input contrast, and clearer placeholder/status hierarchy for comparison against the original.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/ParticleSystem.tsx",
+      "artifact": "index.html?variant=aim-ai-mindset-morph-contrast&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-aim-ai-mindset-morph-contrast.png",
+      "compositionRule": "Keep the promoted AIM Mindset Morph composition intact, but isolate the field readability fix into a reviewable copy: compact card, exact payment labels/states/discount behavior, no route/debug panels, and higher contrast inputs over the animated particle field.",
+      "reviewStatus": "active-review-contrast-copy",
+      "ownerRating": {
+        "score": null,
+        "scale": "0-10",
+        "date": "2026-05-29",
+        "rater": "Анка",
+        "note": "New copied variant requires fresh comparison review; do not inherit the original 9/10 score automatically."
+      },
+      "ratingPolicy": {
+        "ratingResetAt": "2026-05-29T16:30:00+01:00",
+        "reason": "This is a copied/reworked version of a previously rated design, so the prior score is comparison context only.",
+        "staleRatingWeight": 0,
+        "requiresFreshRating": true,
+        "needsSonyaRereview": true,
+        "reviewQueue": [
+          "anka",
+          "sonya"
+        ]
+      },
+      "needsSonyaRereview": true,
+      "showInGallery": true,
+      "status": "active-review"
+    },
+    {
+      "id": "x26-inkfield-dark",
+      "title": "AIM Dark Inkfield",
+      "reference": "Source-faithful port of the S.K.Y.ai inkField interactive HTML / X26 Inkfield direction: 2000x1000 virtual brush field, source-style dense pointer-only splats, bbox/vector trail, log overlay, and mouse pressure.",
+      "sourcePath": "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/X26 workshop presentation/src/components/InkFieldSlide.tsx",
+      "artifact": "index.html?variant=x26-inkfield-dark&clean=1",
+      "screenshot": "../homepage-design-lab/assets/previews/payment-x26-inkfield-dark.png",
+      "compositionRule": "Use the Inkfield brush mechanics as an interactive dark background that appears from pointer movement/press only; preserve current AIM payment copy and four-state checkout UX. Do not copy S.K.Y.ai/presentation text into the payment form.",
+      "status": "hidden-needs-source-performance-repair",
+      "reviewStatus": "blocked-from-review-until-repaired",
+      "showInGallery": false,
+      "sonyaSendAllowed": false,
+      "ownerRating": {
+        "score": 4,
+        "scale": "0-10",
+        "date": "2026-05-28",
+        "rater": "Анка"
+      },
+      "ratingPolicy": {
+        "ratingResetAt": "2026-05-29T18:40:00+01:00",
+        "reason": "Inkfield was reported as worse than source and too heavy. Needs repair before it can be treated as a rated candidate.",
+        "staleRatingWeight": 0,
+        "requiresFreshRating": true,
+        "needsSonyaRereview": false,
+        "reviewQueue": [
+          "anka"
+        ],
+        "sonyaBrief": "Do not send until Codex confirms the source-port/performance repair."
+      },
+      "needsSonyaRereview": true,
+      "reviewFocus": "Check whether this now feels like the reference inkField: pointer-only dense wet brush particles, cursor pressure, stroke/debug overlays, and a payment card that belongs in that field.",
+      "designDelta": "Reworked from the old weak approximation: direct route is restored, splat system now uses the source 2000x1000 brush math and 24000-particle cap, the autonomous background emitter was removed, and the card is rebuilt as a larger green-black inkfield object.",
+      "reviewDisposition": "Hidden from Page Design Lab review cards after owner report: current Inkfield port is worse than source and can hang the computer. Keep direct URL only until it is rebuilt from the X26 InkFieldSlide mechanics with a strict particle budget."
     }
   ],
   "validation": {
@@ -362,6 +276,189 @@
       "Anca Galaxy Form starfield canvas renders and responds to mouse movement",
       "image assets load",
       "no live React files changed"
+    ],
+    "nearDuplicateCleanup": {
+      "date": "2026-05-29",
+      "removedFromReviewIndex": [
+        "anca-galaxy-form",
+        "anca-galaxy-clean-page",
+        "night-lunar-checkout",
+        "night-quiet-orbit"
+      ],
+      "reason": "User review: these payment page variants were visually indistinguishable and made the Page Design Lab noisy instead of useful.",
+      "trashMoveLog": [
+        "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AIM Website/V3 Site Repo - aimwebsite0.5/payment-page-design-lab/runs/2026-05-27-night-lunar-checkout -> /Users/viola/.Trash/aim-payment-near-duplicates-20260529-045007/2026-05-27-night-lunar-checkout",
+        "/Users/viola/All/Yandex.Disk.localized/3 Process/8 Vibe Coding/AIM Website/V3 Site Repo - aimwebsite0.5/payment-page-design-lab/runs/2026-05-28-night-quiet-orbit -> /Users/viola/.Trash/aim-payment-near-duplicates-20260529-045007/2026-05-28-night-quiet-orbit"
+      ]
+    },
+    "failedSelfQaCleanup": {
+      "date": "2026-05-29",
+      "removedFromReviewIndex": [
+        "2026-05-29-exp-aim-t05-a-codex-baseline-four-state-checkout",
+        "2026-05-29-exp-aim-t05-b-fallback-codex-scout-four-state-checkout"
+      ],
+      "reason": "Removed because self-QA found duplicate payment labels and these were not materially useful review candidates."
+    },
+    "rejectedZeroOfTen": [
+      {
+        "id": "night-filmstrip-checkout",
+        "title": "Filmstrip Checkout",
+        "rating": "0/10",
+        "date": "2026-05-29",
+        "reason": "Invalid payment-page concept: visible route/state panel, scrubber, and URL/state hints describe an internal QA/debug flow rather than a user-facing payment path.",
+        "rule": "Payment page review artifacts must show only the real four user states: order payment, payment partner redirect opening, payment received/open Telegram bot, payment failed/retry. No state switchers, scrubbers, route maps, URL hints, debug panels, or artificial progress explanations in the visible design."
+      }
+    ]
+  },
+  "reviewCuration": {
+    "date": "2026-05-29",
+    "mode": "restored-shortlist-after-accidental-overcleanup",
+    "visiblePaymentVariants": [
+      "night-lunar-checkout",
+      "night-quiet-orbit",
+      "x26-practice-blackhole",
+      "x26-stay-vortex-card",
+      "aim-x26-practice-direct",
+      "aim-ai-mindset-morph",
+      "aim-ai-mindset-morph-contrast"
+    ],
+    "removedFromReviewIndex": [
+      {
+        "id": "2026-05-29-exp-aim-t05-a-codex-baseline-clean-handoff",
+        "title": "Clean Handoff Payment (t05 A)",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "2026-05-29-exp-aim-t05-b-fallback-codex-scout-ascii-route-handoff",
+        "title": "ASCII Route Handoff (t05 B fallback)",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "kinetic-type",
+        "title": "Kinetic Type Gate",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "garden-ledger",
+        "title": "Dark Garden Ledger",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "noise-receipt",
+        "title": "Noise Receipt Theater",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "topographic-price",
+        "title": "Topographic Price Field",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "constellation-route",
+        "title": "Constellation Route",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "vault-access",
+        "title": "Access Vault",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "signal-lines",
+        "title": "Signal Lines",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "glitch-grid",
+        "title": "Glitch Grid",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "case-mosaic",
+        "title": "Case Mosaic Checkout",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "terminal-orbit",
+        "title": "Terminal Orbit",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "night-face-constellation-checkout",
+        "title": "Face Constellation Checkout",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "night-kinetic-iris-checkout",
+        "title": "Kinetic Iris Checkout",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "2026-05-29-exp-aim-t05-a-codex-baseline-compass-checkout",
+        "title": "Compass Checkout",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "2026-05-29-exp-aim-t05-b-fallback-codex-scout-ticket-stubs-checkout",
+        "title": "Ticket Stubs Checkout",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "x26-slow-storm",
+        "title": "AIM Slow Storm",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      },
+      {
+        "id": "aim-event-horizon",
+        "title": "AIM Event Horizon",
+        "reason": "Removed from Page Design Lab payment review because it was visually repetitive, boring dark-grid/green-particle work, debug-like, or not materially distinct enough for review."
+      }
+    ],
+    "hardRules": [
+      "Do not register payment-page variants that differ only by background particles, glow, grid, or tiny card offsets.",
+      "Do not register visible route/state panels, scrubbers, URL hints, debug switchers, or QA controls as payment designs.",
+      "Payment page candidates must be materially different in composition, interaction model, typography, and visual language before entering review."
+    ],
+    "restoredAfterOvercleanup": [
+      {
+        "id": "night-lunar-checkout",
+        "title": "Night Lunar Checkout"
+      },
+      {
+        "id": "night-quiet-orbit",
+        "title": "Quiet Orbit Checkout"
+      },
+      {
+        "id": "x26-practice-blackhole",
+        "title": "AIM Payment Gravity"
+      },
+      {
+        "id": "x26-stay-vortex-card",
+        "title": "AIM Vortex Checkout"
+      },
+      {
+        "id": "aim-x26-practice-direct",
+        "title": "AIM Direct Particle"
+      },
+      {
+        "id": "aim-ai-mindset-morph",
+        "title": "AIM Mindset Morph"
+      },
+      {
+        "id": "aim-ai-mindset-morph-contrast",
+        "title": "AIM Mindset Morph Contrast"
+      },
+      {
+        "id": "x26-inkfield-dark",
+        "title": "AIM Dark Inkfield"
+      }
+    ],
+    "hiddenPendingRepair": [
+      {
+        "id": "x26-inkfield-dark",
+        "title": "AIM Dark Inkfield",
+        "reason": "Reported worse than source and too heavy; do not show in review index until repaired."
+      }
     ]
   }
 }
