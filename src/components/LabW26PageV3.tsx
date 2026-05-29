@@ -2973,12 +2973,17 @@ export default function LabW26PageV3() {
   const isTouchMobileViewport = useMediaQuery(TOUCH_MOBILE_VIEWPORT_QUERY);
   const isMdViewport = useMediaQuery(MD_VIEWPORT_QUERY);
   const isLgViewport = useMediaQuery(LG_VIEWPORT_QUERY);
-  const paymentPopupVariant = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('payment')
-    : null;
   const searchParams = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search)
     : null;
+  const requestedPaymentStatusForPopup = searchParams?.get('paymentStatus');
+  const requestedPaymentPopupVariant = searchParams?.get('payment') ?? null;
+  const isPaymentPopupVariantPreview = searchParams?.get('paymentVariantPreview') === '1';
+  const paymentPopupVariant = requestedPaymentStatusForPopup
+    ? 'v7'
+    : isPaymentPopupVariantPreview
+      ? requestedPaymentPopupVariant
+      : null;
   const casePopupVariantParam = searchParams?.get('casePopup') as CasePopupVariant | null;
   const casePopupVariant: CasePopupVariant = casePopupVariantParam && CASE_POPUP_VARIANTS.has(casePopupVariantParam)
     ? casePopupVariantParam
@@ -3021,6 +3026,23 @@ export default function LabW26PageV3() {
   const lastSyncedHashRef = useRef<string>('');
   const pendingMenuScrollTargetRef = useRef<string | null>(null);
   const bodyOverflowRestoreRef = useRef<string | null>(null);
+  const autoOpenedPaymentParamRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const requestedPaymentStatus = searchParams?.get('paymentStatus');
+    const shouldOpenPaymentPreview = requestedPaymentStatus || searchParams?.get('paymentPopup') === 'form';
+    if (!shouldOpenPaymentPreview || activePaymentPlan) return;
+    const requestedPlan = searchParams?.get('paymentPlan');
+    const autopenKey = `${requestedPaymentStatus ?? ''}:${searchParams?.get('paymentPopup') ?? ''}:${requestedPlan ?? ''}`;
+    if (autoOpenedPaymentParamRef.current === autopenKey) return;
+    autoOpenedPaymentParamRef.current = autopenKey;
+    const plan = requestedPlan === 'premium'
+      ? pricingPlans[2]
+      : requestedPlan === 'advanced'
+        ? pricingPlans[1]
+        : pricingPlans[0];
+    setActivePaymentPlan({ name: plan.name, price: plan.price });
+  }, [activePaymentPlan, searchParams]);
 
   useEffect(() => {
     const isModalOpen = isMenuOpen || isCasesOverlayOpen || activeCaseIndex !== null || zoomedCaseImage !== null;
